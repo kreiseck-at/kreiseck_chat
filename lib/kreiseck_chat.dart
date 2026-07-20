@@ -5,5 +5,6 @@ export 'src/chat_theme.dart';
 export 'src/chat_thread_view.dart';
 export 'src/composer.dart';
 export 'src/conversation_list_view.dart';
+export 'src/mail_models.dart';
 export 'src/message_bubble.dart';
 export 'src/models.dart';

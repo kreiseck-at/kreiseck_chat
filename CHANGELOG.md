@@ -1,3 +1,9 @@
+## 0.2.0
+
+Mail-Modelle und -Widgets
+
+* `MailDirection`, `MailAttachment`, `MailAccountRef` und `MailMessage` Modelle.
+
 ## 0.1.0
 
 Initial release.
