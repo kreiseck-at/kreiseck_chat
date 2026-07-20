@@ -1,0 +1,135 @@
+import 'package:flutter/material.dart';
+
+import 'mail_models.dart';
+import 'mail_theme.dart';
+
+/// Renders a list of [MailMessage]s, e.g. an inbox overview.
+///
+/// Each row shows the sender, the subject (bold), the date and an unread
+/// dot when the message's [MailMessage.seen] is `false`.
+class MailListView extends StatelessWidget {
+  /// Creates a mail list view.
+  const MailListView({
+    super.key,
+    required this.messages,
+    required this.onOpen,
+    this.theme = const MailTheme.light(),
+  });
+
+  /// Messages to display.
+  final List<MailMessage> messages;
+
+  /// Called with the tapped message.
+  final ValueChanged<MailMessage> onOpen;
+
+  /// Visual configuration; defaults to [MailTheme.light].
+  final MailTheme theme;
+
+  @override
+  Widget build(BuildContext context) {
+    if (messages.isEmpty) {
+      return Material(
+        color: theme.background,
+        child: Center(
+          child: Text(
+            'No mail yet',
+            style: TextStyle(color: theme.textColor.withValues(alpha: 0.5)),
+          ),
+        ),
+      );
+    }
+
+    return Material(
+      color: theme.background,
+      child: ListView.separated(
+        itemCount: messages.length,
+        separatorBuilder: (context, index) => Divider(
+          height: 1,
+          color: theme.textColor.withValues(alpha: 0.08),
+        ),
+        itemBuilder: (context, index) {
+          final message = messages[index];
+          return _MailTile(
+            message: message,
+            theme: theme,
+            onTap: () => onOpen(message),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _MailTile extends StatelessWidget {
+  const _MailTile({
+    required this.message,
+    required this.theme,
+    required this.onTap,
+  });
+
+  final MailMessage message;
+  final MailTheme theme;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final mutedColor = theme.textColor.withValues(alpha: 0.6);
+
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            if (!message.seen) ...[
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: theme.unreadDot,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 10),
+            ] else
+              const SizedBox(width: 18),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    message.from,
+                    style: TextStyle(color: mutedColor, fontSize: 12),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    message.subject,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: theme.textColor,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              _formatDate(message.date),
+              style: TextStyle(color: mutedColor, fontSize: 12),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+String _formatDate(DateTime date) {
+  final day = date.day.toString().padLeft(2, '0');
+  final month = date.month.toString().padLeft(2, '0');
+  return '$day.$month.${date.year}';
+}

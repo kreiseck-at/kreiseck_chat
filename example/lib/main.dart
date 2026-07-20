@@ -99,7 +99,17 @@ class _ConversationsPageState extends State<ConversationsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Conversations')),
+      appBar: AppBar(
+        title: const Text('Conversations'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.mail_outline),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => const MailInboxPage()),
+            ),
+          ),
+        ],
+      ),
       body: ConversationListView(
         conversations: _conversations,
         onOpen: _openConversation,
@@ -156,6 +166,149 @@ class _ChatPageState extends State<ChatPage> {
         messages: _messages,
         onSend: _handleSend,
         composerHint: 'Message ${widget.title}',
+      ),
+    );
+  }
+}
+
+/// Demo page wiring up [MailListView], [MailDetailView] and [MailComposer]
+/// against in-memory data (no backend involved).
+class MailInboxPage extends StatefulWidget {
+  const MailInboxPage({super.key});
+
+  @override
+  State<MailInboxPage> createState() => _MailInboxPageState();
+}
+
+class _MailInboxPageState extends State<MailInboxPage> {
+  List<MailMessage> _messages = [
+    MailMessage(
+      id: 'e1',
+      direction: MailDirection.incoming,
+      from: 'dispatch@example.com',
+      to: 'me@example.com',
+      subject: 'Fahrplan für morgen',
+      bodyText: 'Bitte prüfe den aktualisierten Fahrplan im Anhang.',
+      date: DateTime.now().subtract(const Duration(hours: 2)),
+      attachments: const [
+        MailAttachment(name: 'fahrplan.pdf', sizeBytes: 24576),
+      ],
+    ),
+    MailMessage(
+      id: 'e2',
+      direction: MailDirection.incoming,
+      from: 'buchhaltung@example.com',
+      to: 'me@example.com',
+      subject: 'Monatsabrechnung Juni',
+      bodyText: 'Anbei die Abrechnung für den vergangenen Monat.',
+      date: DateTime.now().subtract(const Duration(days: 1)),
+      seen: true,
+    ),
+  ];
+
+  void _openMail(MailMessage message) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => MailDetailPage(
+          message: message.copyWith(seen: true),
+          onReply: () => _openCompose(replyTo: message),
+        ),
+      ),
+    );
+    setState(() {
+      _messages = [
+        for (final m in _messages)
+          if (m.id == message.id) m.copyWith(seen: true) else m,
+      ];
+    });
+  }
+
+  void _openCompose({MailMessage? replyTo}) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => MailComposePage(
+          initialTo: replyTo?.from ?? '',
+          initialSubject:
+              replyTo == null ? '' : 'Re: ${replyTo.subject}',
+          onSend: (to, subject, body) {
+            setState(() {
+              _messages = [
+                MailMessage(
+                  id: DateTime.now().microsecondsSinceEpoch.toString(),
+                  direction: MailDirection.outgoing,
+                  from: 'me@example.com',
+                  to: to,
+                  subject: subject,
+                  bodyText: body,
+                  date: DateTime.now(),
+                  seen: true,
+                ),
+                ..._messages,
+              ];
+            });
+          },
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Mail'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit_outlined),
+            onPressed: () => _openCompose(),
+          ),
+        ],
+      ),
+      body: MailListView(messages: _messages, onOpen: _openMail),
+    );
+  }
+}
+
+/// Demo page showing a single mail via [MailDetailView].
+class MailDetailPage extends StatelessWidget {
+  const MailDetailPage({super.key, required this.message, this.onReply});
+
+  final MailMessage message;
+  final VoidCallback? onReply;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(message.subject)),
+      body: MailDetailView(message: message, onReply: onReply),
+    );
+  }
+}
+
+/// Demo page for composing a new mail via [MailComposer].
+class MailComposePage extends StatelessWidget {
+  const MailComposePage({
+    super.key,
+    required this.onSend,
+    this.initialTo = '',
+    this.initialSubject = '',
+  });
+
+  final void Function(String to, String subject, String body) onSend;
+  final String initialTo;
+  final String initialSubject;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Neue Mail')),
+      body: MailComposer(
+        initialTo: initialTo,
+        initialSubject: initialSubject,
+        onSend: (to, subject, body) {
+          onSend(to, subject, body);
+          Navigator.of(context).pop();
+        },
       ),
     );
   }
