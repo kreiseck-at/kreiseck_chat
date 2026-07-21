@@ -13,6 +13,7 @@ class ChatIcons {
     this.delivered = Icons.done_all,
     this.read = Icons.done_all,
     this.reply = Icons.reply_rounded,
+    this.copy = Icons.copy_rounded,
     this.error = Icons.error_outline,
   });
 
@@ -40,6 +41,9 @@ class ChatIcons {
   /// Reply action.
   final IconData reply;
 
+  /// Copy-to-clipboard action.
+  final IconData copy;
+
   /// Status: failed.
   final IconData error;
 
@@ -53,6 +57,7 @@ class ChatIcons {
     IconData? delivered,
     IconData? read,
     IconData? reply,
+    IconData? copy,
     IconData? error,
   }) {
     return ChatIcons(
@@ -64,6 +69,7 @@ class ChatIcons {
       delivered: delivered ?? this.delivered,
       read: read ?? this.read,
       reply: reply ?? this.reply,
+      copy: copy ?? this.copy,
       error: error ?? this.error,
     );
   }
@@ -80,10 +86,11 @@ class ChatIcons {
         other.delivered == delivered &&
         other.read == read &&
         other.reply == reply &&
+        other.copy == copy &&
         other.error == error;
   }
 
   @override
   int get hashCode => Object.hash(
-      send, attach, camera, mic, sent, delivered, read, reply, error);
+      send, attach, camera, mic, sent, delivered, read, reply, copy, error);
 }

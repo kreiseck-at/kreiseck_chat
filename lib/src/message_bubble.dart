@@ -24,6 +24,7 @@ class MessageBubble extends StatelessWidget {
     this.onReplyRequested,
     this.onReact,
     this.onOpenAttachment,
+    this.onCopy,
   });
 
   /// The message to render.
@@ -52,6 +53,10 @@ class MessageBubble extends StatelessWidget {
 
   /// Called when the user taps an attachment.
   final void Function(ChatAttachment attachment)? onOpenAttachment;
+
+  /// Called after the message text was copied to the clipboard (e.g. to show
+  /// a confirmation). Copy itself is handled internally.
+  final VoidCallback? onCopy;
 
   bool get _isOutgoing => message.direction == MessageDirection.outgoing;
 
@@ -102,6 +107,16 @@ class MessageBubble extends StatelessWidget {
                     onReplyRequested?.call();
                   },
                 ),
+              if (message.text.isNotEmpty)
+                ListTile(
+                  leading: Icon(theme.icons.copy),
+                  title: const Text('Kopieren'),
+                  onTap: () {
+                    Navigator.of(ctx).pop();
+                    Clipboard.setData(ClipboardData(text: message.text));
+                    onCopy?.call();
+                  },
+                ),
             ],
           ),
         );
@@ -142,7 +157,7 @@ class MessageBubble extends StatelessWidget {
           _MetaRow(
             time: _formatTime(message.at),
             isOutgoing: _isOutgoing,
-            showStatus: _isOutgoing && isLastInGroup,
+            showStatus: _isOutgoing,
             status: _effectiveStatus,
             theme: theme,
             textColor: textColor,
@@ -182,9 +197,10 @@ class MessageBubble extends StatelessWidget {
     );
 
     content = GestureDetector(
-      onLongPress: (capabilities.reactions || capabilities.replies)
-          ? () => _openActions(context)
-          : null,
+      onLongPress:
+          (capabilities.reactions || capabilities.replies || message.text.isNotEmpty)
+              ? () => _openActions(context)
+              : null,
       onHorizontalDragEnd: capabilities.replies
           ? (details) {
               final v = details.primaryVelocity ?? 0;

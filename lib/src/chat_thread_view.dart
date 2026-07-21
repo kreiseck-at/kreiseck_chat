@@ -29,6 +29,7 @@ class ChatThreadView extends StatefulWidget {
     this.onReplyRequested,
     this.onReact,
     this.onOpenAttachment,
+    this.onCopy,
     this.onLoadEarlier,
     this.header,
   });
@@ -68,6 +69,10 @@ class ChatThreadView extends StatefulWidget {
 
   /// Called when an attachment is tapped.
   final void Function(ChatAttachment attachment)? onOpenAttachment;
+
+  /// Called after a message's text was copied to the clipboard (e.g. to show
+  /// a confirmation). Copy itself is handled internally.
+  final VoidCallback? onCopy;
 
   /// Called when the user scrolls to the top to load older history.
   final Future<void> Function()? onLoadEarlier;
@@ -185,6 +190,7 @@ class _ChatThreadViewState extends State<ChatThreadView> {
                       ? null
                       : (emoji) => widget.onReact!(mi.message.id, emoji),
                   onOpenAttachment: widget.onOpenAttachment,
+                  onCopy: widget.onCopy,
                 );
               },
             ),

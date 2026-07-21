@@ -1,3 +1,12 @@
+## 0.5.0
+
+* `MessageBubble`: the send-status row (time + delivery ticks) now renders on
+  every outgoing message, not only the last one of a group.
+* `MessageBubble` / `ChatThreadView`: long-pressing a bubble now offers a **Copy**
+  action alongside reply/react (where supported). New `onCopy` callback fires
+  after the text is copied to the clipboard, the action menu opens whenever a
+  bubble has copyable text, and a themeable `ChatIcons.copy` icon was added.
+
 ## 0.4.0
 
 * `Composer`: WhatsApp-style input — Enter inserts a newline (new `sendOnEnter`
