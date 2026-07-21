@@ -3,6 +3,27 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kreiseck_chat/kreiseck_chat.dart';
 
+void _mockHaptics(WidgetTester tester, List<String> sink) {
+  tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+    SystemChannels.platform,
+    (MethodCall call) async {
+      if (call.method == 'HapticFeedback.vibrate') {
+        sink.add(call.arguments as String? ?? '');
+      }
+      return null;
+    },
+  );
+  addTearDown(() {
+    tester.binding.defaultBinaryMessenger
+        .setMockMethodCallHandler(SystemChannels.platform, null);
+  });
+}
+
+Future<void> _type(WidgetTester tester, String text) async {
+  await tester.enterText(find.byType(TextField), text);
+  await tester.pump();
+}
+
 void main() {
   testWidgets('attach button hidden when media capability off', (tester) async {
     await tester.pumpWidget(MaterialApp(
@@ -29,14 +50,79 @@ void main() {
     expect(find.byIcon(const ChatIcons().attach), findsOneWidget);
   });
 
-  testWidgets('send clears field and calls onSend', (tester) async {
+  testWidgets('send button appears only when there is text', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(body: Composer(onSend: (_) {})),
+    ));
+    // Empty: no send button.
+    expect(find.byIcon(const ChatIcons().send), findsNothing);
+    await _type(tester, 'hallo');
+    // Typing: send button visible.
+    expect(find.byIcon(const ChatIcons().send), findsOneWidget);
+  });
+
+  testWidgets('camera shortcut shown when empty + media, hidden while typing',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: Composer(
+          onSend: (_) {},
+          capabilities: const ChatCapabilities.inApp(),
+          onAttach: (_) {},
+        ),
+      ),
+    ));
+    expect(find.byIcon(const ChatIcons().camera), findsOneWidget);
+    await _type(tester, 'hallo');
+    expect(find.byIcon(const ChatIcons().camera), findsNothing);
+  });
+
+  testWidgets('camera shortcut fires onAttach(camera)', (tester) async {
+    final sources = <AttachSource>[];
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: Composer(
+          onSend: (_) {},
+          capabilities: const ChatCapabilities.inApp(),
+          onAttach: sources.add,
+        ),
+      ),
+    ));
+    await tester.tap(find.byIcon(const ChatIcons().camera));
+    await tester.pump();
+    expect(sources, [AttachSource.camera]);
+  });
+
+  testWidgets('input uses sentence capitalization by default', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(body: Composer(onSend: (_) {})),
+    ));
+    final field = tester.widget<TextField>(find.byType(TextField));
+    expect(field.textCapitalization, TextCapitalization.sentences);
+  });
+
+  testWidgets('enter inserts a newline by default (no send on enter)',
+      (tester) async {
     final sent = <String>[];
     await tester.pumpWidget(MaterialApp(
       home: Scaffold(body: Composer(onSend: sent.add)),
     ));
-    await tester.enterText(find.byType(TextField), 'hallo');
-    await tester.testTextInput.receiveAction(TextInputAction.send);
+    final field = tester.widget<TextField>(find.byType(TextField));
+    expect(field.textInputAction, TextInputAction.newline);
+    await _type(tester, 'hallo');
+    await tester.testTextInput.receiveAction(TextInputAction.newline);
     await tester.pump();
+    expect(sent, isEmpty);
+  });
+
+  testWidgets('send button clears field and calls onSend', (tester) async {
+    final sent = <String>[];
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(body: Composer(onSend: sent.add)),
+    ));
+    await _type(tester, 'hallo');
+    await tester.tap(find.byIcon(const ChatIcons().send));
+    await tester.pumpAndSettle();
     expect(sent, ['hallo']);
     expect(find.text('hallo'), findsNothing);
   });
@@ -54,46 +140,19 @@ void main() {
 
   testWidgets('send fires a haptic by default', (tester) async {
     final haptics = <String>[];
-    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
-      SystemChannels.platform,
-      (MethodCall call) async {
-        if (call.method == 'HapticFeedback.vibrate') {
-          haptics.add(call.arguments as String? ?? '');
-        }
-        return null;
-      },
-    );
-    addTearDown(() {
-      tester.binding.defaultBinaryMessenger
-          .setMockMethodCallHandler(SystemChannels.platform, null);
-    });
-
+    _mockHaptics(tester, haptics);
     await tester.pumpWidget(MaterialApp(
       home: Scaffold(body: Composer(onSend: (_) {})),
     ));
-    await tester.enterText(find.byType(TextField), 'hallo');
-    await tester.testTextInput.receiveAction(TextInputAction.send);
+    await _type(tester, 'hallo');
+    await tester.tap(find.byIcon(const ChatIcons().send));
     await tester.pumpAndSettle();
-
     expect(haptics, isNotEmpty);
   });
 
   testWidgets('send haptic stays silent when motion is none', (tester) async {
     final haptics = <String>[];
-    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
-      SystemChannels.platform,
-      (MethodCall call) async {
-        if (call.method == 'HapticFeedback.vibrate') {
-          haptics.add(call.arguments as String? ?? '');
-        }
-        return null;
-      },
-    );
-    addTearDown(() {
-      tester.binding.defaultBinaryMessenger
-          .setMockMethodCallHandler(SystemChannels.platform, null);
-    });
-
+    _mockHaptics(tester, haptics);
     await tester.pumpWidget(MaterialApp(
       home: Scaffold(
         body: Composer(
@@ -102,28 +161,21 @@ void main() {
         ),
       ),
     ));
-    await tester.enterText(find.byType(TextField), 'hallo');
-    await tester.testTextInput.receiveAction(TextInputAction.send);
+    await _type(tester, 'hallo');
+    await tester.tap(find.byIcon(const ChatIcons().send));
     await tester.pumpAndSettle();
-
     expect(haptics, isEmpty);
   });
 
-  testWidgets('send button is wrapped in a ScaleTransition when sendAnimation is on',
-      (tester) async {
+  testWidgets('send button is wrapped in a ScaleTransition', (tester) async {
     await tester.pumpWidget(MaterialApp(
       home: Scaffold(body: Composer(onSend: (_) {})),
     ));
-    await tester.enterText(find.byType(TextField), 'hallo');
-    await tester.pump();
-
+    await _type(tester, 'hallo');
     final scaleTransition = find.ancestor(
       of: find.byIcon(const ChatIcons().send),
       matching: find.byType(ScaleTransition),
     );
     expect(scaleTransition, findsOneWidget);
-
-    await tester.testTextInput.receiveAction(TextInputAction.send);
-    await tester.pumpAndSettle();
   });
 }

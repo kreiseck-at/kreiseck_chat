@@ -20,6 +20,8 @@ class Composer extends StatefulWidget {
     this.onAttach,
     this.onTypingChanged,
     this.showMic = false,
+    this.textCapitalization = TextCapitalization.sentences,
+    this.sendOnEnter = false,
   });
 
   /// Called with the trimmed message text on submit.
@@ -42,6 +44,14 @@ class Composer extends StatefulWidget {
 
   /// Whether to show a (placeholder) mic button when the field is empty.
   final bool showMic;
+
+  /// Auto-capitalization for the input; defaults to sentence case.
+  final TextCapitalization textCapitalization;
+
+  /// When true, the keyboard's return key sends the message. When false
+  /// (default, WhatsApp-style) return inserts a newline and sending is only
+  /// via the send button.
+  final bool sendOnEnter;
 
   @override
   State<Composer> createState() => _ComposerState();
@@ -153,8 +163,12 @@ class _ComposerState extends State<Composer> with SingleTickerProviderStateMixin
                   controller: _controller,
                   minLines: 1,
                   maxLines: 5,
-                  textInputAction: TextInputAction.send,
-                  onSubmitted: (_) => _submit(),
+                  textCapitalization: widget.textCapitalization,
+                  keyboardType: TextInputType.multiline,
+                  textInputAction: widget.sendOnEnter
+                      ? TextInputAction.send
+                      : TextInputAction.newline,
+                  onSubmitted: widget.sendOnEnter ? (_) => _submit() : null,
                   decoration: InputDecoration(
                     hintText: widget.hintText ?? 'Nachricht',
                     border: OutlineInputBorder(
@@ -171,7 +185,7 @@ class _ComposerState extends State<Composer> with SingleTickerProviderStateMixin
                 ),
               ),
               const SizedBox(width: 4),
-              if (hasText || !widget.showMic)
+              if (hasText)
                 ScaleTransition(
                   scale: Tween<double>(begin: 1.0, end: 0.8).animate(
                     CurvedAnimation(parent: _sendAnim, curve: Curves.easeInOut),
@@ -181,11 +195,18 @@ class _ComposerState extends State<Composer> with SingleTickerProviderStateMixin
                     onPressed: _submit,
                   ),
                 )
-              else
-                IconButton(
-                  icon: Icon(theme.icons.mic, color: theme.colors.accent),
-                  onPressed: null,
-                ),
+              else ...[
+                if (widget.capabilities.media)
+                  IconButton(
+                    icon: Icon(theme.icons.camera, color: theme.colors.accent),
+                    onPressed: () => widget.onAttach?.call(AttachSource.camera),
+                  ),
+                if (widget.showMic)
+                  IconButton(
+                    icon: Icon(theme.icons.mic, color: theme.colors.accent),
+                    onPressed: null,
+                  ),
+              ],
             ],
           ),
         ),
