@@ -14,6 +14,12 @@
   `MessageBubble`, `Composer`, `ChatThreadView`, `ConversationListView` with
   grouping, reactions, replies, media, presence, and motion/haptics.
 
+## 0.2.0
+
+Mail-Modelle und -Widgets
+
+* `MailDirection`, `MailAttachment`, `MailAccountRef` und `MailMessage` Modelle.
+
 ## 0.1.0
 
 Initial release.
