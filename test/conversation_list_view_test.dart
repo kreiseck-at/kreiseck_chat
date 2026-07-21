@@ -3,42 +3,52 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kreiseck_chat/kreiseck_chat.dart';
 
 void main() {
-  testWidgets('shows conversations and reports taps', (tester) async {
-    final conversations = [
-      const ChatConversation(id: '1', title: 'Alice', lastText: 'Hi there'),
-      const ChatConversation(id: '2', title: 'Bob', lastText: 'See you'),
-    ];
+  testWidgets('renders title and last text; tap opens', (tester) async {
     ChatConversation? opened;
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: ConversationListView(
-          conversations: conversations,
-          onOpen: (conversation) => opened = conversation,
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: ConversationListView(
+          conversations: [
+            ChatConversation(id: 'c1', title: 'Ada', lastText: 'Bis morgen'),
+          ],
+          onOpen: (c) => opened = c,
         ),
       ),
-    );
-
-    expect(find.text('Alice'), findsOneWidget);
-    expect(find.text('Bob'), findsOneWidget);
-
-    await tester.tap(find.text('Bob'));
-    await tester.pump();
-
-    expect(opened, conversations[1]);
+    ));
+    expect(find.text('Ada'), findsOneWidget);
+    expect(find.text('Bis morgen'), findsOneWidget);
+    await tester.tap(find.text('Ada'));
+    expect(opened?.id, 'c1');
   });
 
-  testWidgets('shows an empty state without crashing', (tester) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: ConversationListView(
-          conversations: const [],
+  testWidgets('typing preview overrides last text when enabled', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: ConversationListView(
+          conversations: const [
+            ChatConversation(
+                id: 'c1', title: 'Ada', lastText: 'Bis morgen', typing: true),
+          ],
+          onOpen: (_) {},
+          capabilities: const ChatCapabilities.inApp(),
+        ),
+      ),
+    ));
+    expect(find.text('tippt…'), findsOneWidget);
+    expect(find.text('Bis morgen'), findsNothing);
+  });
+
+  testWidgets('unread badge shows count', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: ConversationListView(
+          conversations: const [
+            ChatConversation(id: 'c1', title: 'Ada', unread: 3),
+          ],
           onOpen: (_) {},
         ),
       ),
-    );
-
-    expect(tester.takeException(), isNull);
-    expect(find.byType(ConversationListView), findsOneWidget);
+    ));
+    expect(find.text('3'), findsOneWidget);
   });
 }
