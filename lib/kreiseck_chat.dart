@@ -16,3 +16,4 @@ export 'src/composer.dart';
 export 'src/conversation_list_view.dart';
 export 'src/message_bubble.dart';
 export 'src/models.dart';
+export 'src/thread_items.dart';
