@@ -2,6 +2,7 @@
 library;
 
 export 'src/bubble_style.dart';
+export 'src/bubble_tail_painter.dart';
 export 'src/chat_attachment.dart';
 export 'src/chat_capabilities.dart';
 export 'src/chat_colors.dart';
