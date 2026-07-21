@@ -30,6 +30,8 @@ class ChatThreadView extends StatefulWidget {
     this.onReact,
     this.onOpenAttachment,
     this.onCopy,
+    this.attachmentPreview,
+    this.onRemoveAttachment,
     this.onLoadEarlier,
     this.header,
   });
@@ -73,6 +75,13 @@ class ChatThreadView extends StatefulWidget {
   /// Called after a message's text was copied to the clipboard (e.g. to show
   /// a confirmation). Copy itself is handled internally.
   final VoidCallback? onCopy;
+
+  /// A pending attachment (picked but not yet sent) shown as a thumbnail above
+  /// the composer input; enables the send button with an empty text field.
+  final ImageProvider? attachmentPreview;
+
+  /// Called when the user removes the pending [attachmentPreview].
+  final VoidCallback? onRemoveAttachment;
 
   /// Called when the user scrolls to the top to load older history.
   final Future<void> Function()? onLoadEarlier;
@@ -202,6 +211,8 @@ class _ChatThreadViewState extends State<ChatThreadView> {
             capabilities: widget.capabilities,
             onAttach: widget.onAttach,
             onTypingChanged: widget.onTypingChanged,
+            attachmentPreview: widget.attachmentPreview,
+            onRemoveAttachment: widget.onRemoveAttachment,
           ),
         ],
       ),

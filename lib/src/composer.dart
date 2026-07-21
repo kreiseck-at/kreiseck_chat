@@ -19,6 +19,8 @@ class Composer extends StatefulWidget {
     this.capabilities = const ChatCapabilities.inApp(),
     this.onAttach,
     this.onTypingChanged,
+    this.attachmentPreview,
+    this.onRemoveAttachment,
     this.showMic = false,
     this.textCapitalization = TextCapitalization.sentences,
     this.sendOnEnter = false,
@@ -41,6 +43,15 @@ class Composer extends StatefulWidget {
 
   /// Called when typing starts (true) or stops (false).
   final void Function(bool isTyping)? onTypingChanged;
+
+  /// A pending attachment the caller has picked but not yet sent. When set, a
+  /// thumbnail with a remove button is shown above the input and the send
+  /// button becomes active even with an empty text field. The caller owns the
+  /// actual file/upload; on send it pairs this attachment with [onSend]'s text.
+  final ImageProvider? attachmentPreview;
+
+  /// Called when the user taps the × on the [attachmentPreview] thumbnail.
+  final VoidCallback? onRemoveAttachment;
 
   /// Whether to show a (placeholder) mic button when the field is empty.
   final bool showMic;
@@ -92,7 +103,7 @@ class _ComposerState extends State<Composer> with SingleTickerProviderStateMixin
 
   void _submit() {
     final text = _controller.text.trim();
-    if (text.isEmpty) return;
+    if (text.isEmpty && widget.attachmentPreview == null) return;
     final motion = widget.theme.motion;
     if (motion.hapticsEnabled && motion.hapticOnSend) {
       HapticFeedback.lightImpact();
@@ -144,15 +155,26 @@ class _ComposerState extends State<Composer> with SingleTickerProviderStateMixin
   Widget build(BuildContext context) {
     final theme = widget.theme;
     final hasText = _controller.text.trim().isNotEmpty;
+    final showSend = hasText || widget.attachmentPreview != null;
     return Material(
       color: theme.colors.composer,
       child: SafeArea(
         top: false,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (widget.attachmentPreview != null)
+                _AttachmentPreview(
+                  image: widget.attachmentPreview!,
+                  accent: theme.colors.accent,
+                  onRemove: widget.onRemoveAttachment,
+                ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
               if (widget.capabilities.media)
                 IconButton(
                   icon: Icon(theme.icons.attach, color: theme.colors.accent),
@@ -185,7 +207,7 @@ class _ComposerState extends State<Composer> with SingleTickerProviderStateMixin
                 ),
               ),
               const SizedBox(width: 4),
-              if (hasText)
+              if (showSend)
                 ScaleTransition(
                   scale: Tween<double>(begin: 1.0, end: 0.8).animate(
                     CurvedAnimation(parent: _sendAnim, curve: Curves.easeInOut),
@@ -207,9 +229,51 @@ class _ComposerState extends State<Composer> with SingleTickerProviderStateMixin
                     onPressed: null,
                   ),
               ],
+                ],
+              ),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _AttachmentPreview extends StatelessWidget {
+  const _AttachmentPreview({
+    required this.image,
+    required this.accent,
+    required this.onRemove,
+  });
+
+  final ImageProvider image;
+  final Color accent;
+  final VoidCallback? onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 8, right: 8, top: 2, bottom: 6),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: Image(image: image, width: 64, height: 64, fit: BoxFit.cover),
+          ),
+          Positioned(
+            top: -6,
+            right: -6,
+            child: GestureDetector(
+              onTap: onRemove,
+              child: Container(
+                decoration: BoxDecoration(color: accent, shape: BoxShape.circle),
+                padding: const EdgeInsets.all(2),
+                child: const Icon(Icons.close, size: 16, color: Colors.white),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

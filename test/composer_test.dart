@@ -1,7 +1,13 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kreiseck_chat/kreiseck_chat.dart';
+
+// 1x1 transparentes PNG -- gültige Bytes, damit MemoryImage im Test nicht wirft.
+final _pixel = MemoryImage(base64Decode(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='));
 
 void _mockHaptics(WidgetTester tester, List<String> sink) {
   tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
@@ -165,6 +171,58 @@ void main() {
     await tester.tap(find.byIcon(const ChatIcons().send));
     await tester.pumpAndSettle();
     expect(haptics, isEmpty);
+  });
+
+  testWidgets('pending attachment enables send with an empty field', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: Composer(
+          onSend: (_) {},
+          capabilities: const ChatCapabilities.inApp(),
+          onAttach: (_) {},
+          attachmentPreview: _pixel,
+        ),
+      ),
+    ));
+    // Empty text but a pending photo: send shows, camera shortcut hides.
+    expect(find.byIcon(const ChatIcons().send), findsOneWidget);
+    expect(find.byIcon(const ChatIcons().camera), findsNothing);
+  });
+
+  testWidgets('sending with only an attachment calls onSend with empty text',
+      (tester) async {
+    final sent = <String>[];
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: Composer(
+          onSend: sent.add,
+          capabilities: const ChatCapabilities.inApp(),
+          onAttach: (_) {},
+          attachmentPreview: _pixel,
+        ),
+      ),
+    ));
+    await tester.tap(find.byIcon(const ChatIcons().send));
+    await tester.pumpAndSettle();
+    expect(sent, ['']);
+  });
+
+  testWidgets('tapping × on the preview fires onRemoveAttachment', (tester) async {
+    var removed = 0;
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: Composer(
+          onSend: (_) {},
+          capabilities: const ChatCapabilities.inApp(),
+          onAttach: (_) {},
+          attachmentPreview: _pixel,
+          onRemoveAttachment: () => removed++,
+        ),
+      ),
+    ));
+    await tester.tap(find.byIcon(Icons.close));
+    await tester.pump();
+    expect(removed, 1);
   });
 
   testWidgets('send button is wrapped in a ScaleTransition', (tester) async {

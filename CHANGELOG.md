@@ -1,3 +1,11 @@
+## 0.6.0
+
+* `Composer`: new `attachmentPreview` (an `ImageProvider`) + `onRemoveAttachment`
+  — when set, a thumbnail with a remove (×) button appears above the input and
+  the send button stays active with an empty text field, so a picked photo can
+  be sent with or without a caption. The caller owns the file/upload and pairs
+  the attachment with `onSend`'s text. `ChatThreadView` forwards both.
+
 ## 0.5.0
 
 * `MessageBubble`: the send-status row (time + delivery ticks) now renders on
