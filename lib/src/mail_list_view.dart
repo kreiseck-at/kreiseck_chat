@@ -104,14 +104,24 @@ class _MailTile extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 2),
-                  Text(
-                    message.subject,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: theme.textColor,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          message.subject,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: theme.textColor,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (message.spam) ...[
+                        const SizedBox(width: 6),
+                        _SpamLabel(theme: theme),
+                      ],
+                    ],
                   ),
                 ],
               ),
@@ -122,6 +132,32 @@ class _MailTile extends StatelessWidget {
               style: TextStyle(color: mutedColor, fontSize: 12),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Small muted "Spam" tag shown next to the subject of a flagged message.
+class _SpamLabel extends StatelessWidget {
+  const _SpamLabel({required this.theme});
+
+  final MailTheme theme;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: theme.accentColor.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        'Spam',
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+          color: theme.accentColor,
         ),
       ),
     );

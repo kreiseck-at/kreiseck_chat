@@ -116,6 +116,7 @@ class MailMessage {
     this.bodyHtml,
     this.seen = false,
     this.attachments = const [],
+    this.spam = false,
   });
 
   /// Unique identifier of this message.
@@ -148,6 +149,9 @@ class MailMessage {
   /// Attachments carried by this message.
   final List<MailAttachment> attachments;
 
+  /// Whether the mailbox flagged this message as possible spam.
+  final bool spam;
+
   /// Creates a [MailMessage] from a JSON-decoded map.
   factory MailMessage.fromJson(Map<String, dynamic> json) {
     return MailMessage(
@@ -164,6 +168,7 @@ class MailMessage {
               ?.map((e) => MailAttachment.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
+      spam: json['spam'] as bool? ?? false,
     );
   }
 
@@ -179,6 +184,7 @@ class MailMessage {
     DateTime? date,
     bool? seen,
     List<MailAttachment>? attachments,
+    bool? spam,
   }) {
     return MailMessage(
       id: id ?? this.id,
@@ -191,6 +197,7 @@ class MailMessage {
       date: date ?? this.date,
       seen: seen ?? this.seen,
       attachments: attachments ?? this.attachments,
+      spam: spam ?? this.spam,
     );
   }
 
@@ -207,7 +214,8 @@ class MailMessage {
         other.bodyHtml == bodyHtml &&
         other.date == date &&
         other.seen == seen &&
-        _listEquals(other.attachments, attachments);
+        _listEquals(other.attachments, attachments) &&
+        other.spam == spam;
   }
 
   @override
@@ -222,6 +230,7 @@ class MailMessage {
         date,
         seen,
         Object.hashAll(attachments),
+        spam,
       );
 }
 
