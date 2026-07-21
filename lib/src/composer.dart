@@ -19,8 +19,9 @@ class Composer extends StatefulWidget {
     this.capabilities = const ChatCapabilities.inApp(),
     this.onAttach,
     this.onTypingChanged,
-    this.attachmentPreview,
-    this.onRemoveAttachment,
+    this.attachmentPreviews = const [],
+    this.onRemoveAttachmentAt,
+    this.onAddAttachment,
     this.showMic = false,
     this.textCapitalization = TextCapitalization.sentences,
     this.sendOnEnter = false,
@@ -44,14 +45,18 @@ class Composer extends StatefulWidget {
   /// Called when typing starts (true) or stops (false).
   final void Function(bool isTyping)? onTypingChanged;
 
-  /// A pending attachment the caller has picked but not yet sent. When set, a
-  /// thumbnail with a remove button is shown above the input and the send
-  /// button becomes active even with an empty text field. The caller owns the
-  /// actual file/upload; on send it pairs this attachment with [onSend]'s text.
-  final ImageProvider? attachmentPreview;
+  /// Pending attachments the caller has picked but not yet sent. When
+  /// non-empty, a row of thumbnails (each with a remove ×) plus a trailing "+"
+  /// tile is shown above the input, and the send button becomes active even
+  /// with an empty text field. The caller owns the files/upload; on send it
+  /// pairs these attachments with [onSend]'s text (as an optional caption).
+  final List<ImageProvider> attachmentPreviews;
 
-  /// Called when the user taps the × on the [attachmentPreview] thumbnail.
-  final VoidCallback? onRemoveAttachment;
+  /// Called with the index of the thumbnail whose × was tapped.
+  final void Function(int index)? onRemoveAttachmentAt;
+
+  /// Called when the "+" tile in the preview row is tapped, to add more.
+  final VoidCallback? onAddAttachment;
 
   /// Whether to show a (placeholder) mic button when the field is empty.
   final bool showMic;
@@ -103,7 +108,7 @@ class _ComposerState extends State<Composer> with SingleTickerProviderStateMixin
 
   void _submit() {
     final text = _controller.text.trim();
-    if (text.isEmpty && widget.attachmentPreview == null) return;
+    if (text.isEmpty && widget.attachmentPreviews.isEmpty) return;
     final motion = widget.theme.motion;
     if (motion.hapticsEnabled && motion.hapticOnSend) {
       HapticFeedback.lightImpact();
@@ -155,7 +160,7 @@ class _ComposerState extends State<Composer> with SingleTickerProviderStateMixin
   Widget build(BuildContext context) {
     final theme = widget.theme;
     final hasText = _controller.text.trim().isNotEmpty;
-    final showSend = hasText || widget.attachmentPreview != null;
+    final showSend = hasText || widget.attachmentPreviews.isNotEmpty;
     return Material(
       color: theme.colors.composer,
       child: SafeArea(
@@ -166,11 +171,12 @@ class _ComposerState extends State<Composer> with SingleTickerProviderStateMixin
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (widget.attachmentPreview != null)
-                _AttachmentPreview(
-                  image: widget.attachmentPreview!,
+              if (widget.attachmentPreviews.isNotEmpty)
+                _AttachmentPreviewRow(
+                  images: widget.attachmentPreviews,
                   accent: theme.colors.accent,
-                  onRemove: widget.onRemoveAttachment,
+                  onRemoveAt: widget.onRemoveAttachmentAt,
+                  onAdd: widget.onAddAttachment,
                 ),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
@@ -239,31 +245,86 @@ class _ComposerState extends State<Composer> with SingleTickerProviderStateMixin
   }
 }
 
-class _AttachmentPreview extends StatelessWidget {
-  const _AttachmentPreview({
-    required this.image,
+/// A horizontal row of pending-attachment thumbnails (each removable) followed
+/// by a "+" tile to add more.
+class _AttachmentPreviewRow extends StatelessWidget {
+  const _AttachmentPreviewRow({
+    required this.images,
     required this.accent,
-    required this.onRemove,
+    required this.onRemoveAt,
+    required this.onAdd,
   });
+
+  final List<ImageProvider> images;
+  final Color accent;
+  final void Function(int index)? onRemoveAt;
+  final VoidCallback? onAdd;
+
+  static const double _tile = 64;
+
+  @override
+  Widget build(BuildContext context) {
+    // Eager Row (statt lazy ListView), damit alle Thumbnails immer gebaut werden.
+    final children = <Widget>[];
+    for (var i = 0; i < images.length; i++) {
+      if (i > 0) children.add(const SizedBox(width: 10));
+      children.add(_Thumb(
+        image: images[i],
+        accent: accent,
+        onRemove: onRemoveAt == null ? null : () => onRemoveAt!(i),
+      ));
+    }
+    if (onAdd != null) {
+      if (children.isNotEmpty) children.add(const SizedBox(width: 10));
+      children.add(_AddTile(accent: accent, onAdd: onAdd));
+    }
+    return Padding(
+      padding: const EdgeInsets.only(left: 8, right: 8, top: 4, bottom: 6),
+      child: SizedBox(
+        height: _tile + 8, // Platz für den überstehenden ×-Knopf.
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: children),
+        ),
+      ),
+    );
+  }
+}
+
+class _Thumb extends StatelessWidget {
+  const _Thumb({required this.image, required this.accent, required this.onRemove});
 
   final ImageProvider image;
   final Color accent;
   final VoidCallback? onRemove;
 
+  static const double _pad = 8; // Platz oben/rechts für den ×-Knopf.
+
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 8, right: 8, top: 2, bottom: 6),
+    return SizedBox(
+      width: _AttachmentPreviewRow._tile + _pad,
+      height: _AttachmentPreviewRow._tile + _pad,
+      // Bild unten-links, ×-Knopf oben-rechts -- beide innerhalb der Bounds,
+      // damit der Knopf zuverlässig antippbar ist (kein Clip.none-Overflow).
       child: Stack(
-        clipBehavior: Clip.none,
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: Image(image: image, width: 64, height: 64, fit: BoxFit.cover),
+          Positioned(
+            left: 0,
+            bottom: 0,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Image(
+                image: image,
+                width: _AttachmentPreviewRow._tile,
+                height: _AttachmentPreviewRow._tile,
+                fit: BoxFit.cover,
+              ),
+            ),
           ),
           Positioned(
-            top: -6,
-            right: -6,
+            top: 0,
+            right: 0,
             child: GestureDetector(
               onTap: onRemove,
               child: Container(
@@ -274,6 +335,36 @@ class _AttachmentPreview extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _AddTile extends StatelessWidget {
+  const _AddTile({required this.accent, required this.onAdd});
+
+  final Color accent;
+  final VoidCallback? onAdd;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: _AttachmentPreviewRow._tile + _Thumb._pad,
+      height: _AttachmentPreviewRow._tile + _Thumb._pad,
+      child: Align(
+        alignment: Alignment.bottomLeft,
+        child: GestureDetector(
+          onTap: onAdd,
+          child: Container(
+            width: _AttachmentPreviewRow._tile,
+            height: _AttachmentPreviewRow._tile,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: accent.withValues(alpha: 0.6), width: 1.5),
+            ),
+            child: Icon(Icons.add, color: accent, size: 28),
+          ),
+        ),
       ),
     );
   }

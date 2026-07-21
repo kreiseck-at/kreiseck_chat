@@ -30,8 +30,9 @@ class ChatThreadView extends StatefulWidget {
     this.onReact,
     this.onOpenAttachment,
     this.onCopy,
-    this.attachmentPreview,
-    this.onRemoveAttachment,
+    this.attachmentPreviews = const [],
+    this.onRemoveAttachmentAt,
+    this.onAddAttachment,
     this.onLoadEarlier,
     this.header,
   });
@@ -76,12 +77,15 @@ class ChatThreadView extends StatefulWidget {
   /// a confirmation). Copy itself is handled internally.
   final VoidCallback? onCopy;
 
-  /// A pending attachment (picked but not yet sent) shown as a thumbnail above
-  /// the composer input; enables the send button with an empty text field.
-  final ImageProvider? attachmentPreview;
+  /// Pending attachments (picked but not yet sent) shown as thumbnails above
+  /// the composer input; enable the send button even with an empty text field.
+  final List<ImageProvider> attachmentPreviews;
 
-  /// Called when the user removes the pending [attachmentPreview].
-  final VoidCallback? onRemoveAttachment;
+  /// Called with the index of the pending attachment the user removed.
+  final void Function(int index)? onRemoveAttachmentAt;
+
+  /// Called when the "+" tile is tapped to add another attachment.
+  final VoidCallback? onAddAttachment;
 
   /// Called when the user scrolls to the top to load older history.
   final Future<void> Function()? onLoadEarlier;
@@ -152,6 +156,17 @@ class _ChatThreadViewState extends State<ChatThreadView> {
     } else {
       _scroll.jumpTo(target);
     }
+    // Nachfassen: Bild-Bubbles und das Einklappen der Anhang-Vorschau im
+    // Composer verändern die Höhe erst nach diesem Frame -- ein einzelner Sprung
+    // träfe dann nicht mehr den echten Boden. Zweimal nachziehen (nächster Frame
+    // + kurze Verzögerung) hält den Verlauf zuverlässig ganz unten.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _snapToBottom());
+    Future.delayed(const Duration(milliseconds: 250), _snapToBottom);
+  }
+
+  void _snapToBottom() {
+    if (!mounted || !_scroll.hasClients) return;
+    _scroll.jumpTo(_scroll.position.maxScrollExtent);
   }
 
   @override
@@ -211,8 +226,9 @@ class _ChatThreadViewState extends State<ChatThreadView> {
             capabilities: widget.capabilities,
             onAttach: widget.onAttach,
             onTypingChanged: widget.onTypingChanged,
-            attachmentPreview: widget.attachmentPreview,
-            onRemoveAttachment: widget.onRemoveAttachment,
+            attachmentPreviews: widget.attachmentPreviews,
+            onRemoveAttachmentAt: widget.onRemoveAttachmentAt,
+            onAddAttachment: widget.onAddAttachment,
           ),
         ],
       ),

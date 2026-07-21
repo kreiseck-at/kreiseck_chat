@@ -1,3 +1,14 @@
+## 0.7.0
+
+* `Composer`: multi-attachment preview. Replaces the single `attachmentPreview`
+  with `attachmentPreviews` (a `List<ImageProvider>`) shown as a horizontal row
+  of removable thumbnails plus a trailing "+" tile; new `onRemoveAttachmentAt`
+  and `onAddAttachment` callbacks. `ChatThreadView` forwards all three. **Breaking:**
+  `attachmentPreview`/`onRemoveAttachment` are gone.
+* `ChatThreadView`: auto-scroll now re-snaps to the bottom on the next frame and
+  after a short delay, so image bubbles and the collapsing composer preview no
+  longer leave the thread scrolled short of the newest message.
+
 ## 0.6.0
 
 * `Composer`: new `attachmentPreview` (an `ImageProvider`) + `onRemoveAttachment`

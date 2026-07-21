@@ -173,20 +173,39 @@ void main() {
     expect(haptics, isEmpty);
   });
 
-  testWidgets('pending attachment enables send with an empty field', (tester) async {
+  testWidgets('pending attachments enable send with an empty field', (tester) async {
     await tester.pumpWidget(MaterialApp(
       home: Scaffold(
         body: Composer(
           onSend: (_) {},
           capabilities: const ChatCapabilities.inApp(),
           onAttach: (_) {},
-          attachmentPreview: _pixel,
+          attachmentPreviews: [_pixel],
         ),
       ),
     ));
     // Empty text but a pending photo: send shows, camera shortcut hides.
     expect(find.byIcon(const ChatIcons().send), findsOneWidget);
     expect(find.byIcon(const ChatIcons().camera), findsNothing);
+  });
+
+  testWidgets('multiple pending attachments each render a thumbnail + an add tile',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: Composer(
+          onSend: (_) {},
+          capabilities: const ChatCapabilities.inApp(),
+          onAttach: (_) {},
+          attachmentPreviews: [_pixel, _pixel],
+          onRemoveAttachmentAt: (_) {},
+          onAddAttachment: () {},
+        ),
+      ),
+    ));
+    // Two × remove buttons (one per thumbnail) + one "+" add tile.
+    expect(find.byIcon(Icons.close), findsNWidgets(2));
+    expect(find.byIcon(Icons.add), findsOneWidget);
   });
 
   testWidgets('sending with only an attachment calls onSend with empty text',
@@ -198,7 +217,7 @@ void main() {
           onSend: sent.add,
           capabilities: const ChatCapabilities.inApp(),
           onAttach: (_) {},
-          attachmentPreview: _pixel,
+          attachmentPreviews: [_pixel],
         ),
       ),
     ));
@@ -207,22 +226,42 @@ void main() {
     expect(sent, ['']);
   });
 
-  testWidgets('tapping × on the preview fires onRemoveAttachment', (tester) async {
-    var removed = 0;
+  testWidgets('tapping × on a thumbnail fires onRemoveAttachmentAt with its index',
+      (tester) async {
+    final removed = <int>[];
     await tester.pumpWidget(MaterialApp(
       home: Scaffold(
         body: Composer(
           onSend: (_) {},
           capabilities: const ChatCapabilities.inApp(),
           onAttach: (_) {},
-          attachmentPreview: _pixel,
-          onRemoveAttachment: () => removed++,
+          attachmentPreviews: [_pixel, _pixel],
+          onRemoveAttachmentAt: removed.add,
+          onAddAttachment: () {},
         ),
       ),
     ));
-    await tester.tap(find.byIcon(Icons.close));
+    await tester.tap(find.byIcon(Icons.close).first);
     await tester.pump();
-    expect(removed, 1);
+    expect(removed, [0]);
+  });
+
+  testWidgets('tapping the + tile fires onAddAttachment', (tester) async {
+    var added = 0;
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: Composer(
+          onSend: (_) {},
+          capabilities: const ChatCapabilities.inApp(),
+          onAttach: (_) {},
+          attachmentPreviews: [_pixel],
+          onAddAttachment: () => added++,
+        ),
+      ),
+    ));
+    await tester.tap(find.byIcon(Icons.add));
+    await tester.pump();
+    expect(added, 1);
   });
 
   testWidgets('send button is wrapped in a ScaleTransition', (tester) async {
