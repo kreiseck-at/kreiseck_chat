@@ -36,7 +36,7 @@ void main() {
     expect(find.text('Hi back'), findsOneWidget);
 
     await tester.enterText(find.byType(TextField), 'New message');
-    await tester.tap(find.byIcon(Icons.send));
+    await tester.tap(find.byIcon(Icons.send_rounded));
     await tester.pump();
 
     expect(sent, 'New message');

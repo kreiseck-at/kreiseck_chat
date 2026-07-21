@@ -1,28 +1,47 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
+import 'chat_capabilities.dart';
 import 'chat_theme.dart';
 
-/// A simple message composer: a text field with a send button.
-///
-/// The field is cleared after a successful send and empty (whitespace-only)
-/// text is never submitted.
+/// Where an attachment comes from.
+enum AttachSource { gallery, camera, file }
+
+/// A message composer: attach button (gated), auto-growing text field, and a
+/// send button. Emits typing changes and fires a send haptic per the theme.
 class Composer extends StatefulWidget {
-  /// Creates a composer that calls [onSend] with the trimmed text.
+  /// Creates a composer.
   const Composer({
     super.key,
     required this.onSend,
     this.hintText,
     this.theme = const ChatTheme.light(),
+    this.capabilities = const ChatCapabilities.inApp(),
+    this.onAttach,
+    this.onTypingChanged,
+    this.showMic = false,
   });
 
-  /// Called with the message text when the user submits it.
-  final ValueChanged<String> onSend;
+  /// Called with the trimmed message text on submit.
+  final void Function(String) onSend;
 
-  /// Placeholder text shown when the field is empty.
+  /// Placeholder text.
   final String? hintText;
 
-  /// Visual configuration; defaults to [ChatTheme.light].
+  /// Visual configuration.
   final ChatTheme theme;
+
+  /// Which affordances are allowed.
+  final ChatCapabilities capabilities;
+
+  /// Called with a chosen source when the user taps attach.
+  final void Function(AttachSource source)? onAttach;
+
+  /// Called when typing starts (true) or stops (false).
+  final void Function(bool isTyping)? onTypingChanged;
+
+  /// Whether to show a (placeholder) mic button when the field is empty.
+  final bool showMic;
 
   @override
   State<Composer> createState() => _ComposerState();
@@ -30,37 +49,96 @@ class Composer extends StatefulWidget {
 
 class _ComposerState extends State<Composer> {
   late final TextEditingController _controller;
+  bool _isTyping = false;
 
   @override
   void initState() {
     super.initState();
     _controller = TextEditingController();
+    _controller.addListener(_onChanged);
   }
 
   @override
   void dispose() {
+    _controller.removeListener(_onChanged);
     _controller.dispose();
     super.dispose();
+  }
+
+  void _onChanged() {
+    final typing = _controller.text.trim().isNotEmpty;
+    if (typing != _isTyping) {
+      _isTyping = typing;
+      widget.onTypingChanged?.call(typing);
+    }
+    setState(() {});
   }
 
   void _submit() {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
+    final motion = widget.theme.motion;
+    if (motion.hapticsEnabled && motion.hapticOnSend) {
+      HapticFeedback.lightImpact();
+    }
     widget.onSend(text);
     _controller.clear();
+  }
+
+  void _openAttachMenu() {
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: Icon(widget.theme.icons.camera),
+              title: const Text('Kamera'),
+              onTap: () {
+                Navigator.of(ctx).pop();
+                widget.onAttach?.call(AttachSource.camera);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: const Text('Galerie'),
+              onTap: () {
+                Navigator.of(ctx).pop();
+                widget.onAttach?.call(AttachSource.gallery);
+              },
+            ),
+            ListTile(
+              leading: Icon(widget.theme.icons.attach),
+              title: const Text('Datei'),
+              onTap: () {
+                Navigator.of(ctx).pop();
+                widget.onAttach?.call(AttachSource.file);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = widget.theme;
+    final hasText = _controller.text.trim().isNotEmpty;
     return Material(
-      color: theme.composerColor,
+      color: theme.colors.composer,
       child: SafeArea(
         top: false,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
+              if (widget.capabilities.media)
+                IconButton(
+                  icon: Icon(theme.icons.attach, color: theme.colors.accent),
+                  onPressed: _openAttachMenu,
+                ),
               Expanded(
                 child: TextField(
                   controller: _controller,
@@ -69,7 +147,7 @@ class _ComposerState extends State<Composer> {
                   textInputAction: TextInputAction.send,
                   onSubmitted: (_) => _submit(),
                   decoration: InputDecoration(
-                    hintText: widget.hintText ?? 'Message',
+                    hintText: widget.hintText ?? 'Nachricht',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(20),
                       borderSide: BorderSide.none,
@@ -83,11 +161,17 @@ class _ComposerState extends State<Composer> {
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
-              IconButton(
-                icon: Icon(Icons.send, color: theme.accentColor),
-                onPressed: _submit,
-              ),
+              const SizedBox(width: 4),
+              if (hasText || !widget.showMic)
+                IconButton(
+                  icon: Icon(theme.icons.send, color: theme.colors.accent),
+                  onPressed: _submit,
+                )
+              else
+                IconButton(
+                  icon: Icon(theme.icons.mic, color: theme.colors.accent),
+                  onPressed: null,
+                ),
             ],
           ),
         ),
