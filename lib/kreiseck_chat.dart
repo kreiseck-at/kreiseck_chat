@@ -2,6 +2,7 @@
 library;
 
 export 'src/chat_capabilities.dart';
+export 'src/chat_participant.dart';
 export 'src/chat_theme.dart';
 export 'src/chat_thread_view.dart';
 export 'src/composer.dart';
