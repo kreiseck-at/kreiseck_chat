@@ -171,6 +171,15 @@ class ChatMessageRef {
   /// Optional display label of the referenced sender.
   final String? senderLabel;
 
+  /// Returns a copy of this reference with the given fields replaced.
+  ChatMessageRef copyWith({String? id, String? snippet, String? senderLabel}) {
+    return ChatMessageRef(
+      id: id ?? this.id,
+      snippet: snippet ?? this.snippet,
+      senderLabel: senderLabel ?? this.senderLabel,
+    );
+  }
+
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
@@ -194,6 +203,11 @@ class TypingState {
 
   /// Whether anyone is typing.
   bool get anyoneTyping => participants.isNotEmpty;
+
+  /// Returns a copy of this typing state with the given fields replaced.
+  TypingState copyWith({List<ChatParticipant>? participants}) {
+    return TypingState(participants: participants ?? this.participants);
+  }
 
   @override
   bool operator ==(Object other) {

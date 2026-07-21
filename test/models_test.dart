@@ -133,4 +133,16 @@ void main() {
     expect(c.pinned, isTrue);
     expect(c.copyWith(muted: true).muted, isTrue);
   });
+
+  test('ChatMessageRef copyWith replaces senderLabel', () {
+    const r = ChatMessageRef(id: 'm0', snippet: 's', senderLabel: 'Ada');
+    expect(r.copyWith(senderLabel: 'Bob').senderLabel, 'Bob');
+    expect(r.copyWith(senderLabel: 'Bob').id, 'm0');
+  });
+
+  test('TypingState copyWith replaces participants', () {
+    const t = TypingState();
+    final t2 = t.copyWith(participants: const [ChatParticipant(id: '1', displayName: 'A')]);
+    expect(t2.anyoneTyping, isTrue);
+  });
 }
