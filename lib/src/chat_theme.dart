@@ -1,70 +1,136 @@
 import 'package:flutter/material.dart';
 
-/// Visual configuration for the chat widgets in this package.
-///
-/// Widgets never hard-code colors; every color used comes from an instance
-/// of this class so that hosting apps can support light/dark mode and their
-/// own branding by supplying a custom [ChatTheme].
+import 'bubble_style.dart';
+import 'chat_colors.dart';
+import 'chat_icons.dart';
+import 'chat_motion.dart';
+import 'chat_typography.dart';
+
+/// Visual configuration for the chat widgets, composed of independently
+/// overridable sub-configs (colors, typography, icons, motion) plus a bubble
+/// style preset. Everything has a default; override just what you need.
 class ChatTheme {
-  /// Creates a chat theme from explicit values.
+  /// Creates a theme from sub-configs.
   const ChatTheme({
-    required this.incomingBubbleColor,
-    required this.outgoingBubbleColor,
-    required this.incomingTextColor,
-    required this.outgoingTextColor,
-    required this.bubbleRadius,
-    required this.backgroundColor,
-    required this.composerColor,
-    required this.accentColor,
+    this.colors = const ChatColors.light(),
+    this.typography = const ChatTypography(),
+    this.icons = const ChatIcons(),
+    this.motion = const ChatMotion(),
+    this.bubbleStyle = BubbleStyle.minimal,
+    this.bubbleRadius = 16,
   });
 
-  /// Background color of bubbles for incoming messages.
-  final Color incomingBubbleColor;
+  /// Color set.
+  final ChatColors colors;
 
-  /// Background color of bubbles for outgoing messages.
-  final Color outgoingBubbleColor;
+  /// Text styles.
+  final ChatTypography typography;
 
-  /// Text color used inside incoming message bubbles.
-  final Color incomingTextColor;
+  /// Icon set.
+  final ChatIcons icons;
 
-  /// Text color used inside outgoing message bubbles.
-  final Color outgoingTextColor;
+  /// Animation/haptic config.
+  final ChatMotion motion;
 
-  /// Corner radius applied to message bubbles.
+  /// Bubble visual preset.
+  final BubbleStyle bubbleStyle;
+
+  /// Base corner radius for bubbles.
   final double bubbleRadius;
 
-  /// Background color of the chat surface (thread/list views).
-  final Color backgroundColor;
-
-  /// Background color of the message composer bar.
-  final Color composerColor;
-
-  /// Accent color, e.g. for the send button and read receipts.
-  final Color accentColor;
-
-  /// A light color scheme suitable as a sensible default.
+  /// Light preset (minimal bubbles).
   const factory ChatTheme.light() = ChatTheme._light;
 
-  /// A dark color scheme suitable as a sensible default.
+  /// Dark preset (minimal bubbles).
   const factory ChatTheme.dark() = ChatTheme._dark;
 
   const ChatTheme._light()
-      : incomingBubbleColor = const Color(0xFFE9E9EB),
-        outgoingBubbleColor = const Color(0xFF3478F6),
-        incomingTextColor = const Color(0xFF1C1C1E),
-        outgoingTextColor = const Color(0xFFFFFFFF),
-        bubbleRadius = 16,
-        backgroundColor = const Color(0xFFFAFAFA),
-        composerColor = const Color(0xFFFFFFFF),
-        accentColor = const Color(0xFF3478F6);
+      : colors = const ChatColors.light(),
+        typography = const ChatTypography(),
+        icons = const ChatIcons(),
+        motion = const ChatMotion(),
+        bubbleStyle = BubbleStyle.minimal,
+        bubbleRadius = 16;
 
   const ChatTheme._dark()
-      : incomingBubbleColor = const Color(0xFF2C2C2E),
-        outgoingBubbleColor = const Color(0xFF3478F6),
-        incomingTextColor = const Color(0xFFF2F2F7),
-        outgoingTextColor = const Color(0xFFFFFFFF),
-        bubbleRadius = 16,
-        backgroundColor = const Color(0xFF000000),
-        composerColor = const Color(0xFF1C1C1E),
-        accentColor = const Color(0xFF64A1FF);
+      : colors = const ChatColors.dark(),
+        typography = const ChatTypography(),
+        icons = const ChatIcons(),
+        motion = const ChatMotion(),
+        bubbleStyle = BubbleStyle.minimal,
+        bubbleRadius = 16;
+
+  /// WhatsApp-flavored preset.
+  factory ChatTheme.whatsApp({Brightness brightness = Brightness.light}) {
+    final dark = brightness == Brightness.dark;
+    final base = dark ? const ChatColors.dark() : const ChatColors.light();
+    return ChatTheme(
+      colors: base.copyWith(
+        outgoingBubble: dark ? const Color(0xFF005C4B) : const Color(0xFFD9FDD3),
+        outgoingText: dark ? const Color(0xFFE9EDEF) : const Color(0xFF111B21),
+        bubbleTail: dark ? const Color(0xFF005C4B) : const Color(0xFFD9FDD3),
+        accent: const Color(0xFF25D366),
+        background: dark ? const Color(0xFF0B141A) : const Color(0xFFECE5DD),
+      ),
+      bubbleStyle: BubbleStyle.whatsApp,
+      bubbleRadius: 12,
+    );
+  }
+
+  /// iMessage-flavored preset.
+  factory ChatTheme.iMessage({Brightness brightness = Brightness.light}) {
+    final dark = brightness == Brightness.dark;
+    final base = dark ? const ChatColors.dark() : const ChatColors.light();
+    return ChatTheme(
+      colors: base.copyWith(
+        outgoingBubble: const Color(0xFF3478F6),
+        bubbleTail: dark ? const Color(0xFF2C2C2E) : const Color(0xFFE9E9EB),
+        accent: const Color(0xFF3478F6),
+      ),
+      bubbleStyle: BubbleStyle.iMessage,
+      bubbleRadius: 18,
+    );
+  }
+
+  /// Returns a copy with the given sub-configs replaced.
+  ChatTheme copyWith({
+    ChatColors? colors,
+    ChatTypography? typography,
+    ChatIcons? icons,
+    ChatMotion? motion,
+    BubbleStyle? bubbleStyle,
+    double? bubbleRadius,
+  }) {
+    return ChatTheme(
+      colors: colors ?? this.colors,
+      typography: typography ?? this.typography,
+      icons: icons ?? this.icons,
+      motion: motion ?? this.motion,
+      bubbleStyle: bubbleStyle ?? this.bubbleStyle,
+      bubbleRadius: bubbleRadius ?? this.bubbleRadius,
+    );
+  }
+
+  // --- Back-compat convenience getters (pre-0.3 flat API) ---
+
+  /// Accent color (send button, read ticks).
+  Color get accentColor => colors.accent;
+
+  /// Thread/list background.
+  Color get backgroundColor => colors.background;
+
+  /// Composer bar color.
+  Color get composerColor => colors.composer;
+
+  /// Incoming bubble color.
+  Color get incomingBubbleColor => colors.incomingBubble;
+
+  /// Outgoing bubble color.
+  Color get outgoingBubbleColor => colors.outgoingBubble;
+
+  /// Incoming text color.
+  Color get incomingTextColor => colors.incomingText;
+
+  /// Outgoing text color.
+  Color get outgoingTextColor => colors.outgoingText;
 }
