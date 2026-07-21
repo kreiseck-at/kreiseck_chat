@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'bubble_style.dart';
+import 'bubble_tail_painter.dart';
 import 'chat_attachment.dart';
 import 'chat_capabilities.dart';
 import 'chat_reaction.dart';
@@ -33,7 +34,7 @@ class MessageBubble extends StatelessWidget {
   /// Which affordances are allowed.
   final ChatCapabilities capabilities;
 
-  /// First message of its group (shows sender avatar/name in group threads).
+  /// First message of its group; adds top spacing to separate groups.
   final bool isFirstInGroup;
 
   /// Last message of its group (shows tail + timestamp).
@@ -144,6 +145,25 @@ class MessageBubble extends StatelessWidget {
         ],
       ),
     );
+
+    final showTail = theme.bubbleStyle != BubbleStyle.minimal && isLastInGroup;
+    if (showTail) {
+      bubble = Stack(
+        clipBehavior: Clip.none,
+        children: [
+          bubble,
+          Positioned(
+            bottom: 0,
+            left: _isOutgoing ? null : -6,
+            right: _isOutgoing ? -6 : null,
+            child: CustomPaint(
+              size: const Size(10, 12),
+              painter: BubbleTailPainter(color: bubbleColor, isOutgoing: _isOutgoing),
+            ),
+          ),
+        ],
+      );
+    }
 
     Widget content = Column(
       crossAxisAlignment:

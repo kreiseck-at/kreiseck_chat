@@ -82,4 +82,37 @@ void main() {
     ));
     expect(find.text('quoted text'), findsOneWidget);
   });
+
+  testWidgets('tail painter present for whatsApp style when last in group',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: MessageBubble(
+          message: _out('x'),
+          theme: ChatTheme.whatsApp(),
+          isLastInGroup: true,
+        ),
+      ),
+    ));
+    final tails = tester
+        .widgetList<CustomPaint>(find.byType(CustomPaint))
+        .where((c) => c.painter is BubbleTailPainter);
+    expect(tails, isNotEmpty);
+  });
+
+  testWidgets('no tail painter for minimal style', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: MessageBubble(
+          message: _out('x'),
+          theme: const ChatTheme.light(),
+          isLastInGroup: true,
+        ),
+      ),
+    ));
+    final tails = tester
+        .widgetList<CustomPaint>(find.byType(CustomPaint))
+        .where((c) => c.painter is BubbleTailPainter);
+    expect(tails, isEmpty);
+  });
 }
