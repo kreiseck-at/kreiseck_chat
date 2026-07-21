@@ -1,3 +1,15 @@
+## 0.4.0
+
+* `Composer`: WhatsApp-style input — Enter inserts a newline (new `sendOnEnter`
+  flag to opt back in), sentence auto-capitalization (`textCapitalization`), the
+  send button now appears only while typing, and a dedicated camera shortcut
+  replaces the mic slot when the field is empty.
+* New `ChatAvatar` widget with a phone-number-aware fallback: contacts that are
+  bare phone numbers get a neutral person icon instead of a "+" monogram
+  (`isPhoneNumberLike` exposed). Used by `ChatHeader` and `ConversationListView`.
+* `ChatColors.readReceipt` — read double-checks now render in a dedicated blue,
+  independent of a branded/green `accent`.
+
 ## 0.3.0
 
 * Add `ChatCapabilities` capability profiles (`twilioSms`, `twilioWhatsApp`,

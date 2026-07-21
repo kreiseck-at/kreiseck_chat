@@ -478,7 +478,7 @@ class _StatusIcon extends StatelessWidget {
       case MessageStatus.delivered:
         return Icon(icons.delivered, size: 14, color: color.withValues(alpha: 0.7));
       case MessageStatus.read:
-        return Icon(icons.read, size: 14, color: theme.colors.accent);
+        return Icon(icons.read, size: 14, color: theme.colors.readReceipt);
       case MessageStatus.failed:
         return Icon(icons.error, size: 14, color: Colors.red);
     }

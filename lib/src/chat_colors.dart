@@ -20,6 +20,7 @@ class ChatColors {
     required this.dateSeparatorBackground,
     required this.dateSeparatorText,
     required this.replyAccent,
+    this.readReceipt = const Color(0xFF34B7F1),
   });
 
   /// Incoming bubble fill.
@@ -67,6 +68,10 @@ class ChatColors {
   /// Reply quote accent bar.
   final Color replyAccent;
 
+  /// Color of the "read" double-check (WhatsApp-style blue), independent of
+  /// [accent] so a green/branded accent doesn't tint read receipts.
+  final Color readReceipt;
+
   /// Sensible light palette.
   const ChatColors.light()
       : incomingBubble = const Color(0xFFE9E9EB),
@@ -83,7 +88,8 @@ class ChatColors {
         typingDot = const Color(0xFF8E8E93),
         dateSeparatorBackground = const Color(0x14000000),
         dateSeparatorText = const Color(0xFF6C6C70),
-        replyAccent = const Color(0xFF3478F6);
+        replyAccent = const Color(0xFF3478F6),
+        readReceipt = const Color(0xFF34B7F1);
 
   /// Sensible dark palette.
   const ChatColors.dark()
@@ -101,7 +107,8 @@ class ChatColors {
         typingDot = const Color(0xFF98989F),
         dateSeparatorBackground = const Color(0x33FFFFFF),
         dateSeparatorText = const Color(0xFFC7C7CC),
-        replyAccent = const Color(0xFF64A1FF);
+        replyAccent = const Color(0xFF64A1FF),
+        readReceipt = const Color(0xFF53BDEB);
 
   /// Returns a copy with the given fields replaced.
   ChatColors copyWith({
@@ -120,6 +127,7 @@ class ChatColors {
     Color? dateSeparatorBackground,
     Color? dateSeparatorText,
     Color? replyAccent,
+    Color? readReceipt,
   }) {
     return ChatColors(
       incomingBubble: incomingBubble ?? this.incomingBubble,
@@ -139,6 +147,7 @@ class ChatColors {
           dateSeparatorBackground ?? this.dateSeparatorBackground,
       dateSeparatorText: dateSeparatorText ?? this.dateSeparatorText,
       replyAccent: replyAccent ?? this.replyAccent,
+      readReceipt: readReceipt ?? this.readReceipt,
     );
   }
 
@@ -160,7 +169,8 @@ class ChatColors {
         other.typingDot == typingDot &&
         other.dateSeparatorBackground == dateSeparatorBackground &&
         other.dateSeparatorText == dateSeparatorText &&
-        other.replyAccent == replyAccent;
+        other.replyAccent == replyAccent &&
+        other.readReceipt == readReceipt;
   }
 
   @override
@@ -180,5 +190,6 @@ class ChatColors {
         dateSeparatorBackground,
         dateSeparatorText,
         replyAccent,
+        readReceipt,
       ]);
 }

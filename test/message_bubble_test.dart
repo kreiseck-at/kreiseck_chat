@@ -187,4 +187,21 @@ void main() {
     expect(reacted, ['👍']);
     expect(haptics, isNotEmpty);
   });
+
+  testWidgets('read tick uses the blue readReceipt color, not the accent',
+      (tester) async {
+    final theme = ChatTheme.whatsApp(); // accent is green here
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: MessageBubble(
+          message: _out('x', status: MessageStatus.read),
+          theme: theme,
+          capabilities: const ChatCapabilities.inApp(),
+        ),
+      ),
+    ));
+    final icon = tester.widget<Icon>(find.byType(Icon).last);
+    expect(icon.color, theme.colors.readReceipt);
+    expect(icon.color, isNot(theme.colors.accent));
+  });
 }
