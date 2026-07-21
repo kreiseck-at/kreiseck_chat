@@ -1,92 +1,68 @@
 import 'package:flutter/material.dart';
 import 'package:kreiseck_chat/kreiseck_chat.dart';
 
-void main() => runApp(const ExampleApp());
+void main() => runApp(const DemoApp());
 
-/// Minimal demo app wiring up [ConversationListView] and [ChatThreadView]
-/// against in-memory data (no backend involved).
-class ExampleApp extends StatelessWidget {
-  const ExampleApp({super.key});
+class DemoApp extends StatefulWidget {
+  const DemoApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'kreiseck_chat example',
-      theme: ThemeData.light(),
-      darkTheme: ThemeData.dark(),
-      home: const ConversationsPage(),
-    );
+  State<DemoApp> createState() => _DemoAppState();
+}
+
+class _DemoAppState extends State<DemoApp> {
+  BubbleStyle _style = BubbleStyle.iMessage;
+  ChatCapabilities _caps = const ChatCapabilities.inApp();
+  bool _dark = false;
+  late List<ChatMessage> _messages;
+
+  @override
+  void initState() {
+    super.initState();
+    _messages = _seed();
   }
-}
 
-class ConversationsPage extends StatefulWidget {
-  const ConversationsPage({super.key});
-
-  @override
-  State<ConversationsPage> createState() => _ConversationsPageState();
-}
-
-class _ConversationsPageState extends State<ConversationsPage> {
-  final Map<String, List<ChatMessage>> _messagesByConversation = {
-    '1': [
+  List<ChatMessage> _seed() {
+    final now = DateTime.now();
+    return [
       ChatMessage(
-        id: 'm1',
+        id: '1',
         direction: MessageDirection.incoming,
-        text: 'Hey, are you around later?',
-        at: DateTime.now().subtract(const Duration(minutes: 10)),
+        text: 'Servus! Bist du heute noch unterwegs?',
+        at: now.subtract(const Duration(minutes: 30)),
+        sender: const ChatParticipant(id: 'ada', displayName: 'Ada'),
+        reactions: const [MessageReaction(emoji: '👍', count: 1)],
       ),
       ChatMessage(
-        id: 'm2',
+        id: '2',
         direction: MessageDirection.outgoing,
-        text: 'Yes, from 4pm.',
-        at: DateTime.now().subtract(const Duration(minutes: 8)),
+        text: 'Ja, ab 18 Uhr. Passt das?',
+        at: now.subtract(const Duration(minutes: 28)),
         status: MessageStatus.read,
+        replyTo: const ChatMessageRef(
+            id: '1', snippet: 'Bist du heute noch unterwegs?', senderLabel: 'Ada'),
       ),
-    ],
-    '2': [
-      ChatMessage(
-        id: 'm3',
-        direction: MessageDirection.incoming,
-        text: 'Thanks for the update!',
-        at: DateTime.now().subtract(const Duration(hours: 1)),
-      ),
-    ],
-  };
-
-  List<ChatConversation> get _conversations => [
-        ChatConversation(
-          id: '1',
-          title: 'Alice',
-          lastText: _messagesByConversation['1']!.last.text,
-          lastAt: _messagesByConversation['1']!.last.at,
-          unread: 1,
-        ),
-        ChatConversation(
-          id: '2',
-          title: 'Bob',
-          lastText: _messagesByConversation['2']!.last.text,
-          lastAt: _messagesByConversation['2']!.last.at,
-        ),
-      ];
-
-  void _openConversation(ChatConversation conversation) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => ChatPage(
-          title: conversation.title,
-          messages: _messagesByConversation[conversation.id]!,
-          onSend: (text) => _sendMessage(conversation.id, text),
-        ),
-      ),
-    );
+    ];
   }
 
-  void _sendMessage(String conversationId, String text) {
+  ChatTheme get _theme {
+    final brightness = _dark ? Brightness.dark : Brightness.light;
+    switch (_style) {
+      case BubbleStyle.whatsApp:
+        return ChatTheme.whatsApp(brightness: brightness);
+      case BubbleStyle.iMessage:
+        return ChatTheme.iMessage(brightness: brightness);
+      case BubbleStyle.minimal:
+        return _dark ? const ChatTheme.dark() : const ChatTheme.light();
+    }
+  }
+
+  void _send(String text) {
     setState(() {
-      _messagesByConversation[conversationId] = [
-        ..._messagesByConversation[conversationId]!,
+      _messages = [
+        ..._messages,
         ChatMessage(
-          id: DateTime.now().microsecondsSinceEpoch.toString(),
+          id: '${_messages.length + 1}',
           direction: MessageDirection.outgoing,
           text: text,
           at: DateTime.now(),
@@ -98,65 +74,90 @@ class _ConversationsPageState extends State<ConversationsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Conversations')),
-      body: ConversationListView(
-        conversations: _conversations,
-        onOpen: _openConversation,
-      ),
-    );
-  }
-}
-
-class ChatPage extends StatefulWidget {
-  const ChatPage({
-    super.key,
-    required this.title,
-    required this.messages,
-    required this.onSend,
-  });
-
-  final String title;
-  final List<ChatMessage> messages;
-  final ValueChanged<String> onSend;
-
-  @override
-  State<ChatPage> createState() => _ChatPageState();
-}
-
-class _ChatPageState extends State<ChatPage> {
-  late List<ChatMessage> _messages;
-
-  @override
-  void initState() {
-    super.initState();
-    _messages = widget.messages;
-  }
-
-  void _handleSend(String text) {
-    widget.onSend(text);
-    setState(() {
-      _messages = [
-        ..._messages,
-        ChatMessage(
-          id: DateTime.now().microsecondsSinceEpoch.toString(),
-          direction: MessageDirection.outgoing,
-          text: text,
-          at: DateTime.now(),
+    return MaterialApp(
+      theme: ThemeData(brightness: _dark ? Brightness.dark : Brightness.light),
+      home: Scaffold(
+        appBar: AppBar(
+          title: const Text('kreiseck_chat Demo'),
+          actions: [
+            IconButton(
+              icon: Icon(_dark ? Icons.light_mode : Icons.dark_mode),
+              onPressed: () => setState(() => _dark = !_dark),
+            ),
+          ],
         ),
-      ];
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(widget.title)),
-      body: ChatThreadView(
-        messages: _messages,
-        onSend: _handleSend,
-        hintText: 'Message ${widget.title}',
+        body: Column(
+          children: [
+            _controls(),
+            Expanded(
+              child: ChatThreadView(
+                messages: _messages,
+                onSend: _send,
+                theme: _theme,
+                capabilities: _caps,
+                typing: const TypingState(participants: [
+                  ChatParticipant(id: 'ada', displayName: 'Ada'),
+                ]),
+                header: ChatHeader(
+                  title: 'Ada',
+                  presence: const ChatPresence.online(),
+                  theme: _theme,
+                  capabilities: _caps,
+                ),
+                onReplyRequested: (_) {},
+                onReact: (_, _) {},
+                onAttach: (_) {},
+              ),
+            ),
+          ],
+        ),
       ),
     );
+  }
+
+  Widget _controls() {
+    return Padding(
+      padding: const EdgeInsets.all(8),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          DropdownButton<BubbleStyle>(
+            value: _style,
+            items: BubbleStyle.values
+                .map((s) => DropdownMenuItem(value: s, child: Text(s.name)))
+                .toList(),
+            onChanged: (s) => setState(() => _style = s!),
+          ),
+          DropdownButton<String>(
+            value: _capsLabel,
+            items: const [
+              DropdownMenuItem(value: 'sms', child: Text('Twilio SMS')),
+              DropdownMenuItem(value: 'whatsapp', child: Text('Twilio WhatsApp')),
+              DropdownMenuItem(value: 'inapp', child: Text('In-App')),
+            ],
+            onChanged: (v) => setState(() {
+              switch (v) {
+                case 'sms':
+                  _caps = const ChatCapabilities.twilioSms();
+                  break;
+                case 'whatsapp':
+                  _caps = const ChatCapabilities.twilioWhatsApp();
+                  break;
+                default:
+                  _caps = const ChatCapabilities.inApp();
+              }
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String get _capsLabel {
+    if (_caps == const ChatCapabilities.twilioSms()) return 'sms';
+    if (_caps == const ChatCapabilities.twilioWhatsApp()) return 'whatsapp';
+    return 'inapp';
   }
 }

@@ -9,21 +9,45 @@ and `ChatConversation` and handling the `onSend`/`onOpen` callbacks.
 
 ## Features
 
-* `ChatMessage` / `ChatConversation` — simple, immutable data models with
-  `copyWith` and value equality.
-* `ChatTheme` — a single place to configure colors and bubble radius, with
-  `ChatTheme.light()` and `ChatTheme.dark()` presets.
-* `MessageBubble` — a chat bubble with timestamp and delivery status icon.
-* `Composer` — a text field + send button that clears itself after sending.
-* `ChatThreadView` — a scrollable message list (auto-scrolls to the newest
-  message) plus a composer.
-* `ConversationListView` — a conversation inbox list with unread badges.
+* **Models** — `ChatMessage`, `ChatConversation`, `ChatParticipant`,
+  `ChatPresence`, `ChatAttachment`, `MessageReaction`, `ChatMessageRef`,
+  `TypingState`: immutable data classes with `copyWith` and value equality.
+  `ChatMessage` carries an optional `sender` (for group threads), typed
+  `attachments`, a `replyTo` reference, `reactions`, and delivery/read
+  timestamps.
+* **`ChatCapabilities`** — a single flag set (`reactions`, `replies`, `media`,
+  `typingIndicator`, `presence`, `readReceipts`) that tells the widgets which
+  affordances a channel actually supports, so the UI never offers something
+  the backend can't do. Built-in profiles: `ChatCapabilities.twilioSms()`
+  (plain text only), `ChatCapabilities.twilioWhatsApp()` (media, replies,
+  reactions, read receipts, no typing/presence), and
+  `ChatCapabilities.inApp()` (everything on). Use the default constructor or
+  `ChatCapabilities.custom(...)` for anything in between.
+* **`ChatTheme`** — a layered visual configuration composed of `ChatColors`,
+  `ChatTypography`, `ChatIcons`, and `ChatMotion`, plus a `BubbleStyle`
+  (`whatsApp`, `iMessage`, `minimal`) and `bubbleRadius`. Ready-made presets:
+  `ChatTheme.light()`, `ChatTheme.dark()`, `ChatTheme.whatsApp()`, and
+  `ChatTheme.iMessage()` (the latter two take a `brightness`). Override just
+  the sub-config you need; the pre-0.3 flat color getters (`accentColor`,
+  `incomingBubbleColor`, ...) are preserved for existing call sites.
+* **`MessageBubble`** — timestamp, delivery status icon, sender name/avatar
+  in group threads, quoted replies, reaction chips, and media attachments —
+  each gated by `ChatCapabilities`.
+* **`Composer`** — an auto-growing text field with a send button, an
+  attach button gated on `capabilities.media`, and typing-change callbacks.
+* **`ChatThreadView`** — a scrollable message list that groups consecutive
+  messages by sender, inserts date separators, shows a `TypingIndicator`,
+  auto-scrolls to the newest message, and renders an optional `header`.
+* **`ChatHeader`** — a conversation header with avatar, title, and a
+  presence/typing subtitle.
+* **`ConversationListView`** — a conversation inbox list with avatars,
+  presence dots, unread badges, and typing previews.
 
 ## Installation
 
 ```yaml
 dependencies:
-  kreiseck_chat: ^0.1.0
+  kreiseck_chat: ^0.3.0
 ```
 
 ## Usage
@@ -36,7 +60,8 @@ ChatThreadView(
   onSend: (text) {
     // append a new outgoing ChatMessage to your own state/store
   },
-  theme: ChatTheme.dark(),
+  theme: ChatTheme.iMessage(brightness: Brightness.dark),
+  capabilities: const ChatCapabilities.inApp(),
 )
 ```
 
@@ -46,13 +71,19 @@ ConversationListView(
   onOpen: (conversation) {
     // navigate to the thread for this conversation
   },
+  theme: ChatTheme.whatsApp(),
+  capabilities: const ChatCapabilities.twilioWhatsApp(),
 )
 ```
 
-See `example/lib/main.dart` for a complete, self-contained demo using
-in-memory data.
+See `example/lib/main.dart` for a self-contained demo gallery that switches
+between bubble presets, capability profiles, and light/dark mode against
+seeded data (presence, typing, reactions, a reply).
 
 ## Additional information
 
 Widgets never hard-code colors; everything is driven through `ChatTheme` so
-apps can support light and dark mode without forking the widgets.
+apps can support light and dark mode and match a channel's native look
+(WhatsApp, iMessage, or a fully custom `minimal` base) without forking the
+widgets. Pair a theme with the `ChatCapabilities` profile that matches your
+transport so the UI only offers what the channel can actually deliver.
