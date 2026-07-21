@@ -51,4 +51,98 @@ void main() {
     ));
     expect(find.text('3'), findsOneWidget);
   });
+
+  testWidgets('avatar shows initials monogram when no image', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: ConversationListView(
+          conversations: const [
+            ChatConversation(id: 'c1', title: 'Ada'),
+          ],
+          onOpen: (_) {},
+        ),
+      ),
+    ));
+    expect(find.text('A'), findsOneWidget);
+  });
+
+  testWidgets('channel-label chip is shown', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: ConversationListView(
+          conversations: const [
+            ChatConversation(id: 'c1', title: 'Ada', channelLabel: 'SMS'),
+          ],
+          onOpen: (_) {},
+        ),
+      ),
+    ));
+    expect(find.text('SMS'), findsOneWidget);
+  });
+
+  testWidgets('pinned and muted icons are shown', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: ConversationListView(
+          conversations: const [
+            ChatConversation(id: 'c1', title: 'Ada', pinned: true, muted: true),
+          ],
+          onOpen: (_) {},
+        ),
+      ),
+    ));
+    expect(find.byIcon(Icons.push_pin), findsOneWidget);
+    expect(find.byIcon(Icons.volume_off), findsOneWidget);
+  });
+
+  testWidgets('presence dot shown when online and presence capability on',
+      (tester) async {
+    const theme = ChatTheme.light();
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: ConversationListView(
+          conversations: [
+            ChatConversation(
+              id: 'c1',
+              title: 'Ada',
+              presence: ChatPresence.online(),
+            ),
+          ],
+          onOpen: (_) {},
+          capabilities: const ChatCapabilities.inApp(),
+          theme: theme,
+        ),
+      ),
+    ));
+    final dot = find.byWidgetPredicate((w) =>
+        w is Container &&
+        w.decoration is BoxDecoration &&
+        (w.decoration as BoxDecoration).color == theme.colors.presenceOnline);
+    expect(dot, findsOneWidget);
+  });
+
+  testWidgets('no presence dot when presence capability off', (tester) async {
+    const theme = ChatTheme.light();
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: ConversationListView(
+          conversations: [
+            ChatConversation(
+              id: 'c1',
+              title: 'Ada',
+              presence: ChatPresence.online(),
+            ),
+          ],
+          onOpen: (_) {},
+          capabilities: const ChatCapabilities.twilioSms(),
+          theme: theme,
+        ),
+      ),
+    ));
+    final dot = find.byWidgetPredicate((w) =>
+        w is Container &&
+        w.decoration is BoxDecoration &&
+        (w.decoration as BoxDecoration).color == theme.colors.presenceOnline);
+    expect(dot, findsNothing);
+  });
 }
