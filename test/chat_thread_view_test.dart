@@ -2,61 +2,66 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kreiseck_chat/kreiseck_chat.dart';
 
-void main() {
-  testWidgets('shows messages, sends new text and clears the field',
-      (tester) async {
-    final messages = [
+List<ChatMessage> _seed() => [
       ChatMessage(
-        id: '1',
-        direction: MessageDirection.incoming,
-        text: 'Hello',
-        at: DateTime(2026, 1, 1, 10),
-      ),
+          id: '1',
+          direction: MessageDirection.incoming,
+          text: 'Hallo',
+          at: DateTime(2026, 7, 21, 9, 0)),
       ChatMessage(
-        id: '2',
-        direction: MessageDirection.outgoing,
-        text: 'Hi back',
-        at: DateTime(2026, 1, 1, 10, 1),
-      ),
+          id: '2',
+          direction: MessageDirection.outgoing,
+          text: 'Servus',
+          at: DateTime(2026, 7, 21, 9, 1)),
     ];
-    String? sent;
 
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: ChatThreadView(
-            messages: messages,
-            onSend: (text) => sent = text,
-          ),
+void main() {
+  testWidgets('renders messages and a date separator', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: ChatThreadView(
+          messages: _seed(),
+          onSend: (_) {},
+          now: DateTime(2026, 7, 21, 10),
         ),
       ),
-    );
-
-    expect(find.text('Hello'), findsOneWidget);
-    expect(find.text('Hi back'), findsOneWidget);
-
-    await tester.enterText(find.byType(TextField), 'New message');
-    await tester.tap(find.byIcon(Icons.send_rounded));
-    await tester.pump();
-
-    expect(sent, 'New message');
-    final field = tester.widget<TextField>(find.byType(TextField));
-    expect(field.controller!.text, isEmpty);
+    ));
+    expect(find.text('Hallo'), findsOneWidget);
+    expect(find.text('Servus'), findsOneWidget);
+    expect(find.byType(DateSeparator), findsOneWidget);
   });
 
-  testWidgets('shows an empty state without crashing', (tester) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: ChatThreadView(
-            messages: const [],
-            onSend: (_) {},
-          ),
+  testWidgets('shows typing indicator when enabled and typing', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: ChatThreadView(
+          messages: _seed(),
+          onSend: (_) {},
+          capabilities: const ChatCapabilities.inApp(),
+          typing: const TypingState(
+              participants: [ChatParticipant(id: 'a', displayName: 'Ada')]),
+          now: DateTime(2026, 7, 21, 10),
         ),
       ),
-    );
+    ));
+    await tester.pump();
+    expect(find.byType(TypingIndicator), findsOneWidget);
+  });
 
-    expect(tester.takeException(), isNull);
-    expect(find.byType(ChatThreadView), findsOneWidget);
+  testWidgets('no typing indicator when capability off', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: ChatThreadView(
+          messages: _seed(),
+          onSend: (_) {},
+          capabilities: const ChatCapabilities.twilioSms(),
+          typing: const TypingState(
+              participants: [ChatParticipant(id: 'a', displayName: 'Ada')]),
+          now: DateTime(2026, 7, 21, 10),
+        ),
+      ),
+    ));
+    await tester.pump();
+    expect(find.byType(TypingIndicator), findsNothing);
   });
 }

@@ -1,117 +1,193 @@
 import 'package:flutter/material.dart';
 
+import 'chat_attachment.dart';
+import 'chat_capabilities.dart';
 import 'chat_theme.dart';
 import 'composer.dart';
+import 'date_separator.dart';
 import 'message_bubble.dart';
 import 'models.dart';
+import 'thread_items.dart';
+import 'typing_indicator.dart';
 
-/// A full chat thread: a scrollable list of [messages] plus a [Composer].
-///
-/// New messages automatically scroll the list to the bottom. [messages] is
-/// expected to be ordered oldest-first; the newest message is rendered at
-/// the bottom, closest to the composer.
+/// A scrollable message thread plus a composer. Groups messages, inserts date
+/// separators, shows a typing indicator, and auto-scrolls to the newest message.
 class ChatThreadView extends StatefulWidget {
-  /// Creates a chat thread view.
+  /// Creates a thread view.
   const ChatThreadView({
     super.key,
     required this.messages,
     required this.onSend,
-    this.header,
-    this.composerHint,
     this.theme = const ChatTheme.light(),
+    this.capabilities = const ChatCapabilities.inApp(),
+    this.typing = const TypingState(),
+    this.hintText,
+    this.now,
+    this.onAttach,
+    this.onTypingChanged,
+    this.onReplyRequested,
+    this.onReact,
+    this.onOpenAttachment,
+    this.onLoadEarlier,
+    this.header,
   });
 
-  /// Messages to render, oldest first.
+  /// Messages, oldest first.
   final List<ChatMessage> messages;
 
-  /// Called when the user sends a new message from the composer.
-  final ValueChanged<String> onSend;
+  /// Called with text when the user sends.
+  final void Function(String) onSend;
 
-  /// Optional widget shown above the message list, e.g. a chat header.
-  final Widget? header;
-
-  /// Placeholder text for the composer's text field.
-  final String? composerHint;
-
-  /// Visual configuration; defaults to [ChatTheme.light].
+  /// Visual configuration.
   final ChatTheme theme;
+
+  /// Which affordances are allowed.
+  final ChatCapabilities capabilities;
+
+  /// Who is currently typing.
+  final TypingState typing;
+
+  /// Composer placeholder.
+  final String? hintText;
+
+  /// Injectable "now" for date separators.
+  final DateTime? now;
+
+  /// Called with an attachment source.
+  final void Function(AttachSource source)? onAttach;
+
+  /// Called on typing start/stop.
+  final void Function(bool isTyping)? onTypingChanged;
+
+  /// Called with a message id when a reply is requested.
+  final void Function(String messageId)? onReplyRequested;
+
+  /// Called with a message id + emoji on reaction.
+  final void Function(String messageId, String emoji)? onReact;
+
+  /// Called when an attachment is tapped.
+  final void Function(ChatAttachment attachment)? onOpenAttachment;
+
+  /// Called when the user scrolls to the top to load older history.
+  final Future<void> Function()? onLoadEarlier;
+
+  /// Optional header widget above the list.
+  final Widget? header;
 
   @override
   State<ChatThreadView> createState() => _ChatThreadViewState();
 }
 
 class _ChatThreadViewState extends State<ChatThreadView> {
-  final ScrollController _scrollController = ScrollController();
+  final ScrollController _scroll = ScrollController();
+  int _lastCount = 0;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+    _lastCount = widget.messages.length;
+    _scroll.addListener(_onScroll);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _jumpToBottom());
   }
 
   @override
   void didUpdateWidget(covariant ChatThreadView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.messages.length != widget.messages.length) {
+    if (widget.messages.length != _lastCount) {
+      _lastCount = widget.messages.length;
       WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
     }
   }
 
   @override
   void dispose() {
-    _scrollController.dispose();
+    _scroll.removeListener(_onScroll);
+    _scroll.dispose();
     super.dispose();
   }
 
+  void _onScroll() {
+    if (_scroll.position.pixels <= 8 && widget.onLoadEarlier != null) {
+      widget.onLoadEarlier!();
+    }
+  }
+
+  void _jumpToBottom() {
+    if (!_scroll.hasClients) return;
+    _scroll.jumpTo(_scroll.position.maxScrollExtent);
+  }
+
   void _scrollToBottom() {
-    if (!_scrollController.hasClients) return;
-    _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+    if (!_scroll.hasClients) return;
+    final target = _scroll.position.maxScrollExtent;
+    if (widget.theme.motion.animatedAutoScroll) {
+      _scroll.animateTo(
+        target,
+        duration: widget.theme.motion.autoScrollDuration,
+        curve: Curves.easeOut,
+      );
+    } else {
+      _scroll.jumpTo(target);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final items = buildThreadItems(widget.messages);
+    final showTyping =
+        widget.typing.anyoneTyping && widget.capabilities.typingIndicator;
+    final childCount = items.length + (showTyping ? 1 : 0);
+
     return Container(
-      color: widget.theme.backgroundColor,
+      color: widget.theme.colors.background,
       child: Column(
         children: [
           if (widget.header != null) widget.header!,
           Expanded(
-            child: widget.messages.isEmpty
-                ? _EmptyState(theme: widget.theme)
-                : ListView.builder(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    itemCount: widget.messages.length,
-                    itemBuilder: (context, index) {
-                      return MessageBubble(
-                        message: widget.messages[index],
-                        theme: widget.theme,
-                      );
-                    },
-                  ),
+            child: ListView.builder(
+              controller: _scroll,
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              itemCount: childCount,
+              itemBuilder: (context, index) {
+                if (showTyping && index == items.length) {
+                  return TypingIndicator(theme: widget.theme);
+                }
+                final item = items[index];
+                if (item is DateSeparatorItem) {
+                  return DateSeparator(
+                    date: item.date,
+                    theme: widget.theme,
+                    now: widget.now,
+                  );
+                }
+                final mi = item as MessageItem;
+                return MessageBubble(
+                  message: mi.message,
+                  theme: widget.theme,
+                  capabilities: widget.capabilities,
+                  isFirstInGroup: mi.isFirstInGroup,
+                  isLastInGroup: mi.isLastInGroup,
+                  animateIn: index >= items.length - 1,
+                  onReplyRequested: widget.onReplyRequested == null
+                      ? null
+                      : () => widget.onReplyRequested!(mi.message.id),
+                  onReact: widget.onReact == null
+                      ? null
+                      : (emoji) => widget.onReact!(mi.message.id, emoji),
+                  onOpenAttachment: widget.onOpenAttachment,
+                );
+              },
+            ),
           ),
           Composer(
             onSend: widget.onSend,
-            hintText: widget.composerHint,
+            hintText: widget.hintText,
             theme: widget.theme,
+            capabilities: widget.capabilities,
+            onAttach: widget.onAttach,
+            onTypingChanged: widget.onTypingChanged,
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  const _EmptyState({required this.theme});
-
-  final ChatTheme theme;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        'No messages yet',
-        style: TextStyle(color: theme.incomingTextColor.withValues(alpha: 0.5)),
       ),
     );
   }

@@ -155,7 +155,7 @@ class _ChatPageState extends State<ChatPage> {
       body: ChatThreadView(
         messages: _messages,
         onSend: _handleSend,
-        composerHint: 'Message ${widget.title}',
+        hintText: 'Message ${widget.title}',
       ),
     );
   }
