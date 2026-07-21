@@ -1,3 +1,9 @@
+import 'package:flutter/widgets.dart';
+
+import 'chat_attachment.dart';
+import 'chat_participant.dart';
+import 'chat_reaction.dart';
+
 /// Direction of a chat message relative to the current user.
 enum MessageDirection {
   /// Message received from the other side of the conversation.
@@ -27,8 +33,7 @@ enum MessageStatus {
 
 /// A single message within a chat thread.
 ///
-/// This type is intentionally backend-agnostic: it carries no information
-/// about how it was transported or persisted.
+/// Backend-agnostic: it carries no information about how it was transported.
 class ChatMessage {
   /// Creates a chat message.
   const ChatMessage({
@@ -37,7 +42,13 @@ class ChatMessage {
     required this.text,
     required this.at,
     this.status = MessageStatus.sent,
+    this.sender,
     this.attachments = const [],
+    this.replyTo,
+    this.reactions = const [],
+    this.editedAt,
+    this.deliveredAt,
+    this.readAt,
   });
 
   /// Unique identifier of this message.
@@ -55,8 +66,26 @@ class ChatMessage {
   /// Delivery/read status, relevant for outgoing messages.
   final MessageStatus status;
 
-  /// Optional attachment references (e.g. file paths or URLs).
-  final List<String> attachments;
+  /// Sender, for group threads (drives per-message avatar/name). Null in 1:1.
+  final ChatParticipant? sender;
+
+  /// Typed attachments (images, files, …).
+  final List<ChatAttachment> attachments;
+
+  /// The message this one replies to, if any.
+  final ChatMessageRef? replyTo;
+
+  /// Emoji reaction aggregates on this message.
+  final List<MessageReaction> reactions;
+
+  /// When the message was last edited, if ever.
+  final DateTime? editedAt;
+
+  /// Precise delivery time, if known.
+  final DateTime? deliveredAt;
+
+  /// Precise read time, if known.
+  final DateTime? readAt;
 
   /// Returns a copy of this message with the given fields replaced.
   ChatMessage copyWith({
@@ -65,7 +94,13 @@ class ChatMessage {
     String? text,
     DateTime? at,
     MessageStatus? status,
-    List<String>? attachments,
+    ChatParticipant? sender,
+    List<ChatAttachment>? attachments,
+    ChatMessageRef? replyTo,
+    List<MessageReaction>? reactions,
+    DateTime? editedAt,
+    DateTime? deliveredAt,
+    DateTime? readAt,
   }) {
     return ChatMessage(
       id: id ?? this.id,
@@ -73,7 +108,13 @@ class ChatMessage {
       text: text ?? this.text,
       at: at ?? this.at,
       status: status ?? this.status,
+      sender: sender ?? this.sender,
       attachments: attachments ?? this.attachments,
+      replyTo: replyTo ?? this.replyTo,
+      reactions: reactions ?? this.reactions,
+      editedAt: editedAt ?? this.editedAt,
+      deliveredAt: deliveredAt ?? this.deliveredAt,
+      readAt: readAt ?? this.readAt,
     );
   }
 
@@ -86,7 +127,13 @@ class ChatMessage {
         other.text == text &&
         other.at == at &&
         other.status == status &&
-        _listEquals(other.attachments, attachments);
+        other.sender == sender &&
+        _listEquals(other.attachments, attachments) &&
+        other.replyTo == replyTo &&
+        _listEquals(other.reactions, reactions) &&
+        other.editedAt == editedAt &&
+        other.deliveredAt == deliveredAt &&
+        other.readAt == readAt;
   }
 
   @override
@@ -96,8 +143,66 @@ class ChatMessage {
         text,
         at,
         status,
+        sender,
         Object.hashAll(attachments),
+        replyTo,
+        Object.hashAll(reactions),
+        editedAt,
+        deliveredAt,
+        readAt,
       );
+}
+
+/// A lightweight reference to a message being quoted in a reply.
+class ChatMessageRef {
+  /// Creates a reply reference.
+  const ChatMessageRef({
+    required this.id,
+    required this.snippet,
+    this.senderLabel,
+  });
+
+  /// Id of the referenced message.
+  final String id;
+
+  /// Short preview of the referenced message body.
+  final String snippet;
+
+  /// Optional display label of the referenced sender.
+  final String? senderLabel;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is ChatMessageRef &&
+        other.id == id &&
+        other.snippet == snippet &&
+        other.senderLabel == senderLabel;
+  }
+
+  @override
+  int get hashCode => Object.hash(id, snippet, senderLabel);
+}
+
+/// Who is currently typing in a thread.
+class TypingState {
+  /// Creates a typing state; empty means nobody is typing.
+  const TypingState({this.participants = const []});
+
+  /// Participants currently composing a message.
+  final List<ChatParticipant> participants;
+
+  /// Whether anyone is typing.
+  bool get anyoneTyping => participants.isNotEmpty;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is TypingState && _listEquals(other.participants, participants);
+  }
+
+  @override
+  int get hashCode => Object.hashAll(participants);
 }
 
 /// Summary of a conversation, as shown in a conversation list.
@@ -111,6 +216,12 @@ class ChatConversation {
     this.lastText,
     this.lastAt,
     this.unread = 0,
+    this.avatar,
+    this.avatarUrl,
+    this.presence,
+    this.typing = false,
+    this.muted = false,
+    this.pinned = false,
   });
 
   /// Unique identifier of this conversation.
@@ -134,6 +245,24 @@ class ChatConversation {
   /// Number of unread messages in this conversation.
   final int unread;
 
+  /// In-memory avatar; wins over [avatarUrl] when both are set.
+  final ImageProvider? avatar;
+
+  /// Remote avatar URL; used when [avatar] is null.
+  final String? avatarUrl;
+
+  /// Optional presence for the counterpart.
+  final ChatPresence? presence;
+
+  /// Whether the counterpart is currently typing.
+  final bool typing;
+
+  /// Whether the conversation is muted.
+  final bool muted;
+
+  /// Whether the conversation is pinned.
+  final bool pinned;
+
   /// Returns a copy of this conversation with the given fields replaced.
   ChatConversation copyWith({
     String? id,
@@ -143,6 +272,12 @@ class ChatConversation {
     String? lastText,
     DateTime? lastAt,
     int? unread,
+    ImageProvider? avatar,
+    String? avatarUrl,
+    ChatPresence? presence,
+    bool? typing,
+    bool? muted,
+    bool? pinned,
   }) {
     return ChatConversation(
       id: id ?? this.id,
@@ -152,6 +287,12 @@ class ChatConversation {
       lastText: lastText ?? this.lastText,
       lastAt: lastAt ?? this.lastAt,
       unread: unread ?? this.unread,
+      avatar: avatar ?? this.avatar,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
+      presence: presence ?? this.presence,
+      typing: typing ?? this.typing,
+      muted: muted ?? this.muted,
+      pinned: pinned ?? this.pinned,
     );
   }
 
@@ -165,7 +306,13 @@ class ChatConversation {
         other.channelLabel == channelLabel &&
         other.lastText == lastText &&
         other.lastAt == lastAt &&
-        other.unread == unread;
+        other.unread == unread &&
+        other.avatar == avatar &&
+        other.avatarUrl == avatarUrl &&
+        other.presence == presence &&
+        other.typing == typing &&
+        other.muted == muted &&
+        other.pinned == pinned;
   }
 
   @override
@@ -177,10 +324,16 @@ class ChatConversation {
         lastText,
         lastAt,
         unread,
+        avatar,
+        avatarUrl,
+        presence,
+        typing,
+        muted,
+        pinned,
       );
 }
 
-bool _listEquals(List<String> a, List<String> b) {
+bool _listEquals<T>(List<T> a, List<T> b) {
   if (identical(a, b)) return true;
   if (a.length != b.length) return false;
   for (var i = 0; i < a.length; i++) {

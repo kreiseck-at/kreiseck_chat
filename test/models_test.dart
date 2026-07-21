@@ -87,4 +87,50 @@ void main() {
       expect(a, isNot(equals(c)));
     });
   });
+
+  final at = DateTime(2026, 7, 21, 14, 32);
+
+  test('ChatMessage carries typed attachments, reply, reactions', () {
+    final m = ChatMessage(
+      id: 'm1',
+      direction: MessageDirection.outgoing,
+      text: 'hi',
+      at: at,
+      attachments: const [ChatAttachment(kind: AttachmentKind.image, url: 'u')],
+      replyTo: const ChatMessageRef(id: 'm0', snippet: 'earlier', senderLabel: 'Ada'),
+      reactions: const [MessageReaction(emoji: '👍', count: 2)],
+    );
+    expect(m.attachments.single.kind, AttachmentKind.image);
+    expect(m.replyTo?.snippet, 'earlier');
+    expect(m.reactions.single.count, 2);
+  });
+
+  test('ChatMessage copyWith replaces reactions', () {
+    final m = ChatMessage(id: 'm1', direction: MessageDirection.incoming, text: 'x', at: at);
+    final r = m.copyWith(reactions: const [MessageReaction(emoji: '❤️')]);
+    expect(r.reactions.single.emoji, '❤️');
+    expect(r.text, 'x');
+  });
+
+  test('TypingState.anyoneTyping', () {
+    expect(const TypingState().anyoneTyping, isFalse);
+    expect(
+      const TypingState(participants: [ChatParticipant(id: '1', displayName: 'A')]).anyoneTyping,
+      isTrue,
+    );
+  });
+
+  test('ChatConversation carries presence and flags', () {
+    final c = ChatConversation(
+      id: 'c1',
+      title: 'Ada',
+      presence: const ChatPresence.online(),
+      typing: true,
+      pinned: true,
+    );
+    expect(c.presence?.state, PresenceState.online);
+    expect(c.typing, isTrue);
+    expect(c.pinned, isTrue);
+    expect(c.copyWith(muted: true).muted, isTrue);
+  });
 }
