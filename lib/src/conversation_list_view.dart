@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'chat_avatar.dart';
 import 'chat_capabilities.dart';
 import 'chat_participant.dart';
 import 'chat_theme.dart';
@@ -78,10 +79,6 @@ class _ConversationTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final provider = conversation.avatar ??
-        (conversation.avatarUrl != null
-            ? NetworkImage(conversation.avatarUrl!)
-            : null);
     final preview = _typing ? typingLabel : (conversation.lastText ?? '');
 
     return ListTile(
@@ -89,18 +86,12 @@ class _ConversationTile extends StatelessWidget {
       leading: Stack(
         clipBehavior: Clip.none,
         children: [
-          CircleAvatar(
+          ChatAvatar(
+            name: conversation.title,
+            theme: theme,
+            image: conversation.avatar,
+            avatarUrl: conversation.avatarUrl,
             radius: 24,
-            backgroundColor: theme.colors.accent.withValues(alpha: 0.2),
-            backgroundImage: provider,
-            child: provider == null
-                ? Text(
-                    ChatParticipant(
-                            id: conversation.id, displayName: conversation.title)
-                        .initials,
-                    style: TextStyle(color: theme.colors.accent),
-                  )
-                : null,
           ),
           if (_online)
             Positioned(

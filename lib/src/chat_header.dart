@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'chat_avatar.dart';
 import 'chat_capabilities.dart';
 import 'chat_participant.dart';
 import 'chat_theme.dart';
@@ -67,8 +68,6 @@ class ChatHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final subtitle = _subtitle();
-    final provider =
-        avatar ?? (avatarUrl != null ? NetworkImage(avatarUrl!) : null);
     return Material(
       color: theme.colors.composer,
       child: SafeArea(
@@ -82,16 +81,12 @@ class ChatHeader extends StatelessWidget {
                   icon: const Icon(Icons.arrow_back),
                   onPressed: onBack,
                 ),
-              CircleAvatar(
+              ChatAvatar(
+                name: title,
+                theme: theme,
+                image: avatar,
+                avatarUrl: avatarUrl,
                 radius: 20,
-                backgroundColor: theme.colors.accent.withValues(alpha: 0.2),
-                backgroundImage: provider,
-                child: provider == null
-                    ? Text(
-                        ChatParticipant(id: title, displayName: title).initials,
-                        style: TextStyle(color: theme.colors.accent),
-                      )
-                    : null,
               ),
               const SizedBox(width: 12),
               Expanded(
