@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kreiseck_chat/kreiseck_chat.dart';
 
@@ -63,5 +64,62 @@ void main() {
     ));
     await tester.pump();
     expect(find.byType(TypingIndicator), findsNothing);
+  });
+
+  testWidgets('a newly received incoming message fires a receive haptic',
+      (tester) async {
+    final haptics = <String>[];
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (MethodCall call) async {
+        if (call.method == 'HapticFeedback.vibrate') {
+          haptics.add(call.arguments as String? ?? '');
+        }
+        return null;
+      },
+    );
+    addTearDown(() {
+      tester.binding.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform, null);
+    });
+
+    final theme = ChatTheme.light().copyWith(
+      motion: const ChatMotion(hapticOnReceive: true),
+    );
+    final messages = _seed();
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: ChatThreadView(
+          messages: messages,
+          onSend: (_) {},
+          theme: theme,
+          now: DateTime(2026, 7, 21, 10),
+        ),
+      ),
+    ));
+    await tester.pumpAndSettle();
+    haptics.clear();
+
+    final grown = [
+      ...messages,
+      ChatMessage(
+          id: '3',
+          direction: MessageDirection.incoming,
+          text: 'Neu',
+          at: DateTime(2026, 7, 21, 9, 2)),
+    ];
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: ChatThreadView(
+          messages: grown,
+          onSend: (_) {},
+          theme: theme,
+          now: DateTime(2026, 7, 21, 10),
+        ),
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(haptics, isNotEmpty);
   });
 }

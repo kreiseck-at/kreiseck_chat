@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'chat_attachment.dart';
 import 'chat_capabilities.dart';
@@ -94,6 +95,14 @@ class _ChatThreadViewState extends State<ChatThreadView> {
   void didUpdateWidget(covariant ChatThreadView oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.messages.length != _lastCount) {
+      final grew = widget.messages.length > oldWidget.messages.length;
+      if (grew &&
+          widget.messages.isNotEmpty &&
+          widget.messages.last.direction == MessageDirection.incoming &&
+          widget.theme.motion.hapticsEnabled &&
+          widget.theme.motion.hapticOnReceive) {
+        HapticFeedback.lightImpact();
+      }
       _lastCount = widget.messages.length;
       WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
     }
@@ -162,6 +171,7 @@ class _ChatThreadViewState extends State<ChatThreadView> {
                 }
                 final mi = item as MessageItem;
                 return MessageBubble(
+                  key: ValueKey(mi.message.id),
                   message: mi.message,
                   theme: widget.theme,
                   capabilities: widget.capabilities,

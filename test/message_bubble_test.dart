@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kreiseck_chat/kreiseck_chat.dart';
 
@@ -114,5 +115,76 @@ void main() {
         .widgetList<CustomPaint>(find.byType(CustomPaint))
         .where((c) => c.painter is BubbleTailPainter);
     expect(tails, isEmpty);
+  });
+
+  testWidgets('long-press fires a haptic when capabilities allow actions',
+      (tester) async {
+    final haptics = <String>[];
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (MethodCall call) async {
+        if (call.method == 'HapticFeedback.vibrate') {
+          haptics.add(call.arguments as String? ?? '');
+        }
+        return null;
+      },
+    );
+    addTearDown(() {
+      tester.binding.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform, null);
+    });
+
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: MessageBubble(
+          message: _out('long press me'),
+          capabilities: const ChatCapabilities.inApp(),
+        ),
+      ),
+    ));
+
+    await tester.longPress(find.text('long press me'));
+    await tester.pumpAndSettle();
+
+    expect(haptics, isNotEmpty);
+  });
+
+  testWidgets('reacting fires a reaction haptic and does not disturb send path',
+      (tester) async {
+    final haptics = <String>[];
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (MethodCall call) async {
+        if (call.method == 'HapticFeedback.vibrate') {
+          haptics.add(call.arguments as String? ?? '');
+        }
+        return null;
+      },
+    );
+    addTearDown(() {
+      tester.binding.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform, null);
+    });
+
+    final reacted = <String>[];
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: MessageBubble(
+          message: _out('react to me'),
+          capabilities: const ChatCapabilities.inApp(),
+          onReact: reacted.add,
+        ),
+      ),
+    ));
+
+    await tester.longPress(find.text('react to me'));
+    await tester.pumpAndSettle();
+    haptics.clear();
+
+    await tester.tap(find.text('👍').first);
+    await tester.pumpAndSettle();
+
+    expect(reacted, ['👍']);
+    expect(haptics, isNotEmpty);
   });
 }

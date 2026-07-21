@@ -47,8 +47,9 @@ class Composer extends StatefulWidget {
   State<Composer> createState() => _ComposerState();
 }
 
-class _ComposerState extends State<Composer> {
+class _ComposerState extends State<Composer> with SingleTickerProviderStateMixin {
   late final TextEditingController _controller;
+  late final AnimationController _sendAnim;
   bool _isTyping = false;
 
   @override
@@ -56,12 +57,17 @@ class _ComposerState extends State<Composer> {
     super.initState();
     _controller = TextEditingController();
     _controller.addListener(_onChanged);
+    _sendAnim = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 180),
+    );
   }
 
   @override
   void dispose() {
     _controller.removeListener(_onChanged);
     _controller.dispose();
+    _sendAnim.dispose();
     super.dispose();
   }
 
@@ -80,6 +86,9 @@ class _ComposerState extends State<Composer> {
     final motion = widget.theme.motion;
     if (motion.hapticsEnabled && motion.hapticOnSend) {
       HapticFeedback.lightImpact();
+    }
+    if (motion.sendAnimation) {
+      _sendAnim.forward(from: 0).then((_) => _sendAnim.reverse());
     }
     widget.onSend(text);
     _controller.clear();
@@ -163,9 +172,14 @@ class _ComposerState extends State<Composer> {
               ),
               const SizedBox(width: 4),
               if (hasText || !widget.showMic)
-                IconButton(
-                  icon: Icon(theme.icons.send, color: theme.colors.accent),
-                  onPressed: _submit,
+                ScaleTransition(
+                  scale: Tween<double>(begin: 1.0, end: 0.8).animate(
+                    CurvedAnimation(parent: _sendAnim, curve: Curves.easeInOut),
+                  ),
+                  child: IconButton(
+                    icon: Icon(theme.icons.send, color: theme.colors.accent),
+                    onPressed: _submit,
+                  ),
                 )
               else
                 IconButton(

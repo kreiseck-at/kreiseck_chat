@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'bubble_style.dart';
 import 'bubble_tail_painter.dart';
@@ -63,7 +64,7 @@ class MessageBubble extends StatelessWidget {
 
   void _openActions(BuildContext context) {
     if (theme.motion.hapticsEnabled && theme.motion.hapticOnLongPress) {
-      // Haptic handled by the gesture; kept minimal to avoid platform calls in tests.
+      HapticFeedback.mediumImpact();
     }
     showModalBottomSheet<void>(
       context: context,
@@ -81,6 +82,10 @@ class MessageBubble extends StatelessWidget {
                                 icon: Text(e, style: const TextStyle(fontSize: 24)),
                                 onPressed: () {
                                   Navigator.of(ctx).pop();
+                                  if (theme.motion.hapticsEnabled &&
+                                      theme.motion.hapticOnReaction) {
+                                    HapticFeedback.selectionClick();
+                                  }
                                   onReact?.call(e);
                                 },
                               ),
