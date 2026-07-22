@@ -67,61 +67,67 @@ class MessageBubble extends StatelessWidget {
     return message.status;
   }
 
-  void _openActions(BuildContext context) {
+  /// Opens a context menu anchored at the long-press position (not a bottom
+  /// sheet), like a native message dropdown.
+  Future<void> _openActions(BuildContext context, Offset globalPosition) async {
     if (theme.motion.hapticsEnabled && theme.motion.hapticOnLongPress) {
       HapticFeedback.mediumImpact();
     }
-    showModalBottomSheet<void>(
-      context: context,
-      builder: (ctx) {
-        return SafeArea(
-          child: Wrap(
-            children: [
-              if (capabilities.reactions)
-                Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Row(
-                    children: ['👍', '❤️', '😂', '😮', '😢']
-                        .map((e) => Expanded(
-                              child: IconButton(
-                                icon: Text(e, style: const TextStyle(fontSize: 24)),
-                                onPressed: () {
-                                  Navigator.of(ctx).pop();
-                                  if (theme.motion.hapticsEnabled &&
-                                      theme.motion.hapticOnReaction) {
-                                    HapticFeedback.selectionClick();
-                                  }
-                                  onReact?.call(e);
-                                },
-                              ),
-                            ))
-                        .toList(),
-                  ),
-                ),
-              if (capabilities.replies)
-                ListTile(
-                  leading: Icon(theme.icons.reply),
-                  title: const Text('Antworten'),
-                  onTap: () {
-                    Navigator.of(ctx).pop();
-                    onReplyRequested?.call();
-                  },
-                ),
-              if (message.text.isNotEmpty)
-                ListTile(
-                  leading: Icon(theme.icons.copy),
-                  title: const Text('Kopieren'),
-                  onTap: () {
-                    Navigator.of(ctx).pop();
-                    Clipboard.setData(ClipboardData(text: message.text));
-                    onCopy?.call();
-                  },
-                ),
-            ],
-          ),
-        );
-      },
+    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+    final position = RelativeRect.fromRect(
+      Rect.fromLTWH(globalPosition.dx, globalPosition.dy, 0, 0),
+      Offset.zero & overlay.size,
     );
+    final selected = await showMenu<String>(
+      context: context,
+      position: position,
+      items: [
+        if (capabilities.reactions)
+          PopupMenuItem<String>(
+            enabled: false,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: ['👍', '❤️', '😂', '😮', '😢']
+                  .map((e) => IconButton(
+                        icon: Text(e, style: const TextStyle(fontSize: 22)),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          if (theme.motion.hapticsEnabled &&
+                              theme.motion.hapticOnReaction) {
+                            HapticFeedback.selectionClick();
+                          }
+                          onReact?.call(e);
+                        },
+                      ))
+                  .toList(),
+            ),
+          ),
+        if (capabilities.replies)
+          PopupMenuItem<String>(
+            value: 'reply',
+            child: Row(children: [
+              Icon(theme.icons.reply, size: 20),
+              const SizedBox(width: 12),
+              const Text('Antworten'),
+            ]),
+          ),
+        if (message.text.isNotEmpty)
+          PopupMenuItem<String>(
+            value: 'copy',
+            child: Row(children: [
+              Icon(theme.icons.copy, size: 20),
+              const SizedBox(width: 12),
+              const Text('Kopieren'),
+            ]),
+          ),
+      ],
+    );
+    if (selected == 'reply') {
+      onReplyRequested?.call();
+    } else if (selected == 'copy') {
+      Clipboard.setData(ClipboardData(text: message.text));
+      onCopy?.call();
+    }
   }
 
   @override
@@ -131,11 +137,15 @@ class MessageBubble extends StatelessWidget {
         _isOutgoing ? colors.outgoingBubble : colors.incomingBubble;
     final textColor = _isOutgoing ? colors.outgoingText : colors.incomingText;
 
+    final hasMedia = capabilities.media && message.attachments.isNotEmpty;
+    final maxBubbleWidth = MediaQuery.of(context).size.width * 0.75;
+
     Widget bubble = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      constraints: BoxConstraints(
-        maxWidth: MediaQuery.of(context).size.width * 0.75,
-      ),
+      // Bei Fotos ein sehr knapper Rahmen -- das Bild soll die Bubble fast füllen.
+      padding: hasMedia
+          ? const EdgeInsets.all(3)
+          : const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      constraints: BoxConstraints(maxWidth: maxBubbleWidth),
       decoration: BoxDecoration(
         color: bubbleColor,
         borderRadius: _borderRadius(),
@@ -145,22 +155,40 @@ class MessageBubble extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (message.replyTo != null && capabilities.replies)
-            _ReplyQuote(refText: message.replyTo!, theme: theme),
-          if (capabilities.media && message.attachments.isNotEmpty)
-            _Attachments(
-              attachments: message.attachments,
-              onOpen: onOpenAttachment,
+            Padding(
+              padding: hasMedia
+                  ? const EdgeInsets.fromLTRB(8, 6, 8, 0)
+                  : EdgeInsets.zero,
+              child: _ReplyQuote(refText: message.replyTo!, theme: theme),
+            ),
+          if (hasMedia)
+            ClipRRect(
+              borderRadius: BorderRadius.circular((theme.bubbleRadius - 3).clamp(0, theme.bubbleRadius)),
+              child: _Album(
+                attachments: message.attachments,
+                onOpen: onOpenAttachment,
+              ),
             ),
           if (message.text.isNotEmpty)
-            Text(message.text, style: theme.typography.body.copyWith(color: textColor)),
-          const SizedBox(height: 4),
-          _MetaRow(
-            time: _formatTime(message.at),
-            isOutgoing: _isOutgoing,
-            showStatus: _isOutgoing,
-            status: _effectiveStatus,
-            theme: theme,
-            textColor: textColor,
+            Padding(
+              padding: hasMedia
+                  ? const EdgeInsets.fromLTRB(8, 6, 8, 0)
+                  : EdgeInsets.zero,
+              child: Text(message.text,
+                  style: theme.typography.body.copyWith(color: textColor)),
+            ),
+          Padding(
+            padding: hasMedia
+                ? const EdgeInsets.fromLTRB(8, 3, 6, 3)
+                : const EdgeInsets.only(top: 4),
+            child: _MetaRow(
+              time: _formatTime(message.at),
+              isOutgoing: _isOutgoing,
+              showStatus: _isOutgoing,
+              status: _effectiveStatus,
+              theme: theme,
+              textColor: textColor,
+            ),
           ),
         ],
       ),
@@ -196,11 +224,11 @@ class MessageBubble extends StatelessWidget {
       ],
     );
 
+    final canAct =
+        capabilities.reactions || capabilities.replies || message.text.isNotEmpty;
     content = GestureDetector(
-      onLongPress:
-          (capabilities.reactions || capabilities.replies || message.text.isNotEmpty)
-              ? () => _openActions(context)
-              : null,
+      onLongPressStart:
+          canAct ? (details) => _openActions(context, details.globalPosition) : null,
       onHorizontalDragEnd: capabilities.replies
           ? (details) {
               final v = details.primaryVelocity ?? 0;
@@ -344,46 +372,106 @@ class _ReplyQuote extends StatelessWidget {
   }
 }
 
-class _Attachments extends StatelessWidget {
-  const _Attachments({required this.attachments, required this.onOpen});
+/// Renders a message's attachments as a WhatsApp-style album: a single large
+/// image, or a 2-column grid for multiple, with a "+N" overlay past four.
+/// Non-image attachments fall back to a file row.
+class _Album extends StatelessWidget {
+  const _Album({
+    required this.attachments,
+    required this.onOpen,
+  });
 
   final List<ChatAttachment> attachments;
   final void Function(ChatAttachment)? onOpen;
 
+  static const double _gap = 2;
+
+  ImageProvider? _providerFor(ChatAttachment a) =>
+      a.thumbnail ??
+      (a.thumbnailUrl != null
+          ? NetworkImage(a.thumbnailUrl!)
+          : (a.url != null ? NetworkImage(a.url!) : null));
+
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: attachments.map((a) {
-        final provider = a.thumbnail ??
-            (a.thumbnailUrl != null ? NetworkImage(a.thumbnailUrl!) : null);
-        final isImage = a.kind == AttachmentKind.image && provider != null;
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 6),
-          child: GestureDetector(
-            onTap: onOpen == null ? null : () => onOpen!(a),
-            child: isImage
-                ? ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: Image(
-                      image: provider,
-                      width: 200,
-                      height: 150,
-                      fit: BoxFit.cover,
-                    ),
-                  )
-                : Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
+    final images = attachments
+        .where((a) => a.kind == AttachmentKind.image && _providerFor(a) != null)
+        .toList();
+
+    if (images.isEmpty) {
+      // File/other attachments: simple rows.
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: attachments
+            .map((a) => Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: GestureDetector(
+                    onTap: onOpen == null ? null : () => onOpen!(a),
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
                       const Icon(Icons.insert_drive_file_outlined, size: 20),
                       const SizedBox(width: 6),
-                      Text(a.fileName ?? 'Datei'),
-                    ],
+                      Flexible(child: Text(a.fileName ?? 'Datei')),
+                    ]),
                   ),
-          ),
-        );
-      }).toList(),
+                ))
+            .toList(),
+      );
+    }
+
+    // Ein Bild: breit über die Bubble, leicht liegendes Format.
+    if (images.length == 1) {
+      return AspectRatio(aspectRatio: 1.6, child: _tile(images.first));
+    }
+
+    // Mehrere: 2-Spalten-Grid quadratischer Kacheln (Expanded -> passt sich der
+    // echten Bubble-Breite an, kein Overflow); ab dem 5. Bild "+N" auf der 4.
+    final show = images.length > 4 ? 4 : images.length;
+    final plusMore = images.length > 4 ? images.length - 4 : 0;
+    final rows = <Widget>[];
+    for (var i = 0; i < show; i += 2) {
+      final hasRight = i + 1 < show;
+      rows.add(Padding(
+        padding: EdgeInsets.only(top: i == 0 ? 0 : _gap),
+        child: hasRight
+            ? Row(children: [
+                Expanded(child: AspectRatio(aspectRatio: 1, child: _tile(images[i]))),
+                const SizedBox(width: _gap),
+                Expanded(
+                  child: AspectRatio(
+                    aspectRatio: 1,
+                    // "+N" liegt auf dem 4. sichtbaren Bild (Index 3).
+                    child: _tile(images[i + 1], plusMore: i + 1 == 3 ? plusMore : 0),
+                  ),
+                ),
+              ])
+            // Ungerade Anzahl: letztes Bild über die volle Breite (liegend).
+            : AspectRatio(aspectRatio: 2, child: _tile(images[i])),
+      ));
+    }
+    return Column(mainAxisSize: MainAxisSize.min, children: rows);
+  }
+
+  Widget _tile(ChatAttachment a, {int plusMore = 0}) {
+    final provider = _providerFor(a)!;
+    return GestureDetector(
+      onTap: onOpen == null ? null : () => onOpen!(a),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image(image: provider, fit: BoxFit.cover),
+          if (plusMore > 0)
+            Container(
+              color: Colors.black54,
+              alignment: Alignment.center,
+              child: Text('+$plusMore',
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w600)),
+            ),
+        ],
+      ),
     );
   }
 }

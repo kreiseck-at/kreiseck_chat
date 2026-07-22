@@ -182,7 +182,13 @@ class _ChatThreadViewState extends State<ChatThreadView> {
         children: [
           if (widget.header != null) widget.header!,
           Expanded(
-            child: ListView.builder(
+            // Tippen auf den Verlaufs-Hintergrund schließt die Tastatur.
+            // translucent -> Taps auf Bubbles (Longpress/Bild öffnen) bleiben,
+            // Scrollen bleibt ebenfalls unbeeinträchtigt.
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () => FocusScope.of(context).unfocus(),
+              child: ListView.builder(
               controller: _scroll,
               padding: const EdgeInsets.symmetric(vertical: 8),
               itemCount: childCount,
@@ -217,6 +223,7 @@ class _ChatThreadViewState extends State<ChatThreadView> {
                   onCopy: widget.onCopy,
                 );
               },
+              ),
             ),
           ),
           Composer(

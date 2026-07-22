@@ -1,7 +1,13 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kreiseck_chat/kreiseck_chat.dart';
+
+// 1x1 transparentes PNG als gültige Bytes für MemoryImage im Test.
+final _pixel = MemoryImage(base64Decode(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='));
 
 ChatMessage _out(String text, {MessageStatus status = MessageStatus.read}) {
   return ChatMessage(
@@ -10,6 +16,19 @@ ChatMessage _out(String text, {MessageStatus status = MessageStatus.read}) {
     text: text,
     at: DateTime(2026, 7, 21, 14, 32),
     status: status,
+  );
+}
+
+ChatMessage _withImages(int n, {String text = ''}) {
+  return ChatMessage(
+    id: 't',
+    direction: MessageDirection.outgoing,
+    text: text,
+    at: DateTime(2026, 7, 21, 14, 32),
+    attachments: [
+      for (var i = 0; i < n; i++)
+        ChatAttachment(kind: AttachmentKind.image, thumbnail: _pixel),
+    ],
   );
 }
 
@@ -186,6 +205,58 @@ void main() {
 
     expect(reacted, ['👍']);
     expect(haptics, isNotEmpty);
+  });
+
+  // Album-Kacheln füllen die Höhe der Bubble; im Scrollview kann der feste
+  // Test-Viewport nicht überlaufen.
+  Widget _scrolled(Widget child) => MaterialApp(
+        home: Scaffold(body: SingleChildScrollView(child: child)),
+      );
+
+  testWidgets('single image renders one tile', (tester) async {
+    await tester.pumpWidget(_scrolled(
+      MessageBubble(
+        message: _withImages(1),
+        capabilities: const ChatCapabilities.inApp(),
+      ),
+    ));
+    expect(find.byType(Image), findsOneWidget);
+  });
+
+  testWidgets('album caps at 4 tiles with a "+N" overlay for extras',
+      (tester) async {
+    await tester.pumpWidget(_scrolled(
+      MessageBubble(
+        message: _withImages(6),
+        capabilities: const ChatCapabilities.inApp(),
+      ),
+    ));
+    // At most 4 image tiles shown, and a "+2" overlay for the remaining two.
+    expect(find.byType(Image), findsNWidgets(4));
+    expect(find.text('+2'), findsOneWidget);
+  });
+
+  testWidgets('long-press opens a context menu with Kopieren (no bottom sheet)',
+      (tester) async {
+    var copied = 0;
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: MessageBubble(
+          message: _out('kopier mich'),
+          // Like the SMS/WhatsApp profile: no reactions/replies, just copy.
+          capabilities: const ChatCapabilities.custom(readReceipts: true),
+          onCopy: () => copied++,
+        ),
+      ),
+    ));
+
+    await tester.longPress(find.text('kopier mich'));
+    await tester.pumpAndSettle();
+    expect(find.text('Kopieren'), findsOneWidget);
+
+    await tester.tap(find.text('Kopieren'));
+    await tester.pumpAndSettle();
+    expect(copied, 1);
   });
 
   testWidgets('read tick uses the blue readReceipt color, not the accent',

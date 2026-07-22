@@ -1,3 +1,13 @@
+## 0.8.0
+
+* `MessageBubble`: images now render as a WhatsApp-style **album** — a single
+  wide image or a 2-column grid for multiple, with a "+N" overlay past four,
+  tap-to-open via `onOpenAttachment`. Image bubbles use a much tighter frame
+  (near edge-to-edge) with the caption/timestamp padded below.
+* `MessageBubble`: long-press now opens a **context menu anchored at the press
+  position** (`showMenu`) instead of a bottom sheet.
+* `ChatThreadView`: tapping the conversation background dismisses the keyboard.
+
 ## 0.7.0
 
 * `Composer`: multi-attachment preview. Replaces the single `attachmentPreview`
