@@ -66,7 +66,7 @@ void main() {
     expect(find.text('A'), findsOneWidget);
   });
 
-  testWidgets('channel-label chip is shown', (tester) async {
+  testWidgets('channel-label chip is shown when no badge builder', (tester) async {
     await tester.pumpWidget(MaterialApp(
       home: Scaffold(
         body: ConversationListView(
@@ -78,6 +78,24 @@ void main() {
       ),
     ));
     expect(find.text('SMS'), findsOneWidget);
+  });
+
+  testWidgets('channelBadge replaces the text label with an avatar overlay',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: ConversationListView(
+          conversations: const [
+            ChatConversation(id: 'c1', title: 'Ada', channelLabel: 'SMS'),
+          ],
+          onOpen: (_) {},
+          channelBadge: (c) => const Icon(Icons.sms, key: Key('badge')),
+        ),
+      ),
+    ));
+    // Text label gone, badge shown.
+    expect(find.text('SMS'), findsNothing);
+    expect(find.byKey(const Key('badge')), findsOneWidget);
   });
 
   testWidgets('pinned and muted icons are shown', (tester) async {

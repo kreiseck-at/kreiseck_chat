@@ -1,3 +1,11 @@
+## 0.10.0
+
+* `ConversationListView`: new `channelBadge` builder renders a small badge on the
+  bottom-right of each avatar (e.g. a channel marker) and hides the textual
+  channel-label chip when supplied.
+* `MailListView`: new optional `badge` shows a leading sender avatar (initials)
+  with a bottom-right badge, so mail rows can carry the same channel marker.
+
 ## 0.9.0
 
 * `MessageBubble`: album images now fade in over a neutral placeholder (via

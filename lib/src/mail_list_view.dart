@@ -14,6 +14,7 @@ class MailListView extends StatelessWidget {
     required this.messages,
     required this.onOpen,
     this.theme = const MailTheme.light(),
+    this.badge,
   });
 
   /// Messages to display.
@@ -24,6 +25,10 @@ class MailListView extends StatelessWidget {
 
   /// Visual configuration; defaults to [MailTheme.light].
   final MailTheme theme;
+
+  /// Optional small badge (e.g. a channel marker) shown on the bottom-right of
+  /// a leading sender avatar. When null, no avatar column is shown.
+  final Widget? badge;
 
   @override
   Widget build(BuildContext context) {
@@ -52,6 +57,7 @@ class MailListView extends StatelessWidget {
           return _MailTile(
             message: message,
             theme: theme,
+            badge: badge,
             onTap: () => onOpen(message),
           );
         },
@@ -64,12 +70,19 @@ class _MailTile extends StatelessWidget {
   const _MailTile({
     required this.message,
     required this.theme,
+    required this.badge,
     required this.onTap,
   });
 
   final MailMessage message;
   final MailTheme theme;
+  final Widget? badge;
   final VoidCallback onTap;
+
+  String get _initial {
+    final s = message.from.trim();
+    return s.isEmpty ? '?' : s.characters.first.toUpperCase();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,6 +94,20 @@ class _MailTile extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
           children: [
+            if (badge != null) ...[
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  CircleAvatar(
+                    radius: 20,
+                    backgroundColor: theme.accentColor.withValues(alpha: 0.2),
+                    child: Text(_initial, style: TextStyle(color: theme.accentColor)),
+                  ),
+                  Positioned(right: -2, bottom: -2, child: badge!),
+                ],
+              ),
+              const SizedBox(width: 12),
+            ],
             if (!message.seen) ...[
               Container(
                 width: 8,

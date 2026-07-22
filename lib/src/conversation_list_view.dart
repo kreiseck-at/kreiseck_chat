@@ -17,6 +17,7 @@ class ConversationListView extends StatelessWidget {
     this.theme = const ChatTheme.light(),
     this.capabilities = const ChatCapabilities.inApp(),
     this.typingLabel = 'tippt…',
+    this.channelBadge,
   });
 
   /// Conversations to display.
@@ -34,6 +35,10 @@ class ConversationListView extends StatelessWidget {
   /// Preview label shown while the counterpart is typing.
   final String typingLabel;
 
+  /// Optional small badge overlaid on the bottom-right of each avatar (e.g. a
+  /// channel marker). When provided, the textual channel label is hidden.
+  final Widget? Function(ChatConversation conversation)? channelBadge;
+
   @override
   Widget build(BuildContext context) {
     return Material(
@@ -47,6 +52,7 @@ class ConversationListView extends StatelessWidget {
             theme: theme,
             capabilities: capabilities,
             typingLabel: typingLabel,
+            badge: channelBadge?.call(c),
             onTap: () => onOpen(c),
           );
         },
@@ -61,6 +67,7 @@ class _ConversationTile extends StatelessWidget {
     required this.theme,
     required this.capabilities,
     required this.typingLabel,
+    required this.badge,
     required this.onTap,
   });
 
@@ -68,6 +75,7 @@ class _ConversationTile extends StatelessWidget {
   final ChatTheme theme;
   final ChatCapabilities capabilities;
   final String typingLabel;
+  final Widget? badge;
   final VoidCallback onTap;
 
   bool get _online =>
@@ -106,7 +114,9 @@ class _ConversationTile extends StatelessWidget {
                   border: Border.all(color: theme.colors.background, width: 2),
                 ),
               ),
-            ),
+            )
+          else if (badge != null)
+            Positioned(right: -2, bottom: -2, child: badge!),
         ],
       ),
       title: Row(
@@ -132,7 +142,7 @@ class _ConversationTile extends StatelessWidget {
       ),
       subtitle: Row(
         children: [
-          if (conversation.channelLabel != null) ...[
+          if (badge == null && conversation.channelLabel != null) ...[
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
               decoration: BoxDecoration(
