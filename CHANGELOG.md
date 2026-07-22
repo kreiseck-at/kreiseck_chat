@@ -1,3 +1,14 @@
+## 0.9.0
+
+* `MessageBubble`: album images now fade in over a neutral placeholder (via
+  `Image.frameBuilder`) so a freshly opened thread no longer flashes empty tiles.
+* `MessageBubble` / `ChatThreadView`: new `onOpenImages(images, index)` callback,
+  fired when an album image is tapped, so the host can open a swipeable
+  full-screen gallery. `onOpenAttachment` now only fires for non-image files.
+* `MessageBubble`: the long-press context menu is themed — surface color from
+  `ChatColors.composer`, rounded corners, and item text/icons in the bubble
+  text color.
+
 ## 0.8.0
 
 * `MessageBubble`: images now render as a WhatsApp-style **album** — a single

@@ -236,6 +236,28 @@ void main() {
     expect(find.text('+2'), findsOneWidget);
   });
 
+  testWidgets('tapping an album image fires onOpenImages with images + index',
+      (tester) async {
+    List<ChatAttachment>? gotImages;
+    int? gotIndex;
+    await tester.pumpWidget(_scrolled(
+      MessageBubble(
+        message: _withImages(3),
+        capabilities: const ChatCapabilities.inApp(),
+        onOpenImages: (images, index) {
+          gotImages = images;
+          gotIndex = index;
+        },
+      ),
+    ));
+    // Second tile (index 1).
+    await tester.tap(find.byType(Image).at(1));
+    await tester.pump();
+    expect(gotImages, isNotNull);
+    expect(gotImages!.length, 3);
+    expect(gotIndex, 1);
+  });
+
   testWidgets('long-press opens a context menu with Kopieren (no bottom sheet)',
       (tester) async {
     var copied = 0;

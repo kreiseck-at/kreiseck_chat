@@ -24,6 +24,7 @@ class MessageBubble extends StatelessWidget {
     this.onReplyRequested,
     this.onReact,
     this.onOpenAttachment,
+    this.onOpenImages,
     this.onCopy,
   });
 
@@ -51,8 +52,13 @@ class MessageBubble extends StatelessWidget {
   /// Called with an emoji when the user reacts.
   final void Function(String emoji)? onReact;
 
-  /// Called when the user taps an attachment.
+  /// Called when the user taps a non-image attachment (e.g. a file).
   final void Function(ChatAttachment attachment)? onOpenAttachment;
+
+  /// Called when the user taps an image in the album, with the message's full
+  /// list of image attachments and the tapped index — so the host can open a
+  /// swipeable full-screen gallery.
+  final void Function(List<ChatAttachment> images, int index)? onOpenImages;
 
   /// Called after the message text was copied to the clipboard (e.g. to show
   /// a confirmation). Copy itself is handled internally.
@@ -78,9 +84,13 @@ class MessageBubble extends StatelessWidget {
       Rect.fromLTWH(globalPosition.dx, globalPosition.dy, 0, 0),
       Offset.zero & overlay.size,
     );
+    final menuColor = theme.colors.incomingText;
     final selected = await showMenu<String>(
       context: context,
       position: position,
+      color: theme.colors.composer,
+      elevation: 6,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       items: [
         if (capabilities.reactions)
           PopupMenuItem<String>(
@@ -105,20 +115,12 @@ class MessageBubble extends StatelessWidget {
         if (capabilities.replies)
           PopupMenuItem<String>(
             value: 'reply',
-            child: Row(children: [
-              Icon(theme.icons.reply, size: 20),
-              const SizedBox(width: 12),
-              const Text('Antworten'),
-            ]),
+            child: _menuRow(theme.icons.reply, 'Antworten', menuColor),
           ),
         if (message.text.isNotEmpty)
           PopupMenuItem<String>(
             value: 'copy',
-            child: Row(children: [
-              Icon(theme.icons.copy, size: 20),
-              const SizedBox(width: 12),
-              const Text('Kopieren'),
-            ]),
+            child: _menuRow(theme.icons.copy, 'Kopieren', menuColor),
           ),
       ],
     );
@@ -128,6 +130,14 @@ class MessageBubble extends StatelessWidget {
       Clipboard.setData(ClipboardData(text: message.text));
       onCopy?.call();
     }
+  }
+
+  Widget _menuRow(IconData icon, String label, Color color) {
+    return Row(children: [
+      Icon(icon, size: 20, color: color),
+      const SizedBox(width: 12),
+      Text(label, style: TextStyle(color: color)),
+    ]);
   }
 
   @override
@@ -167,6 +177,8 @@ class MessageBubble extends StatelessWidget {
               child: _Album(
                 attachments: message.attachments,
                 onOpen: onOpenAttachment,
+                onOpenImages: onOpenImages,
+                theme: theme,
               ),
             ),
           if (message.text.isNotEmpty)
@@ -379,10 +391,14 @@ class _Album extends StatelessWidget {
   const _Album({
     required this.attachments,
     required this.onOpen,
+    required this.onOpenImages,
+    required this.theme,
   });
 
   final List<ChatAttachment> attachments;
   final void Function(ChatAttachment)? onOpen;
+  final void Function(List<ChatAttachment> images, int index)? onOpenImages;
+  final ChatTheme theme;
 
   static const double _gap = 2;
 
@@ -419,9 +435,12 @@ class _Album extends StatelessWidget {
       );
     }
 
+    void open(int index) => onOpenImages?.call(images, index);
+
     // Ein Bild: breit über die Bubble, leicht liegendes Format.
     if (images.length == 1) {
-      return AspectRatio(aspectRatio: 1.6, child: _tile(images.first));
+      return AspectRatio(
+          aspectRatio: 1.6, child: _tile(images.first, onTap: () => open(0)));
     }
 
     // Mehrere: 2-Spalten-Grid quadratischer Kacheln (Expanded -> passt sich der
@@ -431,35 +450,57 @@ class _Album extends StatelessWidget {
     final rows = <Widget>[];
     for (var i = 0; i < show; i += 2) {
       final hasRight = i + 1 < show;
+      final li = i;
+      final ri = i + 1;
       rows.add(Padding(
         padding: EdgeInsets.only(top: i == 0 ? 0 : _gap),
         child: hasRight
             ? Row(children: [
-                Expanded(child: AspectRatio(aspectRatio: 1, child: _tile(images[i]))),
+                Expanded(
+                    child: AspectRatio(
+                        aspectRatio: 1,
+                        child: _tile(images[li], onTap: () => open(li)))),
                 const SizedBox(width: _gap),
                 Expanded(
                   child: AspectRatio(
                     aspectRatio: 1,
                     // "+N" liegt auf dem 4. sichtbaren Bild (Index 3).
-                    child: _tile(images[i + 1], plusMore: i + 1 == 3 ? plusMore : 0),
+                    child: _tile(images[ri],
+                        onTap: () => open(ri), plusMore: ri == 3 ? plusMore : 0),
                   ),
                 ),
               ])
             // Ungerade Anzahl: letztes Bild über die volle Breite (liegend).
-            : AspectRatio(aspectRatio: 2, child: _tile(images[i])),
+            : AspectRatio(
+                aspectRatio: 2, child: _tile(images[li], onTap: () => open(li))),
       ));
     }
     return Column(mainAxisSize: MainAxisSize.min, children: rows);
   }
 
-  Widget _tile(ChatAttachment a, {int plusMore = 0}) {
+  Widget _tile(ChatAttachment a, {VoidCallback? onTap, int plusMore = 0}) {
     final provider = _providerFor(a)!;
     return GestureDetector(
-      onTap: onOpen == null ? null : () => onOpen!(a),
+      onTap: onTap,
       child: Stack(
         fit: StackFit.expand,
         children: [
-          Image(image: provider, fit: BoxFit.cover),
+          // Platzhalterfläche, damit die Bubble sofort steht und das Bild
+          // sauber einblendet, statt „leer -> plopp".
+          Container(color: theme.colors.incomingBubble),
+          Image(
+            image: provider,
+            fit: BoxFit.cover,
+            frameBuilder: (context, child, frame, wasSyncLoaded) {
+              if (wasSyncLoaded) return child;
+              return AnimatedOpacity(
+                opacity: frame == null ? 0 : 1,
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOut,
+                child: child,
+              );
+            },
+          ),
           if (plusMore > 0)
             Container(
               color: Colors.black54,

@@ -29,6 +29,7 @@ class ChatThreadView extends StatefulWidget {
     this.onReplyRequested,
     this.onReact,
     this.onOpenAttachment,
+    this.onOpenImages,
     this.onCopy,
     this.attachmentPreviews = const [],
     this.onRemoveAttachmentAt,
@@ -70,8 +71,12 @@ class ChatThreadView extends StatefulWidget {
   /// Called with a message id + emoji on reaction.
   final void Function(String messageId, String emoji)? onReact;
 
-  /// Called when an attachment is tapped.
+  /// Called when a non-image attachment is tapped.
   final void Function(ChatAttachment attachment)? onOpenAttachment;
+
+  /// Called when an image is tapped, with the message's images and the tapped
+  /// index — for opening a swipeable full-screen gallery.
+  final void Function(List<ChatAttachment> images, int index)? onOpenImages;
 
   /// Called after a message's text was copied to the clipboard (e.g. to show
   /// a confirmation). Copy itself is handled internally.
@@ -220,6 +225,7 @@ class _ChatThreadViewState extends State<ChatThreadView> {
                       ? null
                       : (emoji) => widget.onReact!(mi.message.id, emoji),
                   onOpenAttachment: widget.onOpenAttachment,
+                  onOpenImages: widget.onOpenImages,
                   onCopy: widget.onCopy,
                 );
               },
