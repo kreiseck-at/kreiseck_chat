@@ -111,7 +111,7 @@ class _ChatThreadViewState extends State<ChatThreadView> {
     super.initState();
     _lastCount = widget.messages.length;
     _scroll.addListener(_onScroll);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _jumpToBottom());
+    WidgetsBinding.instance.addPostFrameCallback((_) => _settleToBottom());
   }
 
   @override
@@ -144,9 +144,18 @@ class _ChatThreadViewState extends State<ChatThreadView> {
     }
   }
 
-  void _jumpToBottom() {
-    if (!_scroll.hasClients) return;
-    _scroll.jumpTo(_scroll.position.maxScrollExtent);
+  /// Rastet beim Öffnen zuverlässig ganz unten ein. Eine lazy `ListView.builder`
+  /// kennt ihre volle Höhe erst, wenn die Items gebaut sind -- jeder Sprung baut
+  /// weitere Items Richtung Boden, der nächste springt weiter, bis der Boden
+  /// stabil ist. Deshalb über mehrere Frames + eine kurze Verzögerung nachsetzen.
+  void _settleToBottom({int framesLeft = 6}) {
+    if (!mounted || !_scroll.hasClients) return;
+    final max = _scroll.position.maxScrollExtent;
+    if (_scroll.position.pixels != max) _scroll.jumpTo(max);
+    if (framesLeft > 0) {
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => _settleToBottom(framesLeft: framesLeft - 1));
+    }
   }
 
   void _scrollToBottom() {

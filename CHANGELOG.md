@@ -1,3 +1,10 @@
+## 0.11.0
+
+* `ChatThreadView`: opening a thread now reliably lands at the very bottom. A
+  lazy `ListView.builder` doesn't know its full extent on the first frame, so a
+  single jump fell short; the view now re-snaps to the bottom across several
+  frames until the extent stabilizes.
+
 ## 0.10.0
 
 * `ConversationListView`: new `channelBadge` builder renders a small badge on the
