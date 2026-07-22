@@ -1,3 +1,9 @@
+## 0.12.0
+
+* `Composer`: when the field is empty and the channel offers no media/mic
+  affordance, a disabled send button is shown (instead of nothing), so the input
+  bar never looks empty. It activates as soon as there is text or an attachment.
+
 ## 0.11.0
 
 * `ChatThreadView`: opening a thread now reliably lands at the very bottom. A

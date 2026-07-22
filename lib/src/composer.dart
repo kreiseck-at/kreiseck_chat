@@ -223,18 +223,29 @@ class _ComposerState extends State<Composer> with SingleTickerProviderStateMixin
                     onPressed: _submit,
                   ),
                 )
-              else ...[
-                if (widget.capabilities.media)
-                  IconButton(
-                    icon: Icon(theme.icons.camera, color: theme.colors.accent),
-                    onPressed: () => widget.onAttach?.call(AttachSource.camera),
-                  ),
+              else if (widget.capabilities.media) ...[
+                IconButton(
+                  icon: Icon(theme.icons.camera, color: theme.colors.accent),
+                  onPressed: () => widget.onAttach?.call(AttachSource.camera),
+                ),
                 if (widget.showMic)
                   IconButton(
                     icon: Icon(theme.icons.mic, color: theme.colors.accent),
                     onPressed: null,
                   ),
-              ],
+              ] else if (widget.showMic)
+                IconButton(
+                  icon: Icon(theme.icons.mic, color: theme.colors.accent),
+                  onPressed: null,
+                )
+              else
+                // Keine Medien-/Mic-Funktion und leeres Feld: Sende-Button
+                // sichtbar, aber deaktiviert -- die Leiste wirkt nicht „leer".
+                IconButton(
+                  icon: Icon(theme.icons.send,
+                      color: theme.colors.accent.withValues(alpha: 0.35)),
+                  onPressed: null,
+                ),
                 ],
               ),
             ],

@@ -67,6 +67,36 @@ void main() {
     expect(find.byIcon(const ChatIcons().send), findsOneWidget);
   });
 
+  testWidgets('empty field without media/mic shows a disabled send button',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: Composer(
+          onSend: (_) {},
+          capabilities: const ChatCapabilities.twilioSms(), // media & mic off
+        ),
+      ),
+    ));
+    // Send icon present but disabled (no camera to show instead).
+    expect(find.byIcon(const ChatIcons().send), findsOneWidget);
+    final button = tester.widget<IconButton>(
+      find.ancestor(
+        of: find.byIcon(const ChatIcons().send),
+        matching: find.byType(IconButton),
+      ),
+    );
+    expect(button.onPressed, isNull);
+    // Becomes active once there is text.
+    await _type(tester, 'hallo');
+    final active = tester.widget<IconButton>(
+      find.ancestor(
+        of: find.byIcon(const ChatIcons().send),
+        matching: find.byType(IconButton),
+      ),
+    );
+    expect(active.onPressed, isNotNull);
+  });
+
   testWidgets('camera shortcut shown when empty + media, hidden while typing',
       (tester) async {
     await tester.pumpWidget(MaterialApp(
