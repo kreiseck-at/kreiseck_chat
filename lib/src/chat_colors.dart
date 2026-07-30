@@ -21,6 +21,8 @@ class ChatColors {
     required this.dateSeparatorText,
     required this.replyAccent,
     this.readReceipt = const Color(0xFF34B7F1),
+    this.error = const Color(0xFFB5374A),
+    this.warning = const Color(0xFFB8860B),
   });
 
   /// Incoming bubble fill.
@@ -72,6 +74,13 @@ class ChatColors {
   /// [accent] so a green/branded accent doesn't tint read receipts.
   final Color readReceipt;
 
+  /// Farbe für Fehlermeldungen, z. B. den Grund einer fehlgeschlagenen
+  /// Zustellung unter einer Blase.
+  final Color error;
+
+  /// Farbe für Warnhinweise, z. B. eine `ChatBanner`-Leiste.
+  final Color warning;
+
   /// Sensible light palette.
   const ChatColors.light()
       : incomingBubble = const Color(0xFFE9E9EB),
@@ -89,7 +98,9 @@ class ChatColors {
         dateSeparatorBackground = const Color(0x14000000),
         dateSeparatorText = const Color(0xFF6C6C70),
         replyAccent = const Color(0xFF3478F6),
-        readReceipt = const Color(0xFF34B7F1);
+        readReceipt = const Color(0xFF34B7F1),
+        error = const Color(0xFFB5374A),
+        warning = const Color(0xFFB8860B);
 
   /// Sensible dark palette.
   const ChatColors.dark()
@@ -108,7 +119,9 @@ class ChatColors {
         dateSeparatorBackground = const Color(0x33FFFFFF),
         dateSeparatorText = const Color(0xFFC7C7CC),
         replyAccent = const Color(0xFF64A1FF),
-        readReceipt = const Color(0xFF53BDEB);
+        readReceipt = const Color(0xFF53BDEB),
+        error = const Color(0xFFFF6B7A),
+        warning = const Color(0xFFE0B44A);
 
   /// Returns a copy with the given fields replaced.
   ChatColors copyWith({
@@ -128,6 +141,8 @@ class ChatColors {
     Color? dateSeparatorText,
     Color? replyAccent,
     Color? readReceipt,
+    Color? error,
+    Color? warning,
   }) {
     return ChatColors(
       incomingBubble: incomingBubble ?? this.incomingBubble,
@@ -148,6 +163,8 @@ class ChatColors {
       dateSeparatorText: dateSeparatorText ?? this.dateSeparatorText,
       replyAccent: replyAccent ?? this.replyAccent,
       readReceipt: readReceipt ?? this.readReceipt,
+      error: error ?? this.error,
+      warning: warning ?? this.warning,
     );
   }
 
@@ -170,7 +187,9 @@ class ChatColors {
         other.dateSeparatorBackground == dateSeparatorBackground &&
         other.dateSeparatorText == dateSeparatorText &&
         other.replyAccent == replyAccent &&
-        other.readReceipt == readReceipt;
+        other.readReceipt == readReceipt &&
+        other.error == error &&
+        other.warning == warning;
   }
 
   @override
@@ -191,5 +210,7 @@ class ChatColors {
         dateSeparatorText,
         replyAccent,
         readReceipt,
+        error,
+        warning,
       ]);
 }

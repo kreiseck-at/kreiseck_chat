@@ -41,4 +41,24 @@ void main() {
     final typo = ChatTypography.fromTextTheme(ThemeData.light().textTheme);
     expect(typo.body, isA<TextStyle>());
   });
+
+  test('Farbschema hat Fehler- und Warnfarbe', () {
+    const hell = ChatColors.light();
+    const dunkel = ChatColors.dark();
+    expect(hell.error, isNot(hell.background));
+    expect(hell.warning, isNot(hell.background));
+    expect(dunkel.error, isNot(dunkel.background));
+    expect(dunkel.warning, isNot(dunkel.background));
+  });
+
+  test('copyWith ersetzt Fehler- und Warnfarbe', () {
+    const hell = ChatColors.light();
+    final eigen = hell.copyWith(
+      error: const Color(0xFF111111),
+      warning: const Color(0xFF222222),
+    );
+    expect(eigen.error, const Color(0xFF111111));
+    expect(eigen.warning, const Color(0xFF222222));
+    expect(eigen.accent, hell.accent);
+  });
 }
