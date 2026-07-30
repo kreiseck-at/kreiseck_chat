@@ -22,7 +22,7 @@ class ChatChannelBadge extends StatelessWidget {
   /// Icon only, no label or background.
   final bool compact;
 
-  /// Visual configuration (radius, typography).
+  /// Visual configuration (typography).
   final ChatTheme theme;
 
   @override
@@ -44,11 +44,15 @@ class ChatChannelBadge extends StatelessWidget {
         children: [
           Icon(channel.icon, size: 11, color: channel.color),
           const SizedBox(width: 3),
-          Text(
-            channel.label,
-            style: theme.typography.timestamp.copyWith(
-              color: channel.color,
-              fontWeight: FontWeight.w600,
+          Flexible(
+            child: Text(
+              channel.label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.typography.timestamp.copyWith(
+                color: channel.color,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],

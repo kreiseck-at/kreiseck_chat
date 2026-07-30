@@ -32,4 +32,20 @@ void main() {
     final icon = tester.widget<Icon>(find.byIcon(Icons.chat_rounded));
     expect(icon.color, const Color(0xFF25D366));
   });
+
+  testWidgets('langes Label wird gekürzt, ohne Fehler', (tester) async {
+    final longChannel = ChatChannel.whatsApp(label: 'A' * 100);
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: Center(
+          child: SizedBox(
+            width: 80,
+            child: ChatChannelBadge(channel: longChannel),
+          ),
+        ),
+      ),
+    ));
+    expect(tester.takeException(), isNull);
+    expect(find.byIcon(Icons.chat_rounded), findsOneWidget);
+  });
 }
