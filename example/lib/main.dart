@@ -61,15 +61,15 @@ class _DemoAppState extends State<DemoApp> {
       ChatMessage(
         id: '4',
         direction: MessageDirection.outgoing,
-        text: 'Anbei die Übersicht der offenen Posten.',
+        text: 'Anbei die aktuelle Übersicht.',
         at: now.subtract(const Duration(minutes: 32)),
         status: MessageStatus.sent,
-        headline: 'Rechnung März',
+        headline: 'Kurzinfo',
       ),
       ChatMessage(
         id: '5',
         direction: MessageDirection.outgoing,
-        text: 'Erinnerung: dein Termin morgen um 9 Uhr.',
+        text: 'Automatische Nachricht an alle Teilnehmer.',
         at: now.subtract(const Duration(minutes: 24)),
         status: MessageStatus.failed,
         errorText: 'Empfängerin hat abbestellt',
@@ -243,7 +243,7 @@ class _DemoAppState extends State<DemoApp> {
         const ChatConversation(
           id: 'c3',
           title: 'Mira',
-          subtitle: 'Rechnung erhalten, danke.',
+          subtitle: 'Danke, hat geklappt.',
           channelLabel: 'E-Mail',
         ),
       ],
