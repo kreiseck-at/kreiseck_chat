@@ -372,4 +372,22 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Привіт'), findsOneWidget);
   });
+
+  testWidgets(
+      'Betreffzeile trägt dieselbe Farbe wie der Nachrichtentext (ausgehende Blase)',
+      (tester) async {
+    final msg = ChatMessage(
+      id: 'm2',
+      direction: MessageDirection.outgoing,
+      text: 'Hallo',
+      at: DateTime(2026, 7, 30, 10),
+      headline: 'Rechnung',
+    );
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(body: MessageBubble(message: msg)),
+    ));
+    final headlineText = tester.widget<Text>(find.text('Rechnung'));
+    final bodyText = tester.widget<Text>(find.text('Hallo'));
+    expect(headlineText.style?.color, bodyText.style?.color);
+  });
 }

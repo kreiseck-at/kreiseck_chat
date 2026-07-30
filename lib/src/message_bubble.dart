@@ -210,6 +210,7 @@ class _MessageBubbleState extends State<MessageBubble> {
               child: Text(
                 message.headline!,
                 style: theme.typography.body.copyWith(
+                  color: textColor,
                   fontWeight: FontWeight.w700,
                 ),
               ),
