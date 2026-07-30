@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:kreiseck_chat/kreiseck_chat.dart';
 
+import 'gallery_page.dart';
+
 void main() => runApp(const DemoApp());
 
 enum _Screen { thread, conversations }
@@ -139,6 +141,13 @@ class _DemoAppState extends State<DemoApp> {
         appBar: AppBar(
           title: const Text('kreiseck_chat Demo'),
           actions: [
+            IconButton(
+              icon: const Icon(Icons.palette_outlined),
+              tooltip: 'Zustände',
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(builder: (_) => const GalleryPage()),
+              ),
+            ),
             IconButton(
               icon: Icon(_dark ? Icons.light_mode : Icons.dark_mode),
               onPressed: () => setState(() => _dark = !_dark),
