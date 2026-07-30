@@ -109,7 +109,7 @@ void main() {
         ),
       ),
     ));
-    expect(find.byIcon(Icons.push_pin), findsOneWidget);
+    expect(find.byIcon(Icons.push_pin_rounded), findsOneWidget);
     expect(find.byIcon(Icons.volume_off), findsOneWidget);
   });
 
@@ -163,4 +163,138 @@ void main() {
         (w.decoration as BoxDecoration).color == theme.colors.presenceOnline);
     expect(dot, findsNothing);
   });
+
+  testWidgets('Kanäle erscheinen als Marken-Reihe', (tester) async {
+    await tester.pumpWidget(const MaterialApp(
+      home: Scaffold(
+        body: ConversationListView(
+          conversations: [
+            ChatConversation(
+              id: 'c1',
+              title: 'Ada',
+              channels: [ChatChannel.whatsApp(), ChatChannel.sms()],
+            ),
+          ],
+          onOpen: _nichts,
+        ),
+      ),
+    ));
+    expect(find.byType(ChatChannelBadge), findsNWidgets(2));
+  });
+
+  testWidgets('channelBadge hat Vorrang vor der Kanäle-Reihe', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: ConversationListView(
+          conversations: const [
+            ChatConversation(
+              id: 'c1',
+              title: 'Ada',
+              channels: [ChatChannel.whatsApp(), ChatChannel.sms()],
+            ),
+          ],
+          onOpen: (_) {},
+          channelBadge: (c) => const Icon(Icons.sms, key: Key('badge')),
+        ),
+      ),
+    ));
+    expect(find.byType(ChatChannelBadge), findsNothing);
+    expect(find.byKey(const Key('badge')), findsOneWidget);
+  });
+
+  testWidgets('angepinnt zeigt ein Symbol', (tester) async {
+    await tester.pumpWidget(const MaterialApp(
+      home: Scaffold(
+        body: ConversationListView(
+          conversations: [
+            ChatConversation(id: 'c1', title: 'Ada', pinned: true),
+          ],
+          onOpen: _nichts,
+        ),
+      ),
+    ));
+    expect(find.byIcon(Icons.push_pin_rounded), findsOneWidget);
+  });
+
+  testWidgets('titleBadgeBuilder wird eingesetzt', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: ConversationListView(
+          conversations: const [ChatConversation(id: 'c1', title: 'Ada')],
+          onOpen: (_) {},
+          titleBadgeBuilder: (_) => const Text('SPAM'),
+        ),
+      ),
+    ));
+    expect(find.text('SPAM'), findsOneWidget);
+  });
+
+  testWidgets('onLongPress wird ausgelöst', (tester) async {
+    ChatConversation? gedrueckt;
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: ConversationListView(
+          conversations: const [ChatConversation(id: 'c1', title: 'Ada')],
+          onOpen: (_) {},
+          onLongPress: (c) => gedrueckt = c,
+        ),
+      ),
+    ));
+    await tester.longPress(find.text('Ada'));
+    expect(gedrueckt?.id, 'c1');
+  });
+
+  testWidgets('onTap und onLongPress funktionieren unabhängig voneinander',
+      (tester) async {
+    ChatConversation? getippt;
+    ChatConversation? gedrueckt;
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: ConversationListView(
+          conversations: const [ChatConversation(id: 'c1', title: 'Ada')],
+          onOpen: (c) => getippt = c,
+          onLongPress: (c) => gedrueckt = c,
+        ),
+      ),
+    ));
+    await tester.tap(find.text('Ada'));
+    expect(getippt?.id, 'c1');
+    expect(gedrueckt, isNull);
+
+    await tester.longPress(find.text('Ada'));
+    expect(gedrueckt?.id, 'c1');
+    expect(getippt?.id, 'c1');
+  });
+
+  testWidgets(
+      'lange Titel mit Abzeichen und drei Kanal-Marken laufen nicht über',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: SizedBox(
+          width: 260,
+          child: ConversationListView(
+            conversations: const [
+              ChatConversation(
+                id: 'c1',
+                title: 'Ein sehr sehr sehr langer Titel für diese Zeile',
+                pinned: true,
+                muted: true,
+                channels: [
+                  ChatChannel.whatsApp(),
+                  ChatChannel.sms(),
+                  ChatChannel.email(),
+                ],
+              ),
+            ],
+            onOpen: (_) {},
+            titleBadgeBuilder: (_) => const Text('NEU'),
+          ),
+        ),
+      ),
+    ));
+    expect(tester.takeException(), isNull);
+  });
 }
+
+void _nichts(ChatConversation c) {}
