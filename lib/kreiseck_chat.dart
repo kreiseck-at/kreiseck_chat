@@ -6,6 +6,7 @@ export 'src/bubble_tail_painter.dart';
 export 'src/chat_attachment.dart';
 export 'src/chat_avatar.dart';
 export 'src/chat_capabilities.dart';
+export 'src/chat_channel.dart';
 export 'src/chat_colors.dart';
 export 'src/chat_header.dart';
 export 'src/chat_icons.dart';
