@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'bubble_ink.dart';
 import 'bubble_style.dart';
 import 'bubble_tail_painter.dart';
 import 'chat_attachment.dart';
@@ -183,6 +184,7 @@ class _MessageBubbleState extends State<MessageBubble> {
     final bubbleColor =
         _isOutgoing ? colors.outgoingBubble : colors.incomingBubble;
     final textColor = _isOutgoing ? colors.outgoingText : colors.incomingText;
+    final ink = colors.inkFor(bubbleColor);
 
     final hasMedia = capabilities.media && message.attachments.isNotEmpty;
     final maxBubbleWidth = MediaQuery.of(context).size.width * 0.75;
@@ -206,7 +208,7 @@ class _MessageBubbleState extends State<MessageBubble> {
               padding: hasMedia
                   ? const EdgeInsets.fromLTRB(8, 6, 8, 0)
                   : EdgeInsets.zero,
-              child: _ReplyQuote(refText: message.replyTo!, theme: theme),
+              child: _ReplyQuote(refText: message.replyTo!, theme: theme, ink: ink),
             ),
           if (hasMedia)
             ClipRRect(
@@ -255,7 +257,8 @@ class _MessageBubbleState extends State<MessageBubble> {
               showStatus: _isOutgoing,
               status: _effectiveStatus,
               theme: theme,
-              textColor: textColor,
+              ink: ink,
+              bubbleColor: bubbleColor,
               channel: message.channel,
             ),
           ),
@@ -436,10 +439,15 @@ class _EntranceAnimationState extends State<_EntranceAnimation>
 }
 
 class _ReplyQuote extends StatelessWidget {
-  const _ReplyQuote({required this.refText, required this.theme});
+  const _ReplyQuote({required this.refText, required this.theme, required this.ink});
 
   final ChatMessageRef refText;
   final ChatTheme theme;
+
+  /// Colors of the bubble this quote is drawn on -- not derived from
+  /// [theme.colors] directly, so the quote stays legible regardless of which
+  /// bubble (incoming/outgoing, or a custom host color) it lands on.
+  final BubbleInk ink;
 
   @override
   Widget build(BuildContext context) {
@@ -448,7 +456,7 @@ class _ReplyQuote extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         border: Border(
-          left: BorderSide(color: theme.colors.replyAccent, width: 3),
+          left: BorderSide(color: ink.line, width: 3),
         ),
       ),
       child: Column(
@@ -457,12 +465,11 @@ class _ReplyQuote extends StatelessWidget {
         children: [
           if (refText.senderLabel != null)
             Text(refText.senderLabel!,
-                style: theme.typography.senderName
-                    .copyWith(color: theme.colors.replyAccent)),
+                style: theme.typography.senderName.copyWith(color: ink.text)),
           Text(refText.snippet,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: theme.typography.replyQuote),
+              style: theme.typography.replyQuote.copyWith(color: ink.muted)),
         ],
       ),
     );
@@ -656,7 +663,8 @@ class _MetaRow extends StatelessWidget {
     required this.showStatus,
     required this.status,
     required this.theme,
-    required this.textColor,
+    required this.ink,
+    required this.bubbleColor,
     this.channel,
   });
 
@@ -665,7 +673,13 @@ class _MetaRow extends StatelessWidget {
   final bool showStatus;
   final MessageStatus status;
   final ChatTheme theme;
-  final Color textColor;
+
+  /// Colors of the bubble this row sits inside.
+  final BubbleInk ink;
+
+  /// Fill color of the bubble this row sits inside, needed to keep the read
+  /// receipt tick's own hue readable via [readableOn].
+  final Color bubbleColor;
 
   /// The channel this message travelled over, if known — shown as a compact
   /// badge before the timestamp.
@@ -681,12 +695,12 @@ class _MetaRow extends StatelessWidget {
           ChatChannelBadge(channel: channel!, compact: true, theme: theme),
         Text(
           time,
-          style: theme.typography.timestamp
-              .copyWith(color: textColor.withValues(alpha: 0.7)),
+          style: theme.typography.timestamp.copyWith(color: ink.muted),
         ),
         if (showStatus) ...[
           const SizedBox(width: 4),
-          _StatusIcon(status: status, color: textColor, theme: theme),
+          _StatusIcon(
+              status: status, ink: ink, bubbleColor: bubbleColor, theme: theme),
         ],
       ],
     );
@@ -696,12 +710,14 @@ class _MetaRow extends StatelessWidget {
 class _StatusIcon extends StatelessWidget {
   const _StatusIcon({
     required this.status,
-    required this.color,
+    required this.ink,
+    required this.bubbleColor,
     required this.theme,
   });
 
   final MessageStatus status;
-  final Color color;
+  final BubbleInk ink;
+  final Color bubbleColor;
   final ChatTheme theme;
 
   @override
@@ -709,13 +725,15 @@ class _StatusIcon extends StatelessWidget {
     final icons = theme.icons;
     switch (status) {
       case MessageStatus.sending:
-        return Icon(Icons.access_time, size: 12, color: color.withValues(alpha: 0.7));
+        return Icon(Icons.access_time, size: 12, color: ink.muted);
       case MessageStatus.sent:
-        return Icon(icons.sent, size: 14, color: color.withValues(alpha: 0.7));
+        return Icon(icons.sent, size: 14, color: ink.muted);
       case MessageStatus.delivered:
-        return Icon(icons.delivered, size: 14, color: color.withValues(alpha: 0.7));
+        return Icon(icons.delivered, size: 14, color: ink.muted);
       case MessageStatus.read:
-        return Icon(icons.read, size: 14, color: theme.colors.readReceipt);
+        return Icon(icons.read,
+            size: 14,
+            color: readableOn(bubbleColor, theme.colors.readReceipt, target: 3.0));
       case MessageStatus.failed:
         return Icon(icons.error, size: 14, color: Colors.red);
     }

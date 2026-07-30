@@ -294,7 +294,11 @@ void main() {
       ),
     ));
     final icon = tester.widget<Icon>(find.byType(Icon).last);
-    expect(icon.color, theme.colors.readReceipt);
+    // On the WhatsApp bubble the raw readReceipt blue itself falls short of
+    // 3:1, so the tick is the readable-lifted variant of it, not the raw
+    // value -- still recognisably the readReceipt hue, never the accent.
+    expect(icon.color,
+        readableOn(theme.colors.outgoingBubble, theme.colors.readReceipt, target: 3.0));
     expect(icon.color, isNot(theme.colors.accent));
   });
 
