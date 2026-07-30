@@ -32,17 +32,36 @@ and `ChatConversation` and handling the `onSend`/`onOpen` callbacks.
   `ChatCapabilities.custom(...)` for anything in between.
 * **`ChatTheme`** — a layered visual configuration composed of `ChatColors`,
   `ChatTypography`, `ChatIcons`, and `ChatMotion`, plus a `BubbleStyle`
-  (`whatsApp`, `iMessage`, `minimal`) and `bubbleRadius`. Ready-made presets:
-  `ChatTheme.light()`, `ChatTheme.dark()`, `ChatTheme.whatsApp()`, and
-  `ChatTheme.iMessage()` (the latter two take a `brightness`). Override just
-  the sub-config you need; the pre-0.3 flat color getters (`accentColor`,
-  `incomingBubbleColor`, ...) are preserved for existing call sites.
-  `ChatColors` now also carries `error` and `warning`.
+  (`whatsApp`, `iMessage`, `minimal`), `bubbleRadius`, and `showBubbleTail`.
+  Ready-made presets: `ChatTheme.light()`, `ChatTheme.dark()`,
+  `ChatTheme.whatsApp()`, and `ChatTheme.iMessage()` (the latter two take a
+  `brightness`). Override just the sub-config you need; the pre-0.3 flat
+  color getters (`accentColor`, `incomingBubbleColor`, ...) are preserved
+  for existing call sites. `ChatColors` now also carries `error` and
+  `warning`. `showBubbleTail` is off by default in every preset, including
+  `whatsApp` and `iMessage` — the classic speech-bubble tail is opt-in, not
+  drawn automatically just because a preset is styled after an app that
+  has one.
+* **`BubbleInk` / `ChatColors.inkFor`** — colors that sit *on* a bubble
+  (message text, muted timestamps/status, quote lines/dividers) are not
+  fixed values: `ChatColors.inkFor(bubble)` returns a `BubbleInk` derived
+  from that bubble's own fill color via `BubbleInk.forSurface`, so a host
+  picking any custom `outgoingBubble`/`incomingBubble` color still gets
+  legible text without hand-picking a matching text color. `text` and
+  `muted` reach at least 4.5:1 against the bubble, `line` at least 3:1.
+  Set `incomingInk`/`outgoingInk` on `ChatColors` to override the
+  derivation for a given bubble. The lower-level `readableOn(surface,
+  desired, {target})` and `contrastRatio(a, b)` helpers do the same for
+  colors that must keep their own hue (e.g. an error red or the read-tick
+  blue) rather than being replaced outright — used throughout the bubble,
+  channel badge, and banner for exactly that.
 * **`MessageBubble`** — timestamp, delivery status icon, sender name/avatar
   in group threads, quoted replies, reaction chips, and media attachments —
   each gated by `ChatCapabilities`. Also renders a bold `headline` above the
   text, a `ChatChannelBadge` when the message has a `channel`, the
-  `errorText` under a failed bubble, and — when `translation` is set — a
+  `errorText` under a failed bubble with an `onRetry` callback that shows a
+  "Erneut senden" action next to it (omit it to show just the failure
+  reason, with no retry action), and — when `translation` is set — a
   tap-to-toggle between original text and translation.
 * **`ChatSystemCard`** — a centered card for non-message content in the
   thread: system notes, logged events, summaries. Messages with
