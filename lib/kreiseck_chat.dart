@@ -20,6 +20,7 @@ export 'src/chat_theme.dart';
 export 'src/chat_thread_view.dart';
 export 'src/chat_typography.dart';
 export 'src/composer.dart';
+export 'src/contrast.dart';
 export 'src/conversation_list_view.dart';
 export 'src/date_separator.dart';
 export 'src/mail_composer.dart';
