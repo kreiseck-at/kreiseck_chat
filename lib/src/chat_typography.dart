@@ -16,6 +16,7 @@ class ChatTypography {
         const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
     this.headerSubtitle = const TextStyle(fontSize: 12),
     this.replyQuote = const TextStyle(fontSize: 13),
+    this.reaction = const TextStyle(fontSize: 16, height: 1.1),
   });
 
   /// Message body text.
@@ -42,6 +43,9 @@ class ChatTypography {
   /// Quoted reply preview text.
   final TextStyle replyQuote;
 
+  /// Emoji and count inside a reaction chip.
+  final TextStyle reaction;
+
   /// Derives a typography set from an ambient [TextTheme].
   factory ChatTypography.fromTextTheme(TextTheme t) {
     return ChatTypography(
@@ -57,6 +61,8 @@ class ChatTypography {
           .copyWith(fontSize: 16, fontWeight: FontWeight.w600),
       headerSubtitle: t.bodySmall ?? const TextStyle(fontSize: 12),
       replyQuote: t.bodySmall ?? const TextStyle(fontSize: 13),
+      reaction: (t.bodyMedium ?? const TextStyle())
+          .copyWith(fontSize: 16, height: 1.1),
     );
   }
 
@@ -70,6 +76,7 @@ class ChatTypography {
     TextStyle? headerTitle,
     TextStyle? headerSubtitle,
     TextStyle? replyQuote,
+    TextStyle? reaction,
   }) {
     return ChatTypography(
       body: body ?? this.body,
@@ -80,6 +87,7 @@ class ChatTypography {
       headerTitle: headerTitle ?? this.headerTitle,
       headerSubtitle: headerSubtitle ?? this.headerSubtitle,
       replyQuote: replyQuote ?? this.replyQuote,
+      reaction: reaction ?? this.reaction,
     );
   }
 
@@ -94,10 +102,11 @@ class ChatTypography {
         other.systemMessage == systemMessage &&
         other.headerTitle == headerTitle &&
         other.headerSubtitle == headerSubtitle &&
-        other.replyQuote == replyQuote;
+        other.replyQuote == replyQuote &&
+        other.reaction == reaction;
   }
 
   @override
   int get hashCode => Object.hash(body, timestamp, senderName, dateSeparator,
-      systemMessage, headerTitle, headerSubtitle, replyQuote);
+      systemMessage, headerTitle, headerSubtitle, replyQuote, reaction);
 }

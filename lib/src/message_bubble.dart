@@ -672,7 +672,7 @@ class _Reactions extends StatelessWidget {
         spacing: 4,
         children: reactions.map((r) {
           return Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(
               color: theme.colors.reactionChipBackground,
               borderRadius: BorderRadius.circular(12),
@@ -685,14 +685,14 @@ class _Reactions extends StatelessWidget {
               children: [
                 Text(
                   r.emoji,
-                  style: theme.typography.timestamp
+                  style: theme.typography.reaction
                       .copyWith(color: theme.colors.reactionChipText),
                 ),
                 if (r.count > 1) ...[
                   const SizedBox(width: 2),
                   Text(
                     '${r.count}',
-                    style: theme.typography.timestamp
+                    style: theme.typography.reaction
                         .copyWith(color: theme.colors.reactionChipText),
                   ),
                 ],

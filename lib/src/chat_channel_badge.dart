@@ -30,7 +30,7 @@ class ChatChannelBadge extends StatelessWidget {
     if (compact) {
       return Padding(
         padding: const EdgeInsets.only(right: 4),
-        child: Icon(channel.icon, size: 12, color: channel.color),
+        child: Icon(channel.icon, size: 15, color: channel.color),
       );
     }
     return Container(
