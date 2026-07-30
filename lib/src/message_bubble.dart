@@ -285,7 +285,7 @@ class _MessageBubbleState extends State<MessageBubble> {
       ),
     );
 
-    final showTail = theme.bubbleStyle != BubbleStyle.minimal && widget.isLastInGroup;
+    final showTail = theme.showBubbleTail && widget.isLastInGroup;
     if (showTail) {
       bubble = Stack(
         clipBehavior: Clip.none,

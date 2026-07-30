@@ -18,6 +18,7 @@ class ChatTheme {
     this.motion = const ChatMotion(),
     this.bubbleStyle = BubbleStyle.minimal,
     this.bubbleRadius = 16,
+    this.showBubbleTail = false,
   });
 
   /// Color set.
@@ -38,6 +39,12 @@ class ChatTheme {
   /// Base corner radius for bubbles.
   final double bubbleRadius;
 
+  /// Whether to paint a speech-bubble tail on the last bubble in a group.
+  ///
+  /// Off by default in every preset, including [ChatTheme.whatsApp] and
+  /// [ChatTheme.iMessage] — opt in explicitly if you want it.
+  final bool showBubbleTail;
+
   /// Light preset (minimal bubbles).
   const factory ChatTheme.light() = ChatTheme._light;
 
@@ -50,7 +57,8 @@ class ChatTheme {
         icons = const ChatIcons(),
         motion = const ChatMotion(),
         bubbleStyle = BubbleStyle.minimal,
-        bubbleRadius = 16;
+        bubbleRadius = 16,
+        showBubbleTail = false;
 
   const ChatTheme._dark()
       : colors = const ChatColors.dark(),
@@ -58,7 +66,8 @@ class ChatTheme {
         icons = const ChatIcons(),
         motion = const ChatMotion(),
         bubbleStyle = BubbleStyle.minimal,
-        bubbleRadius = 16;
+        bubbleRadius = 16,
+        showBubbleTail = false;
 
   /// WhatsApp-flavored preset.
   factory ChatTheme.whatsApp({Brightness brightness = Brightness.light}) {
@@ -74,6 +83,7 @@ class ChatTheme {
       ),
       bubbleStyle: BubbleStyle.whatsApp,
       bubbleRadius: 12,
+      showBubbleTail: false,
     );
   }
 
@@ -89,6 +99,7 @@ class ChatTheme {
       ),
       bubbleStyle: BubbleStyle.iMessage,
       bubbleRadius: 18,
+      showBubbleTail: false,
     );
   }
 
@@ -100,6 +111,7 @@ class ChatTheme {
     ChatMotion? motion,
     BubbleStyle? bubbleStyle,
     double? bubbleRadius,
+    bool? showBubbleTail,
   }) {
     return ChatTheme(
       colors: colors ?? this.colors,
@@ -108,6 +120,7 @@ class ChatTheme {
       motion: motion ?? this.motion,
       bubbleStyle: bubbleStyle ?? this.bubbleStyle,
       bubbleRadius: bubbleRadius ?? this.bubbleRadius,
+      showBubbleTail: showBubbleTail ?? this.showBubbleTail,
     );
   }
 

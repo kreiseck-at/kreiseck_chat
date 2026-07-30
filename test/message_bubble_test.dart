@@ -103,13 +103,31 @@ void main() {
     expect(find.text('quoted text'), findsOneWidget);
   });
 
-  testWidgets('tail painter present for whatsApp style when last in group',
+  testWidgets(
+      'no tail painter for whatsApp style by default (opt-in switch is off)',
       (tester) async {
     await tester.pumpWidget(MaterialApp(
       home: Scaffold(
         body: MessageBubble(
           message: _out('x'),
           theme: ChatTheme.whatsApp(),
+          isLastInGroup: true,
+        ),
+      ),
+    ));
+    final tails = tester
+        .widgetList<CustomPaint>(find.byType(CustomPaint))
+        .where((c) => c.painter is BubbleTailPainter);
+    expect(tails, isEmpty);
+  });
+
+  testWidgets('tail painter present for whatsApp style once switched on',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: MessageBubble(
+          message: _out('x'),
+          theme: ChatTheme.whatsApp().copyWith(showBubbleTail: true),
           isLastInGroup: true,
         ),
       ),
