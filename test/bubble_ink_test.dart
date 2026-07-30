@@ -55,6 +55,26 @@ void main() {
     });
   });
 
+  group('BubbleInk equality', () {
+    test('two separately-derived instances with equal fields compare equal',
+        () {
+      // Built via forSurface (not `const` literals) so the compiler cannot
+      // canonicalize the two into the same object -- that would let a plain
+      // identity-based `==` pass by accident and hide the missing override.
+      final a = BubbleInk.forSurface(const Color(0xFF3478F6));
+      final b = BubbleInk.forSurface(const Color(0xFF3478F6));
+      expect(identical(a, b), isFalse);
+      expect(a, equals(b));
+      expect(a.hashCode, equals(b.hashCode));
+    });
+
+    test('differing fields compare unequal', () {
+      final a = BubbleInk.forSurface(const Color(0xFF3478F6));
+      final b = BubbleInk.forSurface(const Color(0xFF25D366));
+      expect(a, isNot(equals(b)));
+    });
+  });
+
   group('readableOn', () {
     test('keeps a color that already passes', () {
       const surface = Color(0xFFFAFAFA);

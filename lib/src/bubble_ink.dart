@@ -20,6 +20,18 @@ class BubbleInk {
   /// Quote bars, dividers and other non-text marks. Reaches at least 3:1.
   final Color line;
 
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is BubbleInk &&
+        other.text == text &&
+        other.muted == muted &&
+        other.line == line;
+  }
+
+  @override
+  int get hashCode => Object.hash(text, muted, line);
+
   /// Derives an ink set from [surface]: white or black — whichever contrasts
   /// more — is mixed back towards the surface as far as the target still
   /// holds. The target is therefore a property of the calculation, not a hope.
