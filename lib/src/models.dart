@@ -325,6 +325,7 @@ class ChatConversation {
     this.typing = false,
     this.muted = false,
     this.pinned = false,
+    this.channels = const [],
   });
 
   /// Unique identifier of this conversation.
@@ -366,6 +367,11 @@ class ChatConversation {
   /// Whether the conversation is pinned.
   final bool pinned;
 
+  /// Channels that feed into this conversation. When set,
+  /// `ConversationListView` shows a row of compact badges built from this
+  /// list — taking precedence over [channelLabel].
+  final List<ChatChannel> channels;
+
   /// Returns a copy of this conversation with the given fields replaced.
   ChatConversation copyWith({
     String? id,
@@ -381,6 +387,7 @@ class ChatConversation {
     bool? typing,
     bool? muted,
     bool? pinned,
+    List<ChatChannel>? channels,
   }) {
     return ChatConversation(
       id: id ?? this.id,
@@ -396,6 +403,7 @@ class ChatConversation {
       typing: typing ?? this.typing,
       muted: muted ?? this.muted,
       pinned: pinned ?? this.pinned,
+      channels: channels ?? this.channels,
     );
   }
 
@@ -415,7 +423,8 @@ class ChatConversation {
         other.presence == presence &&
         other.typing == typing &&
         other.muted == muted &&
-        other.pinned == pinned;
+        other.pinned == pinned &&
+        _listEquals(other.channels, channels);
   }
 
   @override
@@ -433,6 +442,7 @@ class ChatConversation {
         typing,
         muted,
         pinned,
+        Object.hashAll(channels),
       );
 }
 
