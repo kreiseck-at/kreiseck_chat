@@ -1,3 +1,35 @@
+## 0.14.0
+
+* New `BubbleInk` derives text/muted/line colors from a bubble's fill color
+  so anything drawn on it (reply quotes, the meta row, status ticks) keeps
+  its contrast target regardless of the fill; `ChatColors.inkFor(bubble)`
+  looks it up, and new optional `ChatColors.incomingInk`/`.outgoingInk`
+  fields let a host supply its own instead of deriving one.
+* New public `contrastRatio`/`relativeLuminance` (WCAG 2.1) and `readableOn`,
+  which nudges a color that carries meaning of its own — an error red, the
+  read-receipt blue — towards black or white only as far as needed to reach
+  a contrast target, without losing its hue.
+* `ChatColors.errorOnBackground`/`.warningOnBackground` — `error`/`warning`
+  lifted to 4.5:1 against `background` via `readableOn`, for hosts whose own
+  palette doesn't already reach it.
+* `MessageBubble`'s failed-delivery line now shows an error icon in
+  `errorOnBackground`, truncates a long reason to two lines instead of
+  wrapping without limit, and — together with the new
+  `ChatThreadView.onRetry`/`MessageBubble.onRetry` callback — offers a retry
+  action sized to a 44x44 tap target; omit `onRetry` to keep showing only
+  the reason, as before.
+* New `ChatTheme.showBubbleTail` (default `false`) replaces the old rule that
+  drew a bubble tail whenever `bubbleStyle` wasn't `minimal`. **Behavior
+  change:** the `whatsApp` and `iMessage` presets no longer show a tail out
+  of the box — set `showBubbleTail: true` (e.g. via `.copyWith`) to bring it
+  back.
+* New `ChatTypography.reaction` text style; reaction chips now use it
+  instead of the timestamp style and grow with it (more padding), and the
+  compact channel icon in the bubble's meta row is larger (12 -> 15).
+* Example app: a new state gallery showing every bubble state — incoming/
+  outgoing, error with retry, reactions, tail on/off — alongside its
+  measured contrast ratio.
+
 ## 0.13.0
 
 * New `ChatChannel` value object describing a channel a message travelled

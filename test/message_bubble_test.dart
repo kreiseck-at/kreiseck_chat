@@ -227,12 +227,12 @@ void main() {
 
   // Album-Kacheln füllen die Höhe der Bubble; im Scrollview kann der feste
   // Test-Viewport nicht überlaufen.
-  Widget _scrolled(Widget child) => MaterialApp(
+  Widget scrolled(Widget child) => MaterialApp(
         home: Scaffold(body: SingleChildScrollView(child: child)),
       );
 
   testWidgets('single image renders one tile', (tester) async {
-    await tester.pumpWidget(_scrolled(
+    await tester.pumpWidget(scrolled(
       MessageBubble(
         message: _withImages(1),
         capabilities: const ChatCapabilities.inApp(),
@@ -243,7 +243,7 @@ void main() {
 
   testWidgets('album caps at 4 tiles with a "+N" overlay for extras',
       (tester) async {
-    await tester.pumpWidget(_scrolled(
+    await tester.pumpWidget(scrolled(
       MessageBubble(
         message: _withImages(6),
         capabilities: const ChatCapabilities.inApp(),
@@ -258,7 +258,7 @@ void main() {
       (tester) async {
     List<ChatAttachment>? gotImages;
     int? gotIndex;
-    await tester.pumpWidget(_scrolled(
+    await tester.pumpWidget(scrolled(
       MessageBubble(
         message: _withImages(3),
         capabilities: const ChatCapabilities.inApp(),
@@ -451,7 +451,7 @@ void main() {
       (tester) async {
     // Ohne Text gibt es keinen antippbaren Bereich zum Umschalten — dann darf
     // auch kein Label suggerieren, es gäbe eine erreichbare Übersetzung.
-    await tester.pumpWidget(_scrolled(
+    await tester.pumpWidget(scrolled(
       MessageBubble(
         message: _withImages(1).copyWith(
           translation:
