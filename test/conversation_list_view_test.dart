@@ -202,6 +202,28 @@ void main() {
     expect(find.byKey(const Key('badge')), findsOneWidget);
   });
 
+  testWidgets(
+      'Kanäle-Reihe hat Vorrang vor dem Text-Label, wenn beide gesetzt sind',
+      (tester) async {
+    await tester.pumpWidget(const MaterialApp(
+      home: Scaffold(
+        body: ConversationListView(
+          conversations: [
+            ChatConversation(
+              id: 'c1',
+              title: 'Ada',
+              channelLabel: 'SMS',
+              channels: [ChatChannel.whatsApp(), ChatChannel.sms()],
+            ),
+          ],
+          onOpen: _nichts,
+        ),
+      ),
+    ));
+    expect(find.byType(ChatChannelBadge), findsNWidgets(2));
+    expect(find.text('SMS'), findsNothing);
+  });
+
   testWidgets('titleBadgeBuilder wird eingesetzt', (tester) async {
     await tester.pumpWidget(MaterialApp(
       home: Scaffold(
