@@ -7,9 +7,9 @@ even for hosts that never touch `ChatColors` or `ChatTheme` directly):
 * Timestamps and status ticks (sending/sent/delivered) no longer render in
   text color at 70% opacity; they render in the new derived muted ink
   instead. This applies to **every** theme, not only the `whatsApp`/`iMessage`
-  presets. The read-receipt blue keeps its own hue only where it still
-  reaches 3:1 against the bubble fill — where it doesn't, the muted ink takes
-  over there too.
+  presets. The read-receipt blue is nudged towards black or white until it
+  reaches 3:1 against the bubble fill, keeping its own hue; it is never
+  replaced by the muted ink.
 * The reply quote's border, sender name and quoted text are now derived from
   the bubble they sit on instead of from `ChatColors.replyAccent`, which is
   therefore deprecated and has no effect anymore (see below).
