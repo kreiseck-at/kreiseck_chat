@@ -1,10 +1,38 @@
 ## 0.14.0
 
+**Behavior changes for existing users** (nothing here breaks the API — every
+call site still compiles — but bubbles render differently after upgrading,
+even for hosts that never touch `ChatColors` or `ChatTheme` directly):
+
+* Timestamps and status ticks (sending/sent/delivered) no longer render in
+  text color at 70% opacity; they render in the new derived muted ink
+  instead. This applies to **every** theme, not only the `whatsApp`/`iMessage`
+  presets. The read-receipt blue keeps its own hue only where it still
+  reaches 3:1 against the bubble fill — where it doesn't, the muted ink takes
+  over there too.
+* The reply quote's border, sender name and quoted text are now derived from
+  the bubble they sit on instead of from `ChatColors.replyAccent`, which is
+  therefore deprecated and has no effect anymore (see below).
+* Reaction chips are visibly bigger: they use the new `ChatTypography.reaction`
+  style instead of the timestamp style and more padding (was 8/2, now 10/5).
+* The failed-delivery reason line is now capped at two lines with an ellipsis
+  regardless of whether `onRetry` is set (it used to wrap without limit), and
+  its text — together with the retry action's — renders one point size
+  larger than before.
+* The `whatsApp` and `iMessage` presets no longer draw a bubble tail out of
+  the box (unchanged from earlier 0.14.0 notes below) — set
+  `showBubbleTail: true` to bring it back.
+
 * New `BubbleInk` derives text/muted/line colors from a bubble's fill color
   so anything drawn on it (reply quotes, the meta row, status ticks) keeps
   its contrast target regardless of the fill; `ChatColors.inkFor(bubble)`
   looks it up, and new optional `ChatColors.incomingInk`/`.outgoingInk`
   fields let a host supply its own instead of deriving one.
+* `ChatColors.replyAccent` is now `@Deprecated`: the reply quote's border,
+  sender name and quoted text come from the bubble's derived ink (see above)
+  and no longer read this field, so setting it has no effect. It stays in
+  the constructor so existing calls keep compiling; steer the quote's colors
+  via `incomingInk`/`outgoingInk` instead.
 * New public `contrastRatio`/`relativeLuminance` (WCAG 2.1) and `readableOn`,
   which nudges a color that carries meaning of its own — an error red, the
   read-receipt blue — towards black or white only as far as needed to reach
@@ -14,7 +42,8 @@
   palette doesn't already reach it.
 * `MessageBubble`'s failed-delivery line now shows an error icon in
   `errorOnBackground`, truncates a long reason to two lines instead of
-  wrapping without limit, and — together with the new
+  wrapping without limit (regardless of whether `onRetry` is set), renders
+  one point size larger than before, and — together with the new
   `ChatThreadView.onRetry`/`MessageBubble.onRetry` callback — offers a retry
   action sized to a 44x44 tap target; omit `onRetry` to keep showing only
   the reason, as before.

@@ -71,7 +71,15 @@ class ChatColors {
   /// Date separator text.
   final Color dateSeparatorText;
 
-  /// Reply quote accent bar.
+  /// No longer used: the reply quote's border, sender name and quoted text
+  /// are derived from the bubble it sits on (see [inkFor]), not from this
+  /// color. Kept only so existing constructor calls keep compiling; setting
+  /// it has no visible effect. Control the quote's look via [incomingInk] /
+  /// [outgoingInk] instead.
+  @Deprecated(
+    'Has no effect: the reply quote now derives its colors from the bubble '
+    'it sits on via ChatColors.inkFor. Set incomingInk/outgoingInk instead.',
+  )
   final Color replyAccent;
 
   /// Color of the "read" double-check (WhatsApp-style blue), independent of
@@ -194,6 +202,7 @@ class ChatColors {
       dateSeparatorBackground:
           dateSeparatorBackground ?? this.dateSeparatorBackground,
       dateSeparatorText: dateSeparatorText ?? this.dateSeparatorText,
+      // ignore: deprecated_member_use_from_same_package
       replyAccent: replyAccent ?? this.replyAccent,
       readReceipt: readReceipt ?? this.readReceipt,
       error: error ?? this.error,
@@ -221,6 +230,7 @@ class ChatColors {
         other.typingDot == typingDot &&
         other.dateSeparatorBackground == dateSeparatorBackground &&
         other.dateSeparatorText == dateSeparatorText &&
+        // ignore: deprecated_member_use_from_same_package
         other.replyAccent == replyAccent &&
         other.readReceipt == readReceipt &&
         other.error == error &&
@@ -245,6 +255,7 @@ class ChatColors {
         typingDot,
         dateSeparatorBackground,
         dateSeparatorText,
+        // ignore: deprecated_member_use_from_same_package
         replyAccent,
         readReceipt,
         error,
