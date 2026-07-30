@@ -32,6 +32,7 @@ class ChatThreadView extends StatefulWidget {
     this.onOpenAttachment,
     this.onOpenImages,
     this.onCopy,
+    this.onRetry,
     this.attachmentPreviews = const [],
     this.onRemoveAttachmentAt,
     this.onAddAttachment,
@@ -86,6 +87,10 @@ class ChatThreadView extends StatefulWidget {
   /// Called after a message's text was copied to the clipboard (e.g. to show
   /// a confirmation). Copy itself is handled internally.
   final VoidCallback? onCopy;
+
+  /// Called with a failed message when the user taps its retry action. Null
+  /// hides the action on every bubble, leaving only the failure reason.
+  final void Function(ChatMessage message)? onRetry;
 
   /// Pending attachments (picked but not yet sent) shown as thumbnails above
   /// the composer input; enable the send button even with an empty text field.
@@ -272,6 +277,9 @@ class _ChatThreadViewState extends State<ChatThreadView> {
                   onOpenAttachment: widget.onOpenAttachment,
                   onOpenImages: widget.onOpenImages,
                   onCopy: widget.onCopy,
+                  onRetry: widget.onRetry == null
+                      ? null
+                      : () => widget.onRetry!(mi.message),
                 );
               },
               ),

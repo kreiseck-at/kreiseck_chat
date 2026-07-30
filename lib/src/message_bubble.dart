@@ -32,6 +32,7 @@ class MessageBubble extends StatefulWidget {
     this.onOpenAttachment,
     this.onOpenImages,
     this.onCopy,
+    this.onRetry,
   });
 
   /// The message to render.
@@ -69,6 +70,10 @@ class MessageBubble extends StatefulWidget {
   /// Called after the message text was copied to the clipboard (e.g. to show
   /// a confirmation). Copy itself is handled internally.
   final VoidCallback? onCopy;
+
+  /// Called when the user taps the retry action on a failed message. Null
+  /// hides the action, leaving only the failure reason.
+  final VoidCallback? onRetry;
 
   @override
   State<MessageBubble> createState() => _MessageBubbleState();
@@ -312,10 +317,40 @@ class _MessageBubbleState extends State<MessageBubble> {
         if ((message.errorText ?? '').isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(top: 4),
-            child: Text(
-              message.errorText!,
-              style: theme.typography.timestamp
-                  .copyWith(color: theme.colors.error),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.error_outline,
+                    size: 14, color: theme.colors.errorOnBackground),
+                const SizedBox(width: 4),
+                Flexible(
+                  child: Text(
+                    message.errorText!,
+                    style: theme.typography.timestamp.copyWith(
+                      fontSize: (theme.typography.timestamp.fontSize ?? 11) + 1,
+                      color: theme.colors.errorOnBackground,
+                    ),
+                  ),
+                ),
+                if (widget.onRetry != null) ...[
+                  const SizedBox(width: 4),
+                  TextButton(
+                    onPressed: widget.onRetry,
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: Text(
+                      'Erneut senden',
+                      style: theme.typography.timestamp.copyWith(
+                        fontSize: (theme.typography.timestamp.fontSize ?? 11) + 1,
+                        color: theme.colors.errorOnBackground,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
         if (capabilities.reactions && message.reactions.isNotEmpty)
