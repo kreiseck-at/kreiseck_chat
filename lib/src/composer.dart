@@ -25,6 +25,7 @@ class Composer extends StatefulWidget {
     this.showMic = false,
     this.textCapitalization = TextCapitalization.sentences,
     this.sendOnEnter = false,
+    this.leading,
   });
 
   /// Called with the trimmed message text on submit.
@@ -68,6 +69,9 @@ class Composer extends StatefulWidget {
   /// (default, WhatsApp-style) return inserts a newline and sending is only
   /// via the send button.
   final bool sendOnEnter;
+
+  /// Widget to the left of the text field, e.g. a channel picker.
+  final Widget? leading;
 
   @override
   State<Composer> createState() => _ComposerState();
@@ -181,6 +185,10 @@ class _ComposerState extends State<Composer> with SingleTickerProviderStateMixin
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
+              if (widget.leading != null) ...[
+                widget.leading!,
+                const SizedBox(width: 8),
+              ],
               if (widget.capabilities.media)
                 IconButton(
                   icon: Icon(theme.icons.attach, color: theme.colors.accent),

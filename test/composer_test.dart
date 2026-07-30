@@ -305,4 +305,16 @@ void main() {
     );
     expect(scaleTransition, findsOneWidget);
   });
+
+  testWidgets('leading erscheint links im Eingabefeld', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: Composer(
+          onSend: (_) {},
+          leading: const Icon(Icons.tune_rounded),
+        ),
+      ),
+    ));
+    expect(find.byIcon(Icons.tune_rounded), findsOneWidget);
+  });
 }

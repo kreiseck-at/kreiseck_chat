@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import 'chat_attachment.dart';
 import 'chat_capabilities.dart';
+import 'chat_system_card.dart';
 import 'chat_theme.dart';
 import 'composer.dart';
 import 'date_separator.dart';
@@ -36,6 +37,10 @@ class ChatThreadView extends StatefulWidget {
     this.onAddAttachment,
     this.onLoadEarlier,
     this.header,
+    this.customMessageBuilder,
+    this.composerBanner,
+    this.composerLeading,
+    this.readOnly = false,
   });
 
   /// Messages, oldest first.
@@ -97,6 +102,19 @@ class ChatThreadView extends StatefulWidget {
 
   /// Optional header widget above the list.
   final Widget? header;
+
+  /// Custom rendering for messages with [ChatMessageKind.custom]. If the
+  /// builder returns `null`, the normal bubble is rendered instead.
+  final Widget? Function(ChatMessage message)? customMessageBuilder;
+
+  /// Notice bar shown directly above the composer field.
+  final Widget? composerBanner;
+
+  /// Widget to the left in the composer field, e.g. a channel picker.
+  final Widget? composerLeading;
+
+  /// Hides the composer field — for archive or supervisory views.
+  final bool readOnly;
 
   @override
   State<ChatThreadView> createState() => _ChatThreadViewState();
@@ -219,6 +237,19 @@ class _ChatThreadViewState extends State<ChatThreadView> {
                   );
                 }
                 final mi = item as MessageItem;
+                if (mi.message.kind == ChatMessageKind.system) {
+                  return ChatSystemCard(
+                    theme: widget.theme,
+                    child: Text(
+                      mi.message.text,
+                      style: widget.theme.typography.systemMessage,
+                    ),
+                  );
+                }
+                if (mi.message.kind == ChatMessageKind.custom) {
+                  final eigen = widget.customMessageBuilder?.call(mi.message);
+                  if (eigen != null) return eigen;
+                }
                 return MessageBubble(
                   key: ValueKey(mi.message.id),
                   message: mi.message,
@@ -241,17 +272,20 @@ class _ChatThreadViewState extends State<ChatThreadView> {
               ),
             ),
           ),
-          Composer(
-            onSend: widget.onSend,
-            hintText: widget.hintText,
-            theme: widget.theme,
-            capabilities: widget.capabilities,
-            onAttach: widget.onAttach,
-            onTypingChanged: widget.onTypingChanged,
-            attachmentPreviews: widget.attachmentPreviews,
-            onRemoveAttachmentAt: widget.onRemoveAttachmentAt,
-            onAddAttachment: widget.onAddAttachment,
-          ),
+          if (widget.composerBanner != null) widget.composerBanner!,
+          if (!widget.readOnly)
+            Composer(
+              onSend: widget.onSend,
+              hintText: widget.hintText,
+              theme: widget.theme,
+              capabilities: widget.capabilities,
+              onAttach: widget.onAttach,
+              onTypingChanged: widget.onTypingChanged,
+              attachmentPreviews: widget.attachmentPreviews,
+              onRemoveAttachmentAt: widget.onRemoveAttachmentAt,
+              onAddAttachment: widget.onAddAttachment,
+              leading: widget.composerLeading,
+            ),
         ],
       ),
     );

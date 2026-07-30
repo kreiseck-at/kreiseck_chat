@@ -122,4 +122,83 @@ void main() {
 
     expect(haptics, isNotEmpty);
   });
+
+  ChatMessage nachricht(String id, ChatMessageKind kind, {String text = 'x'}) =>
+      ChatMessage(
+        id: id,
+        direction: MessageDirection.incoming,
+        text: text,
+        at: DateTime(2026, 7, 30, 10),
+        kind: kind,
+      );
+
+  testWidgets('Systemnachricht wird als ChatSystemCard gerendert',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: ChatThreadView(
+          messages: [nachricht('s1', ChatMessageKind.system, text: 'Storniert')],
+          onSend: (_) {},
+        ),
+      ),
+    ));
+    expect(find.byType(ChatSystemCard), findsOneWidget);
+    expect(find.text('Storniert'), findsOneWidget);
+  });
+
+  testWidgets('custom geht an den Builder', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: ChatThreadView(
+          messages: [nachricht('c1', ChatMessageKind.custom)],
+          onSend: (_) {},
+          customMessageBuilder: (m) => Text('eigen ${m.id}'),
+        ),
+      ),
+    ));
+    expect(find.text('eigen c1'), findsOneWidget);
+  });
+
+  testWidgets('custom mit null-Rückgabe fällt auf die Blase zurück',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: ChatThreadView(
+          messages: [nachricht('c2', ChatMessageKind.custom, text: 'Rückfall')],
+          onSend: (_) {},
+          customMessageBuilder: (_) => null,
+        ),
+      ),
+    ));
+    expect(find.byType(MessageBubble), findsOneWidget);
+    expect(find.text('Rückfall'), findsOneWidget);
+  });
+
+  testWidgets('composerBanner und composerLeading erscheinen', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: ChatThreadView(
+          messages: [nachricht('m1', ChatMessageKind.normal)],
+          onSend: (_) {},
+          composerBanner: const ChatBanner(text: 'Nur SMS möglich'),
+          composerLeading: const Icon(Icons.tune_rounded),
+        ),
+      ),
+    ));
+    expect(find.text('Nur SMS möglich'), findsOneWidget);
+    expect(find.byIcon(Icons.tune_rounded), findsOneWidget);
+  });
+
+  testWidgets('readOnly verbirgt das Eingabefeld', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: ChatThreadView(
+          messages: [nachricht('m1', ChatMessageKind.normal)],
+          onSend: (_) {},
+          readOnly: true,
+        ),
+      ),
+    ));
+    expect(find.byType(Composer), findsNothing);
+  });
 }
