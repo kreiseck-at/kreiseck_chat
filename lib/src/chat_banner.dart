@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'bubble_ink.dart';
 import 'chat_theme.dart';
 
 /// Tone of a [ChatBanner] bar.
@@ -43,6 +44,15 @@ class ChatBanner extends StatelessWidget {
     final color = variant == ChatBannerVariant.warning
         ? theme.colors.warning
         : theme.colors.accent;
+    // The tint above is only ever a faint (10%) wash of [color] over
+    // [theme.colors.background] -- the icon and text painted on top still
+    // need to be legible against that background, not against the raw brand
+    // tone. [warningOnBackground] already exists for the warning tone; the
+    // info variant's accent isn't guarded by a named getter of its own, so
+    // it's derived here the same way.
+    final onBackground = variant == ChatBannerVariant.warning
+        ? theme.colors.warningOnBackground
+        : readableOn(theme.colors.background, theme.colors.accent);
     return DecoratedBox(
       decoration: BoxDecoration(color: color.withValues(alpha: 0.10)),
       child: Padding(
@@ -51,11 +61,13 @@ class ChatBanner extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (icon != null) ...[
-              Icon(icon, size: 14, color: color),
+              Icon(icon, size: 14, color: onBackground),
               const SizedBox(width: 8),
             ],
             Expanded(
-              child: Text(text, style: theme.typography.systemMessage),
+              child: Text(text,
+                  style:
+                      theme.typography.systemMessage.copyWith(color: onBackground)),
             ),
           ],
         ),
