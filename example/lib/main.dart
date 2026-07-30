@@ -3,6 +3,8 @@ import 'package:kreiseck_chat/kreiseck_chat.dart';
 
 void main() => runApp(const DemoApp());
 
+enum _Screen { thread, conversations }
+
 class DemoApp extends StatefulWidget {
   const DemoApp({super.key});
 
@@ -14,6 +16,8 @@ class _DemoAppState extends State<DemoApp> {
   BubbleStyle _style = BubbleStyle.iMessage;
   ChatCapabilities _caps = const ChatCapabilities.inApp();
   bool _dark = false;
+  _Screen _screen = _Screen.thread;
+  String _composerChannel = 'whatsapp';
   late List<ChatMessage> _messages;
 
   @override
@@ -29,18 +33,70 @@ class _DemoAppState extends State<DemoApp> {
         id: '1',
         direction: MessageDirection.incoming,
         text: 'Servus! Bist du heute noch unterwegs?',
-        at: now.subtract(const Duration(minutes: 30)),
+        at: now.subtract(const Duration(minutes: 50)),
         sender: const ChatParticipant(id: 'ada', displayName: 'Ada'),
         reactions: const [MessageReaction(emoji: '👍', count: 1)],
+        channel: const ChatChannel.whatsApp(),
       ),
       ChatMessage(
         id: '2',
         direction: MessageDirection.outgoing,
         text: 'Ja, ab 18 Uhr. Passt das?',
-        at: now.subtract(const Duration(minutes: 28)),
+        at: now.subtract(const Duration(minutes: 48)),
         status: MessageStatus.read,
         replyTo: const ChatMessageRef(
-            id: '1', snippet: 'Bist du heute noch unterwegs?', senderLabel: 'Ada'),
+          id: '1',
+          snippet: 'Bist du heute noch unterwegs?',
+          senderLabel: 'Ada',
+        ),
+        channel: const ChatChannel.whatsApp(),
+      ),
+      ChatMessage(
+        id: '3',
+        direction: MessageDirection.incoming,
+        text: 'Alles klar, bis dann. Ruf mich falls was ist.',
+        at: now.subtract(const Duration(minutes: 40)),
+        channel: const ChatChannel.sms(),
+      ),
+      ChatMessage(
+        id: '4',
+        direction: MessageDirection.outgoing,
+        text: 'Anbei die Übersicht der offenen Posten.',
+        at: now.subtract(const Duration(minutes: 32)),
+        status: MessageStatus.sent,
+        headline: 'Rechnung März',
+      ),
+      ChatMessage(
+        id: '5',
+        direction: MessageDirection.outgoing,
+        text: 'Erinnerung: dein Termin morgen um 9 Uhr.',
+        at: now.subtract(const Duration(minutes: 24)),
+        status: MessageStatus.failed,
+        errorText: 'Empfängerin hat abbestellt',
+      ),
+      ChatMessage(
+        id: '6',
+        direction: MessageDirection.incoming,
+        text: 'Привіт, як справи?',
+        at: now.subtract(const Duration(minutes: 16)),
+        translation: const ChatTranslation(
+          text: 'Hello there',
+          languageLabel: 'EN',
+        ),
+      ),
+      ChatMessage(
+        id: '7',
+        direction: MessageDirection.incoming,
+        text: 'Ada hat den Kanal auf WhatsApp gewechselt.',
+        at: now.subtract(const Duration(minutes: 8)),
+        kind: ChatMessageKind.system,
+      ),
+      ChatMessage(
+        id: '8',
+        direction: MessageDirection.incoming,
+        text: 'Anruf verpasst, 0:42 Min.',
+        at: now.subtract(const Duration(minutes: 2)),
+        kind: ChatMessageKind.custom,
       ),
     ];
   }
@@ -67,6 +123,9 @@ class _DemoAppState extends State<DemoApp> {
           text: text,
           at: DateTime.now(),
           status: MessageStatus.sent,
+          channel: _composerChannel == 'whatsapp'
+              ? const ChatChannel.whatsApp()
+              : const ChatChannel.sms(),
         ),
       ];
     });
@@ -88,30 +147,115 @@ class _DemoAppState extends State<DemoApp> {
         ),
         body: Column(
           children: [
-            _controls(),
+            _screenSwitch(),
+            if (_screen == _Screen.thread) _controls(),
             Expanded(
-              child: ChatThreadView(
-                messages: _messages,
-                onSend: _send,
-                theme: _theme,
-                capabilities: _caps,
-                typing: const TypingState(participants: [
-                  ChatParticipant(id: 'ada', displayName: 'Ada'),
-                ]),
-                header: ChatHeader(
-                  title: 'Ada',
-                  presence: const ChatPresence.online(),
-                  theme: _theme,
-                  capabilities: _caps,
-                ),
-                onReplyRequested: (_) {},
-                onReact: (_, _) {},
-                onAttach: (_) {},
-              ),
+              child: _screen == _Screen.thread
+                  ? _threadDemo()
+                  : _conversationListDemo(),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _screenSwitch() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+      child: SegmentedButton<_Screen>(
+        segments: const [
+          ButtonSegment(value: _Screen.thread, label: Text('Verlauf')),
+          ButtonSegment(
+            value: _Screen.conversations,
+            label: Text('Konversationen'),
+          ),
+        ],
+        selected: {_screen},
+        onSelectionChanged: (s) => setState(() => _screen = s.first),
+      ),
+    );
+  }
+
+  Widget _threadDemo() {
+    return ChatThreadView(
+      messages: _messages,
+      onSend: _send,
+      theme: _theme,
+      capabilities: _caps,
+      typing: const TypingState(
+        participants: [ChatParticipant(id: 'ada', displayName: 'Ada')],
+      ),
+      header: ChatHeader(
+        title: 'Ada',
+        presence: const ChatPresence.online(),
+        theme: _theme,
+        capabilities: _caps,
+      ),
+      onReplyRequested: (_) {},
+      onReact: (_, _) {},
+      onAttach: (_) {},
+      customMessageBuilder: (m) =>
+          _CallSummaryCard(theme: _theme, text: m.text),
+      composerBanner: const ChatBanner(
+        text: 'Nur Text möglich',
+        variant: ChatBannerVariant.warning,
+      ),
+      composerLeading: DropdownButton<String>(
+        value: _composerChannel,
+        underline: const SizedBox.shrink(),
+        items: const [
+          DropdownMenuItem(
+            value: 'whatsapp',
+            child: Icon(Icons.chat_rounded, size: 18),
+          ),
+          DropdownMenuItem(
+            value: 'sms',
+            child: Icon(Icons.sms_rounded, size: 18),
+          ),
+        ],
+        onChanged: (v) =>
+            setState(() => _composerChannel = v ?? _composerChannel),
+      ),
+    );
+  }
+
+  Widget _conversationListDemo() {
+    return ConversationListView(
+      theme: _theme,
+      capabilities: _caps,
+      conversations: [
+        const ChatConversation(
+          id: 'c1',
+          title: 'Ada',
+          subtitle: 'Ja, ab 18 Uhr. Passt das?',
+          lastText: 'Ja, ab 18 Uhr. Passt das?',
+          pinned: true,
+          channels: [ChatChannel.whatsApp(), ChatChannel.sms()],
+        ),
+        const ChatConversation(
+          id: 'c2',
+          title: 'Noah',
+          subtitle: 'Klingt gut, bis dann!',
+          unread: 2,
+          channels: [ChatChannel.email()],
+        ),
+        const ChatConversation(
+          id: 'c3',
+          title: 'Mira',
+          subtitle: 'Rechnung erhalten, danke.',
+          channelLabel: 'E-Mail',
+        ),
+      ],
+      onOpen: (_) {},
+      onLongPress: (_) {},
+      titleBadgeBuilder: (c) => c.unread > 0
+          ? Icon(
+              Icons.priority_high_rounded,
+              size: 14,
+              color: _theme.colors.error,
+            )
+          : null,
     );
   }
 
@@ -134,7 +278,10 @@ class _DemoAppState extends State<DemoApp> {
             value: _capsLabel,
             items: const [
               DropdownMenuItem(value: 'sms', child: Text('Twilio SMS')),
-              DropdownMenuItem(value: 'whatsapp', child: Text('Twilio WhatsApp')),
+              DropdownMenuItem(
+                value: 'whatsapp',
+                child: Text('Twilio WhatsApp'),
+              ),
               DropdownMenuItem(value: 'inapp', child: Text('In-App')),
             ],
             onChanged: (v) => setState(() {
@@ -159,5 +306,36 @@ class _DemoAppState extends State<DemoApp> {
     if (_caps == const ChatCapabilities.twilioSms()) return 'sms';
     if (_caps == const ChatCapabilities.twilioWhatsApp()) return 'whatsapp';
     return 'inapp';
+  }
+}
+
+/// A fully custom card for [ChatMessageKind.custom] messages — shows how a
+/// host app can render its own bespoke content instead of a normal bubble.
+class _CallSummaryCard extends StatelessWidget {
+  const _CallSummaryCard({required this.theme, required this.text});
+
+  final ChatTheme theme;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          border: Border.all(color: theme.colors.accent),
+          borderRadius: BorderRadius.circular(theme.bubbleRadius),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.call_rounded, size: 16, color: theme.colors.accent),
+            const SizedBox(width: 8),
+            Text(text, style: theme.typography.systemMessage),
+          ],
+        ),
+      ),
+    );
   }
 }
