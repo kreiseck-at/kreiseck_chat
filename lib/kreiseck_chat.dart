@@ -1,6 +1,7 @@
 /// Reusable, backend-agnostic chat UI widgets and models for Flutter apps.
 library;
 
+export 'src/bubble_ink.dart';
 export 'src/bubble_style.dart';
 export 'src/bubble_tail_painter.dart';
 export 'src/chat_attachment.dart';
