@@ -9,6 +9,7 @@ export 'src/chat_capabilities.dart';
 export 'src/chat_channel.dart';
 export 'src/chat_channel_badge.dart';
 export 'src/chat_colors.dart';
+export 'src/chat_system_card.dart';
 export 'src/chat_header.dart';
 export 'src/chat_icons.dart';
 export 'src/chat_motion.dart';
