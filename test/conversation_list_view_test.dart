@@ -109,7 +109,7 @@ void main() {
         ),
       ),
     ));
-    expect(find.byIcon(Icons.push_pin_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.push_pin), findsOneWidget);
     expect(find.byIcon(Icons.volume_off), findsOneWidget);
   });
 
@@ -200,20 +200,6 @@ void main() {
     ));
     expect(find.byType(ChatChannelBadge), findsNothing);
     expect(find.byKey(const Key('badge')), findsOneWidget);
-  });
-
-  testWidgets('angepinnt zeigt ein Symbol', (tester) async {
-    await tester.pumpWidget(const MaterialApp(
-      home: Scaffold(
-        body: ConversationListView(
-          conversations: [
-            ChatConversation(id: 'c1', title: 'Ada', pinned: true),
-          ],
-          onOpen: _nichts,
-        ),
-      ),
-    ));
-    expect(find.byIcon(Icons.push_pin_rounded), findsOneWidget);
   });
 
   testWidgets('titleBadgeBuilder wird eingesetzt', (tester) async {

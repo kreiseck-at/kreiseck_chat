@@ -49,8 +49,8 @@ class ConversationListView extends StatelessWidget {
   /// sheet. When null, rows only respond to taps, unchanged from before.
   final void Function(ChatConversation conversation)? onLongPress;
 
-  /// Builds an optional badge shown between the pin icon and the title, e.g.
-  /// a spam marker.
+  /// Builds an optional badge shown right before the title, e.g. a spam
+  /// marker.
   final Widget? Function(ChatConversation conversation)? titleBadgeBuilder;
 
   @override
@@ -143,10 +143,6 @@ class _ConversationTile extends StatelessWidget {
       ),
       title: Row(
         children: [
-          if (conversation.pinned) ...[
-            Icon(Icons.push_pin_rounded, size: 13, color: theme.colors.accent),
-            const SizedBox(width: 4),
-          ],
           if (titleBadge != null) ...[
             titleBadge!,
             const SizedBox(width: 6),
@@ -160,6 +156,8 @@ class _ConversationTile extends StatelessWidget {
                   .copyWith(color: theme.colors.incomingText),
             ),
           ),
+          if (conversation.pinned)
+            Icon(Icons.push_pin, size: 14, color: theme.colors.dateSeparatorText),
           if (conversation.muted)
             Padding(
               padding: const EdgeInsets.only(left: 4),
