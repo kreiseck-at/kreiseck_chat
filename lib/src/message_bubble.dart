@@ -13,6 +13,9 @@ import 'models.dart';
 
 /// Renders a single [ChatMessage] as a chat bubble, honoring the theme's
 /// [BubbleStyle], the [ChatCapabilities], and grouping flags.
+///
+/// Tapping the message text toggles between the original and its
+/// [ChatMessage.translation], when one is set.
 class MessageBubble extends StatefulWidget {
   /// Creates a message bubble.
   const MessageBubble({
@@ -72,7 +75,18 @@ class MessageBubble extends StatefulWidget {
 
 class _MessageBubbleState extends State<MessageBubble> {
   /// Shows the translation instead of the original text.
-  bool _zeigeUebersetzung = false;
+  bool _showTranslation = false;
+
+  @override
+  void didUpdateWidget(covariant MessageBubble oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // A widget of this type can be reused for a different message (e.g. an
+    // unkeyed ListView.builder recycling list items) — reset the toggle so a
+    // stale translation state doesn't leak onto the new message.
+    if (oldWidget.message.id != widget.message.id) {
+      _showTranslation = false;
+    }
+  }
 
   bool get _isOutgoing => widget.message.direction == MessageDirection.outgoing;
 
@@ -86,9 +100,9 @@ class _MessageBubbleState extends State<MessageBubble> {
 
   /// The text currently shown: the translation while toggled on, the
   /// original otherwise.
-  String get _anzeigeText {
+  String get _displayText {
     final t = widget.message.translation;
-    if (t != null && _zeigeUebersetzung) return t.text;
+    if (t != null && _showTranslation) return t.text;
     return widget.message.text;
   }
 
@@ -221,12 +235,12 @@ class _MessageBubbleState extends State<MessageBubble> {
                   ? const EdgeInsets.fromLTRB(8, 6, 8, 0)
                   : EdgeInsets.zero,
               child: message.translation == null
-                  ? Text(_anzeigeText,
+                  ? Text(_displayText,
                       style: theme.typography.body.copyWith(color: textColor))
                   : GestureDetector(
                       onTap: () => setState(
-                          () => _zeigeUebersetzung = !_zeigeUebersetzung),
-                      child: Text(_anzeigeText,
+                          () => _showTranslation = !_showTranslation),
+                      child: Text(_displayText,
                           style: theme.typography.body
                               .copyWith(color: textColor)),
                     ),
@@ -245,23 +259,18 @@ class _MessageBubbleState extends State<MessageBubble> {
               channel: message.channel,
             ),
           ),
-          if ((message.errorText ?? '').isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text(
-                message.errorText!,
-                style: theme.typography.timestamp
-                    .copyWith(color: theme.colors.error),
-              ),
-            ),
-          if (message.translation != null)
+          // The translated-language / "Original" label only makes sense next
+          // to the text it toggles — hidden along with it when there is no
+          // text to show (e.g. a media-only message).
+          if (message.translation != null && message.text.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 2),
               child: Text(
-                _zeigeUebersetzung
+                _showTranslation
                     ? message.translation!.languageLabel
                     : 'Original',
-                style: theme.typography.timestamp,
+                style: theme.typography.timestamp
+                    .copyWith(color: textColor.withValues(alpha: 0.7)),
               ),
             ),
         ],
@@ -293,6 +302,19 @@ class _MessageBubbleState extends State<MessageBubble> {
       mainAxisSize: MainAxisSize.min,
       children: [
         bubble,
+        // Rendered below the bubble, not inside it: the bubble's fill color
+        // is themed for the message text, not for an error color — placing
+        // it inside risked low-contrast text (e.g. red error on a blue
+        // outgoing bubble).
+        if ((message.errorText ?? '').isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(
+              message.errorText!,
+              style: theme.typography.timestamp
+                  .copyWith(color: theme.colors.error),
+            ),
+          ),
         if (capabilities.reactions && message.reactions.isNotEmpty)
           _Reactions(reactions: message.reactions, theme: theme),
       ],

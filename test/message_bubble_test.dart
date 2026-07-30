@@ -316,12 +316,18 @@ void main() {
         translation: translation,
       );
 
-  testWidgets('Betreffzeile erscheint über dem Text', (tester) async {
+  testWidgets('Betreffzeile erscheint über dem Text und ist fett', (tester) async {
     await tester.pumpWidget(MaterialApp(
       home: Scaffold(body: MessageBubble(message: m(headline: 'Rechnung'))),
     ));
     expect(find.text('Rechnung'), findsOneWidget);
     expect(find.text('Hallo'), findsOneWidget);
+    // "über dem Text" heißt: geometrisch oberhalb, nicht nur "irgendwo vorhanden".
+    final headlineTop = tester.getTopLeft(find.text('Rechnung')).dy;
+    final bodyTop = tester.getTopLeft(find.text('Hallo')).dy;
+    expect(headlineTop, lessThan(bodyTop));
+    final headlineStyle = tester.widget<Text>(find.text('Rechnung')).style;
+    expect(headlineStyle?.fontWeight, FontWeight.w700);
   });
 
   testWidgets('Kanal-Marke erscheint in der Metazeile', (tester) async {
@@ -340,15 +346,56 @@ void main() {
     expect(find.byType(ChatChannelBadge), findsNothing);
   });
 
-  testWidgets('Fehlergrund erscheint unter der Blase', (tester) async {
+  testWidgets('Fehlergrund erscheint unter der Blase in der Fehlerfarbe',
+      (tester) async {
+    final theme = const ChatTheme.light();
     await tester.pumpWidget(MaterialApp(
       home: Scaffold(
         body: MessageBubble(
           message: m(errorText: 'Fenster geschlossen'),
+          theme: theme,
         ),
       ),
     ));
     expect(find.text('Fenster geschlossen'), findsOneWidget);
+    final style = tester.widget<Text>(find.text('Fenster geschlossen')).style;
+    expect(style?.color, theme.colors.error);
+  });
+
+  testWidgets(
+      'Fehlergrund auf ausgehender Blase liegt außerhalb des farbigen Containers',
+      (tester) async {
+    // Regression: der Fehlergrund muss auf dem Seitenhintergrund sitzen, nicht
+    // auf der (farbigen) Bubble-Fläche — sonst ist die Fehlerfarbe auf
+    // ausgehenden Blasen kaum lesbar.
+    final msg = ChatMessage(
+      id: 'm3',
+      direction: MessageDirection.outgoing,
+      text: 'Hallo',
+      at: DateTime(2026, 7, 30, 10),
+      errorText: 'Fenster geschlossen',
+    );
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(body: MessageBubble(message: msg)),
+    ));
+    final container = tester.widget<Container>(find.descendant(
+      of: find.byType(MessageBubble),
+      matching: find.byType(Container),
+    ).first);
+    final containerBottom = tester
+        .getBottomLeft(find.byWidget(container))
+        .dy;
+    final errorTop = tester.getTopLeft(find.text('Fenster geschlossen')).dy;
+    expect(errorTop, greaterThanOrEqualTo(containerBottom));
+  });
+
+  testWidgets(
+      'ohne Übersetzung gibt es in der Blase genau einen GestureDetector',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(body: MessageBubble(message: m())),
+    ));
+    expect(find.byType(GestureDetector), findsOneWidget);
   });
 
   testWidgets('Antippen schaltet zwischen Original und Übersetzung',
@@ -365,12 +412,115 @@ void main() {
       ),
     ));
     expect(find.text('Привіт'), findsOneWidget);
+    expect(find.text('Original'), findsOneWidget);
     await tester.tap(find.text('Привіт'));
     await tester.pumpAndSettle();
     expect(find.text('Hallo dort'), findsOneWidget);
+    expect(find.text('DE'), findsOneWidget);
+    expect(find.text('Original'), findsNothing);
     await tester.tap(find.text('Hallo dort'));
     await tester.pumpAndSettle();
     expect(find.text('Привіт'), findsOneWidget);
+    expect(find.text('Original'), findsOneWidget);
+  });
+
+  testWidgets(
+      'Sprach-/Original-Label bleibt bei leerem Originaltext verborgen',
+      (tester) async {
+    // Ohne Text gibt es keinen antippbaren Bereich zum Umschalten — dann darf
+    // auch kein Label suggerieren, es gäbe eine erreichbare Übersetzung.
+    await tester.pumpWidget(_scrolled(
+      MessageBubble(
+        message: _withImages(1).copyWith(
+          translation:
+              const ChatTranslation(text: 'Hallo dort', languageLabel: 'DE'),
+        ),
+      ),
+    ));
+    expect(find.text('Original'), findsNothing);
+    expect(find.text('DE'), findsNothing);
+  });
+
+  testWidgets(
+      'Long-Press öffnet weiterhin das Menü, wenn eine Übersetzung vorhanden ist',
+      (tester) async {
+    var copied = 0;
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: MessageBubble(
+          message: m(
+            text: 'Привіт',
+            translation:
+                const ChatTranslation(text: 'Hallo dort', languageLabel: 'DE'),
+          ),
+          onCopy: () => copied++,
+        ),
+      ),
+    ));
+    await tester.longPress(find.text('Привіт'));
+    await tester.pumpAndSettle();
+    expect(find.text('Kopieren'), findsOneWidget);
+    await tester.tap(find.text('Kopieren'));
+    await tester.pumpAndSettle();
+    expect(copied, 1);
+  });
+
+  testWidgets(
+      'Wisch-Antwort feuert weiterhin, wenn eine Übersetzung vorhanden ist',
+      (tester) async {
+    var replied = 0;
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: MessageBubble(
+          message: m(
+            text: 'Привіт',
+            translation:
+                const ChatTranslation(text: 'Hallo dort', languageLabel: 'DE'),
+          ),
+          onReplyRequested: () => replied++,
+        ),
+      ),
+    ));
+    await tester.fling(find.text('Привіт'), const Offset(300, 0), 1000);
+    await tester.pumpAndSettle();
+    expect(replied, 1);
+  });
+
+  testWidgets(
+      'Umschalt-Zustand wird bei Nachrichtenwechsel ohne Key zurückgesetzt',
+      (tester) async {
+    // Simuliert einen Fremd-Aufrufer, der MessageBubble in einer Liste ohne
+    // Key wiederverwendet (z.B. ListView.builder ohne ValueKey).
+    const translation =
+        ChatTranslation(text: 'Hallo dort', languageLabel: 'DE');
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: MessageBubble(
+          message: m(text: 'Привіт', translation: translation),
+        ),
+      ),
+    ));
+    await tester.tap(find.text('Привіт'));
+    await tester.pumpAndSettle();
+    expect(find.text('Hallo dort'), findsOneWidget);
+
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: MessageBubble(
+          message: ChatMessage(
+            id: 'm4',
+            direction: MessageDirection.incoming,
+            text: 'Servus',
+            at: DateTime(2026, 7, 30, 10),
+            translation: translation,
+          ),
+        ),
+      ),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('Servus'), findsOneWidget);
+    expect(find.text('Hallo dort'), findsNothing);
+    expect(find.text('Original'), findsOneWidget);
   });
 
   testWidgets(
