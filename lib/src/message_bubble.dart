@@ -5,13 +5,15 @@ import 'bubble_style.dart';
 import 'bubble_tail_painter.dart';
 import 'chat_attachment.dart';
 import 'chat_capabilities.dart';
+import 'chat_channel.dart';
+import 'chat_channel_badge.dart';
 import 'chat_reaction.dart';
 import 'chat_theme.dart';
 import 'models.dart';
 
 /// Renders a single [ChatMessage] as a chat bubble, honoring the theme's
 /// [BubbleStyle], the [ChatCapabilities], and grouping flags.
-class MessageBubble extends StatelessWidget {
+class MessageBubble extends StatefulWidget {
   /// Creates a message bubble.
   const MessageBubble({
     super.key,
@@ -64,19 +66,37 @@ class MessageBubble extends StatelessWidget {
   /// a confirmation). Copy itself is handled internally.
   final VoidCallback? onCopy;
 
-  bool get _isOutgoing => message.direction == MessageDirection.outgoing;
+  @override
+  State<MessageBubble> createState() => _MessageBubbleState();
+}
+
+class _MessageBubbleState extends State<MessageBubble> {
+  /// Shows the translation instead of the original text.
+  bool _zeigeUebersetzung = false;
+
+  bool get _isOutgoing => widget.message.direction == MessageDirection.outgoing;
 
   MessageStatus get _effectiveStatus {
-    if (!capabilities.readReceipts && message.status == MessageStatus.read) {
+    if (!widget.capabilities.readReceipts &&
+        widget.message.status == MessageStatus.read) {
       return MessageStatus.delivered;
     }
-    return message.status;
+    return widget.message.status;
+  }
+
+  /// The text currently shown: the translation while toggled on, the
+  /// original otherwise.
+  String get _anzeigeText {
+    final t = widget.message.translation;
+    if (t != null && _zeigeUebersetzung) return t.text;
+    return widget.message.text;
   }
 
   /// Opens a context menu anchored at the long-press position (not a bottom
   /// sheet), like a native message dropdown.
   Future<void> _openActions(BuildContext context, Offset globalPosition) async {
-    if (theme.motion.hapticsEnabled && theme.motion.hapticOnLongPress) {
+    if (widget.theme.motion.hapticsEnabled &&
+        widget.theme.motion.hapticOnLongPress) {
       HapticFeedback.mediumImpact();
     }
     final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
@@ -84,15 +104,15 @@ class MessageBubble extends StatelessWidget {
       Rect.fromLTWH(globalPosition.dx, globalPosition.dy, 0, 0),
       Offset.zero & overlay.size,
     );
-    final menuColor = theme.colors.incomingText;
+    final menuColor = widget.theme.colors.incomingText;
     final selected = await showMenu<String>(
       context: context,
       position: position,
-      color: theme.colors.composer,
+      color: widget.theme.colors.composer,
       elevation: 6,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       items: [
-        if (capabilities.reactions)
+        if (widget.capabilities.reactions)
           PopupMenuItem<String>(
             enabled: false,
             child: Row(
@@ -102,33 +122,33 @@ class MessageBubble extends StatelessWidget {
                         icon: Text(e, style: const TextStyle(fontSize: 22)),
                         onPressed: () {
                           Navigator.of(context).pop();
-                          if (theme.motion.hapticsEnabled &&
-                              theme.motion.hapticOnReaction) {
+                          if (widget.theme.motion.hapticsEnabled &&
+                              widget.theme.motion.hapticOnReaction) {
                             HapticFeedback.selectionClick();
                           }
-                          onReact?.call(e);
+                          widget.onReact?.call(e);
                         },
                       ))
                   .toList(),
             ),
           ),
-        if (capabilities.replies)
+        if (widget.capabilities.replies)
           PopupMenuItem<String>(
             value: 'reply',
-            child: _menuRow(theme.icons.reply, 'Antworten', menuColor),
+            child: _menuRow(widget.theme.icons.reply, 'Antworten', menuColor),
           ),
-        if (message.text.isNotEmpty)
+        if (widget.message.text.isNotEmpty)
           PopupMenuItem<String>(
             value: 'copy',
-            child: _menuRow(theme.icons.copy, 'Kopieren', menuColor),
+            child: _menuRow(widget.theme.icons.copy, 'Kopieren', menuColor),
           ),
       ],
     );
     if (selected == 'reply') {
-      onReplyRequested?.call();
+      widget.onReplyRequested?.call();
     } else if (selected == 'copy') {
-      Clipboard.setData(ClipboardData(text: message.text));
-      onCopy?.call();
+      Clipboard.setData(ClipboardData(text: widget.message.text));
+      widget.onCopy?.call();
     }
   }
 
@@ -142,6 +162,9 @@ class MessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = widget.theme;
+    final message = widget.message;
+    final capabilities = widget.capabilities;
     final colors = theme.colors;
     final bubbleColor =
         _isOutgoing ? colors.outgoingBubble : colors.incomingBubble;
@@ -176,9 +199,19 @@ class MessageBubble extends StatelessWidget {
               borderRadius: BorderRadius.circular((theme.bubbleRadius - 3).clamp(0, theme.bubbleRadius)),
               child: _Album(
                 attachments: message.attachments,
-                onOpen: onOpenAttachment,
-                onOpenImages: onOpenImages,
+                onOpen: widget.onOpenAttachment,
+                onOpenImages: widget.onOpenImages,
                 theme: theme,
+              ),
+            ),
+          if ((message.headline ?? '').isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Text(
+                message.headline!,
+                style: theme.typography.body.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
           if (message.text.isNotEmpty)
@@ -186,8 +219,16 @@ class MessageBubble extends StatelessWidget {
               padding: hasMedia
                   ? const EdgeInsets.fromLTRB(8, 6, 8, 0)
                   : EdgeInsets.zero,
-              child: Text(message.text,
-                  style: theme.typography.body.copyWith(color: textColor)),
+              child: message.translation == null
+                  ? Text(_anzeigeText,
+                      style: theme.typography.body.copyWith(color: textColor))
+                  : GestureDetector(
+                      onTap: () => setState(
+                          () => _zeigeUebersetzung = !_zeigeUebersetzung),
+                      child: Text(_anzeigeText,
+                          style: theme.typography.body
+                              .copyWith(color: textColor)),
+                    ),
             ),
           Padding(
             padding: hasMedia
@@ -200,13 +241,33 @@ class MessageBubble extends StatelessWidget {
               status: _effectiveStatus,
               theme: theme,
               textColor: textColor,
+              channel: message.channel,
             ),
           ),
+          if ((message.errorText ?? '').isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                message.errorText!,
+                style: theme.typography.timestamp
+                    .copyWith(color: theme.colors.error),
+              ),
+            ),
+          if (message.translation != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Text(
+                _zeigeUebersetzung
+                    ? message.translation!.languageLabel
+                    : 'Original',
+                style: theme.typography.timestamp,
+              ),
+            ),
         ],
       ),
     );
 
-    final showTail = theme.bubbleStyle != BubbleStyle.minimal && isLastInGroup;
+    final showTail = theme.bubbleStyle != BubbleStyle.minimal && widget.isLastInGroup;
     if (showTail) {
       bubble = Stack(
         clipBehavior: Clip.none,
@@ -245,7 +306,7 @@ class MessageBubble extends StatelessWidget {
           ? (details) {
               final v = details.primaryVelocity ?? 0;
               if ((_isOutgoing && v < -200) || (!_isOutgoing && v > 200)) {
-                onReplyRequested?.call();
+                widget.onReplyRequested?.call();
               }
             }
           : null,
@@ -258,14 +319,14 @@ class MessageBubble extends StatelessWidget {
         padding: EdgeInsets.only(
           left: 12,
           right: 12,
-          top: isFirstInGroup ? 6 : 2,
+          top: widget.isFirstInGroup ? 6 : 2,
           bottom: 2,
         ),
         child: content,
       ),
     );
 
-    if (animateIn && theme.motion.bubbleEntrance) {
+    if (widget.animateIn && theme.motion.bubbleEntrance) {
       return _EntranceAnimation(
         duration: theme.motion.bubbleEntranceDuration,
         curve: theme.motion.entranceCurve,
@@ -277,6 +338,7 @@ class MessageBubble extends StatelessWidget {
   }
 
   BorderRadius _borderRadius() {
+    final theme = widget.theme;
     final r = theme.bubbleRadius;
     if (theme.bubbleStyle == BubbleStyle.minimal) {
       return BorderRadius.circular(r);
@@ -289,13 +351,13 @@ class MessageBubble extends StatelessWidget {
         topLeft: big,
         topRight: big,
         bottomLeft: big,
-        bottomRight: isLastInGroup ? small : big,
+        bottomRight: widget.isLastInGroup ? small : big,
       );
     }
     return BorderRadius.only(
       topLeft: big,
       topRight: big,
-      bottomLeft: isLastInGroup ? small : big,
+      bottomLeft: widget.isLastInGroup ? small : big,
       bottomRight: big,
     );
   }
@@ -572,6 +634,7 @@ class _MetaRow extends StatelessWidget {
     required this.status,
     required this.theme,
     required this.textColor,
+    this.channel,
   });
 
   final String time;
@@ -581,12 +644,18 @@ class _MetaRow extends StatelessWidget {
   final ChatTheme theme;
   final Color textColor;
 
+  /// The channel this message travelled over, if known — shown as a compact
+  /// badge before the timestamp.
+  final ChatChannel? channel;
+
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
+        if (channel != null)
+          ChatChannelBadge(channel: channel!, compact: true, theme: theme),
         Text(
           time,
           style: theme.typography.timestamp

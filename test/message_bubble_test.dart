@@ -297,4 +297,79 @@ void main() {
     expect(icon.color, theme.colors.readReceipt);
     expect(icon.color, isNot(theme.colors.accent));
   });
+
+  ChatMessage m({
+    String text = 'Hallo',
+    String? headline,
+    ChatChannel? channel,
+    String? errorText,
+    ChatTranslation? translation,
+  }) =>
+      ChatMessage(
+        id: 'm1',
+        direction: MessageDirection.incoming,
+        text: text,
+        at: DateTime(2026, 7, 30, 10),
+        headline: headline,
+        channel: channel,
+        errorText: errorText,
+        translation: translation,
+      );
+
+  testWidgets('Betreffzeile erscheint über dem Text', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(body: MessageBubble(message: m(headline: 'Rechnung'))),
+    ));
+    expect(find.text('Rechnung'), findsOneWidget);
+    expect(find.text('Hallo'), findsOneWidget);
+  });
+
+  testWidgets('Kanal-Marke erscheint in der Metazeile', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: MessageBubble(message: m(channel: const ChatChannel.sms())),
+      ),
+    ));
+    expect(find.byType(ChatChannelBadge), findsOneWidget);
+  });
+
+  testWidgets('ohne Kanal keine Marke', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(body: MessageBubble(message: m())),
+    ));
+    expect(find.byType(ChatChannelBadge), findsNothing);
+  });
+
+  testWidgets('Fehlergrund erscheint unter der Blase', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: MessageBubble(
+          message: m(errorText: 'Fenster geschlossen'),
+        ),
+      ),
+    ));
+    expect(find.text('Fenster geschlossen'), findsOneWidget);
+  });
+
+  testWidgets('Antippen schaltet zwischen Original und Übersetzung',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: MessageBubble(
+          message: m(
+            text: 'Привіт',
+            translation:
+                const ChatTranslation(text: 'Hallo dort', languageLabel: 'DE'),
+          ),
+        ),
+      ),
+    ));
+    expect(find.text('Привіт'), findsOneWidget);
+    await tester.tap(find.text('Привіт'));
+    await tester.pumpAndSettle();
+    expect(find.text('Hallo dort'), findsOneWidget);
+    await tester.tap(find.text('Hallo dort'));
+    await tester.pumpAndSettle();
+    expect(find.text('Привіт'), findsOneWidget);
+  });
 }
