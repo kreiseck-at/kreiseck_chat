@@ -326,6 +326,14 @@ class _MessageBubbleState extends State<MessageBubble> {
                 Flexible(
                   child: Text(
                     message.errorText!,
+                    // Truncated rather than wrapped without limit: an
+                    // unbreakable long word (or just a long reason on a
+                    // narrow screen) must not be able to force this row
+                    // wider than the retry action below, which needs to
+                    // keep its own size regardless of how long the reason
+                    // gets.
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                     style: theme.typography.timestamp.copyWith(
                       fontSize: (theme.typography.timestamp.fontSize ?? 11) + 1,
                       color: theme.colors.errorOnBackground,
@@ -338,7 +346,13 @@ class _MessageBubbleState extends State<MessageBubble> {
                     onPressed: widget.onRetry,
                     style: TextButton.styleFrom(
                       padding: EdgeInsets.zero,
-                      minimumSize: Size.zero,
+                      // Kept visually as a plain text link (no chip, no
+                      // border), but the tappable box itself is floored to
+                      // the 44x44 minimum touch target -- the same target
+                      // size used for the reaction chips in this same
+                      // effort. shrinkWrap avoids adding Material's own
+                      // 48dp platform margin on top of that floor.
+                      minimumSize: const Size(44, 44),
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
                     child: Text(
