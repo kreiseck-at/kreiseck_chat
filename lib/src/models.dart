@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import 'chat_attachment.dart';
+import 'chat_channel.dart';
 import 'chat_participant.dart';
 import 'chat_reaction.dart';
 
@@ -31,6 +32,53 @@ enum MessageStatus {
   failed,
 }
 
+/// The kind of a message — determines how it is rendered.
+enum ChatMessageKind {
+  /// Regular speech bubble.
+  normal,
+
+  /// System notice; rendered centered as a `ChatSystemCard`.
+  system,
+
+  /// Built by the app itself; `ChatThreadView.customMessageBuilder` decides
+  /// how it is rendered.
+  custom,
+}
+
+/// A translation of a message's text.
+///
+/// When set, the bubble becomes tappable to toggle between the original and
+/// the translation.
+@immutable
+class ChatTranslation {
+  /// Creates a translation.
+  const ChatTranslation({required this.text, required this.languageLabel});
+
+  /// The translated text.
+  final String text;
+
+  /// Short language label, e.g. `'UK'` or `'German'`.
+  final String languageLabel;
+
+  /// Returns a copy of this translation with the given fields replaced.
+  ChatTranslation copyWith({String? text, String? languageLabel}) =>
+      ChatTranslation(
+        text: text ?? this.text,
+        languageLabel: languageLabel ?? this.languageLabel,
+      );
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is ChatTranslation &&
+        other.text == text &&
+        other.languageLabel == languageLabel;
+  }
+
+  @override
+  int get hashCode => Object.hash(text, languageLabel);
+}
+
 /// A single message within a chat thread.
 ///
 /// Backend-agnostic: it carries no information about how it was transported.
@@ -49,6 +97,11 @@ class ChatMessage {
     this.editedAt,
     this.deliveredAt,
     this.readAt,
+    this.channel,
+    this.errorText,
+    this.kind = ChatMessageKind.normal,
+    this.translation,
+    this.headline,
   });
 
   /// Unique identifier of this message.
@@ -87,6 +140,22 @@ class ChatMessage {
   /// Precise read time, if known.
   final DateTime? readAt;
 
+  /// Which channel this message travelled over. Null when unknown or the
+  /// thread is single-channel — no badge is shown then.
+  final ChatChannel? channel;
+
+  /// Reason a delivery failed, shown below the bubble.
+  final String? errorText;
+
+  /// The kind of message (normal, system notice, custom rendering).
+  final ChatMessageKind kind;
+
+  /// Translation of the text, toggleable in the bubble.
+  final ChatTranslation? translation;
+
+  /// Bold first line above the text, e.g. an email subject.
+  final String? headline;
+
   /// Returns a copy of this message with the given fields replaced.
   ChatMessage copyWith({
     String? id,
@@ -101,6 +170,11 @@ class ChatMessage {
     DateTime? editedAt,
     DateTime? deliveredAt,
     DateTime? readAt,
+    ChatChannel? channel,
+    String? errorText,
+    ChatMessageKind? kind,
+    ChatTranslation? translation,
+    String? headline,
   }) {
     return ChatMessage(
       id: id ?? this.id,
@@ -115,6 +189,11 @@ class ChatMessage {
       editedAt: editedAt ?? this.editedAt,
       deliveredAt: deliveredAt ?? this.deliveredAt,
       readAt: readAt ?? this.readAt,
+      channel: channel ?? this.channel,
+      errorText: errorText ?? this.errorText,
+      kind: kind ?? this.kind,
+      translation: translation ?? this.translation,
+      headline: headline ?? this.headline,
     );
   }
 
@@ -133,7 +212,12 @@ class ChatMessage {
         _listEquals(other.reactions, reactions) &&
         other.editedAt == editedAt &&
         other.deliveredAt == deliveredAt &&
-        other.readAt == readAt;
+        other.readAt == readAt &&
+        other.channel == channel &&
+        other.errorText == errorText &&
+        other.kind == kind &&
+        other.translation == translation &&
+        other.headline == headline;
   }
 
   @override
@@ -150,6 +234,11 @@ class ChatMessage {
         editedAt,
         deliveredAt,
         readAt,
+        channel,
+        errorText,
+        kind,
+        translation,
+        headline,
       );
 }
 
