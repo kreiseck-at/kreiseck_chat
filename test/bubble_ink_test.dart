@@ -79,5 +79,51 @@ void main() {
       final fixed = readableOn(surface, readReceipt, target: 3.0);
       expect(contrastRatio(fixed, surface), greaterThanOrEqualTo(3.0));
     });
+
+    test('picks the higher-contrast direction on a mid-gray surface', () {
+      // Regression: the surface luminance (~0.32) sits above the true WCAG
+      // crossover (~0.179) but below the naive 0.5 threshold, so a
+      // luminance>0.5 check picks the wrong mix direction and stalls short
+      // of the target.
+      const surface = Color(0xFF999999);
+      const red = Color(0xFFB5374A);
+      final fixed = readableOn(surface, red);
+
+      expect(contrastRatio(fixed, surface), greaterThanOrEqualTo(4.5));
+      expect(fixed.r, greaterThan(fixed.g));
+      expect(fixed.r, greaterThan(fixed.b));
+    });
+
+    test('picks the higher-contrast direction on a blue surface', () {
+      const surface = Color(0xFF3478F6);
+      const red = Color(0xFFB5374A);
+      final fixed = readableOn(surface, red);
+
+      expect(contrastRatio(fixed, surface), greaterThanOrEqualTo(4.5));
+      expect(fixed.r, greaterThan(fixed.g));
+      expect(fixed.r, greaterThan(fixed.b));
+    });
+
+    test('reaches the default target across the full brightness range', () {
+      const errorRed = Color(0xFFB5374A);
+      const surfaces = <Color>[
+        Color(0xFF000000),
+        Color(0xFF1C1C1E),
+        Color(0xFF2C2C2E),
+        Color(0xFF4A4A4C),
+        Color(0xFF6E6E70),
+        Color(0xFF999999),
+        Color(0xFFB5B5B5),
+        Color(0xFFD0D0D0),
+        Color(0xFFE9E9EB),
+        Color(0xFFF5F5F5),
+        Color(0xFFFFFFFF),
+      ];
+      for (final surface in surfaces) {
+        final fixed = readableOn(surface, errorRed);
+        expect(contrastRatio(fixed, surface), greaterThanOrEqualTo(4.5),
+            reason: 'auf $surface');
+      }
+    });
   });
 }

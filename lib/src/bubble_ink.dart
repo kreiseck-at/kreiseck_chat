@@ -49,18 +49,35 @@ class BubbleInk {
 }
 
 /// Returns [desired] if it already reaches [target] against [surface],
-/// otherwise the same hue mixed towards the readable end until it does.
+/// otherwise the same hue mixed towards whichever endpoint — black or white —
+/// contrasts more against [surface], stepped only as far as needed to reach
+/// [target] again.
 ///
 /// Used for colors that carry meaning of their own — an error red, a read
 /// receipt blue — which must stay recognisable rather than be replaced.
+///
+/// [target] is an abort condition of the calculation, not a hope: whenever a
+/// mix towards either endpoint can reach it, the result reaches it. Only when
+/// that is mathematically impossible — an unreachable [target], or a
+/// [surface] that leaves no headroom — does this fall back to the candidate
+/// with the highest contrast actually measured along the way.
 Color readableOn(Color surface, Color desired, {double target = 4.5}) {
   if (contrastRatio(desired, surface) >= target) return desired;
-  final towards = relativeLuminance(surface) > 0.5
-      ? const Color(0xFF000000)
-      : const Color(0xFFFFFFFF);
+  final towards = contrastRatio(const Color(0xFFFFFFFF), surface) >=
+          contrastRatio(const Color(0xFF000000), surface)
+      ? const Color(0xFFFFFFFF)
+      : const Color(0xFF000000);
+
+  var best = desired;
+  var bestContrast = contrastRatio(desired, surface);
   for (var t = 0.05; t <= 1.0; t += 0.05) {
     final candidate = Color.lerp(desired, towards, t)!;
-    if (contrastRatio(candidate, surface) >= target) return candidate;
+    final contrast = contrastRatio(candidate, surface);
+    if (contrast >= target) return candidate;
+    if (contrast > bestContrast) {
+      best = candidate;
+      bestContrast = contrast;
+    }
   }
-  return towards;
+  return best;
 }
