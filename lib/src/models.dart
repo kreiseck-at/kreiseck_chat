@@ -37,7 +37,11 @@ enum ChatMessageKind {
   /// Regular speech bubble.
   normal,
 
-  /// System notice; rendered centered as a `ChatSystemCard`.
+  /// System notice; rendered centered as a `ChatSystemCard` wrapping just
+  /// the message text — `headline`, `channel`, `errorText`, `translation`,
+  /// `attachments`, `reactions`, and the timestamp are dropped, and
+  /// `ChatSystemCard.icon`/`onTap` are not reachable this way; use [custom]
+  /// with `customMessageBuilder` if you need any of those.
   system,
 
   /// Built by the app itself; `ChatThreadView.customMessageBuilder` decides
