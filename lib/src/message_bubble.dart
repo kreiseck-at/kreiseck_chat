@@ -743,7 +743,12 @@ class _MetaRow extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
         if (channel != null)
-          ChatChannelBadge(channel: channel!, compact: true, theme: theme),
+          ChatChannelBadge(
+            channel: channel!,
+            compact: true,
+            theme: theme,
+            surface: bubbleColor,
+          ),
         Text(
           time,
           style: theme.typography.timestamp.copyWith(color: ink.muted),
