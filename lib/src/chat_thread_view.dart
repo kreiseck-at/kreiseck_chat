@@ -105,6 +105,10 @@ class ChatThreadView extends StatefulWidget {
 
   /// Custom rendering for messages with [ChatMessageKind.custom]. If the
   /// builder returns `null`, the normal bubble is rendered instead.
+  ///
+  /// The returned widget is not given a `ValueKey` by `ChatThreadView`, so a
+  /// stateful widget should set its own `ValueKey` (e.g. from the message
+  /// id) to avoid having its state recycled onto a different message.
   final Widget? Function(ChatMessage message)? customMessageBuilder;
 
   /// Notice bar shown directly above the composer field.
@@ -248,8 +252,8 @@ class _ChatThreadViewState extends State<ChatThreadView> {
                   );
                 }
                 if (mi.message.kind == ChatMessageKind.custom) {
-                  final eigen = widget.customMessageBuilder?.call(mi.message);
-                  if (eigen != null) return eigen;
+                  final custom = widget.customMessageBuilder?.call(mi.message);
+                  if (custom != null) return custom;
                 }
                 return MessageBubble(
                   key: ValueKey(mi.message.id),
