@@ -40,18 +40,18 @@ class ChatBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final farbe = variant == ChatBannerVariant.warning
+    final color = variant == ChatBannerVariant.warning
         ? theme.colors.warning
         : theme.colors.accent;
     return DecoratedBox(
-      decoration: BoxDecoration(color: farbe.withValues(alpha: 0.10)),
+      decoration: BoxDecoration(color: color.withValues(alpha: 0.10)),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (icon != null) ...[
-              Icon(icon, size: 14, color: farbe),
+              Icon(icon, size: 14, color: color),
               const SizedBox(width: 8),
             ],
             Expanded(

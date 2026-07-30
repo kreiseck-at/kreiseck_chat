@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 
-/// Ein Kanal, über den eine Nachricht laufen kann — SMS, WhatsApp, E-Mail,
-/// In-App oder etwas ganz eigenes.
+/// A channel a message can travel over — SMS, WhatsApp, email, in-app, or
+/// something entirely custom.
 ///
-/// Das Paket legt keine Kanäle fest: es kennt nur diese Beschreibung und stellt
-/// sie einheitlich dar (siehe `ChatChannelBadge`). Die Vorlagen unten decken die
-/// Kanäle ab, die viele Apps haben; alles daran lässt sich per [copyWith]
-/// überschreiben, damit die Marke zum eigenen Aussehen passt.
+/// The package doesn't fix a set of channels: it only knows this description
+/// and renders it consistently (see `ChatChannelBadge`). The templates below
+/// cover the channels most apps have; everything on them can be overridden
+/// via [copyWith] so the brand matches the host app's own look.
 @immutable
 class ChatChannel {
-  /// Erzeugt einen Kanal.
+  /// Creates a channel.
   const ChatChannel({
     required this.id,
     required this.label,
@@ -17,19 +17,19 @@ class ChatChannel {
     required this.color,
   });
 
-  /// Stabile Kennung, z. B. `'whatsapp'`. Nicht für die Anzeige gedacht.
+  /// Stable identifier, e.g. `'whatsapp'`. Not meant for display.
   final String id;
 
-  /// Anzeigename, z. B. `'WhatsApp'`.
+  /// Display name, e.g. `'WhatsApp'`.
   final String label;
 
-  /// Symbol für Abzeichen und Listen.
+  /// Icon for badges and lists.
   final IconData icon;
 
-  /// Kennfarbe des Kanals.
+  /// The channel's brand color.
   final Color color;
 
-  /// WhatsApp — Markengrün.
+  /// WhatsApp — brand green.
   const ChatChannel.whatsApp({this.label = 'WhatsApp'})
       : id = 'whatsapp',
         icon = Icons.chat_rounded,
@@ -41,25 +41,25 @@ class ChatChannel {
         icon = Icons.sms_rounded,
         color = const Color(0xFF6C6C70);
 
-  /// E-Mail.
+  /// Email.
   const ChatChannel.email({this.label = 'E-Mail'})
       : id = 'email',
         icon = Icons.email_outlined,
         color = const Color(0xFF4A6FA5);
 
-  /// Chat innerhalb der eigenen App.
+  /// Chat within the host app itself.
   const ChatChannel.inApp({this.label = 'In-App'})
       : id = 'inapp',
         icon = Icons.forum_outlined,
         color = const Color(0xFF3478F6);
 
-  /// Telefonat.
+  /// Phone call.
   const ChatChannel.voice({this.label = 'Anruf'})
       : id = 'voice',
         icon = Icons.call_rounded,
         color = const Color(0xFF7C4DFF);
 
-  /// Gibt eine Kopie mit ersetzten Feldern zurück.
+  /// Returns a copy with the given fields replaced.
   ChatChannel copyWith({
     String? id,
     String? label,

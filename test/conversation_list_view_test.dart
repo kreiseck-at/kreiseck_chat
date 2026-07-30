@@ -215,6 +215,23 @@ void main() {
     expect(find.text('SPAM'), findsOneWidget);
   });
 
+  testWidgets('titleBadgeBuilder-Widget sitzt vor dem Titeltext',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: ConversationListView(
+          conversations: const [ChatConversation(id: 'c1', title: 'Ada')],
+          onOpen: (_) {},
+          titleBadgeBuilder: (_) =>
+              const Icon(Icons.warning_rounded, key: Key('badge')),
+        ),
+      ),
+    ));
+    final badgeLeft = tester.getTopLeft(find.byKey(const Key('badge'))).dx;
+    final titleLeft = tester.getTopLeft(find.text('Ada')).dx;
+    expect(badgeLeft, lessThan(titleLeft));
+  });
+
   testWidgets('onLongPress wird ausgelöst', (tester) async {
     ChatConversation? gedrueckt;
     await tester.pumpWidget(MaterialApp(

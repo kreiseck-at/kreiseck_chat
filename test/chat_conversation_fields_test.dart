@@ -43,4 +43,22 @@ void main() {
     expect(a == c, isFalse);
     expect(a, const ChatConversation(id: 'c1', title: 'Ada'));
   });
+
+  test('separat erzeugte, inhaltlich gleiche channels-Listen gelten als gleich',
+      () {
+    const a = ChatConversation(
+      id: 'c1',
+      title: 'Ada',
+      channels: [ChatChannel.whatsApp(), ChatChannel.sms()],
+    );
+    final b = ChatConversation(
+      id: 'c1',
+      title: 'Ada',
+      channels:
+          List<ChatChannel>.of(const [ChatChannel.whatsApp(), ChatChannel.sms()]),
+    );
+    expect(identical(a.channels, b.channels), isFalse);
+    expect(a, b);
+    expect(a.hashCode, b.hashCode);
+  });
 }

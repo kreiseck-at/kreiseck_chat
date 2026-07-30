@@ -162,10 +162,11 @@ class _ChatThreadViewState extends State<ChatThreadView> {
     }
   }
 
-  /// Rastet beim Öffnen zuverlässig ganz unten ein. Eine lazy `ListView.builder`
-  /// kennt ihre volle Höhe erst, wenn die Items gebaut sind -- jeder Sprung baut
-  /// weitere Items Richtung Boden, der nächste springt weiter, bis der Boden
-  /// stabil ist. Deshalb über mehrere Frames + eine kurze Verzögerung nachsetzen.
+  /// Reliably settles to the very bottom when opening. A lazy
+  /// `ListView.builder` doesn't know its full extent until items are built --
+  /// each jump builds further items toward the bottom, the next jump goes
+  /// further, until the bottom is stable. Hence re-settling across several
+  /// frames plus a short delay.
   void _settleToBottom({int framesLeft = 6}) {
     if (!mounted || !_scroll.hasClients) return;
     final max = _scroll.position.maxScrollExtent;

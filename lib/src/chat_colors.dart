@@ -74,11 +74,11 @@ class ChatColors {
   /// [accent] so a green/branded accent doesn't tint read receipts.
   final Color readReceipt;
 
-  /// Farbe für Fehlermeldungen, z. B. den Grund einer fehlgeschlagenen
-  /// Zustellung unter einer Blase.
+  /// Color for error messages, e.g. the reason for a failed delivery shown
+  /// under a bubble.
   final Color error;
 
-  /// Farbe für Warnhinweise, z. B. eine `ChatBanner`-Leiste.
+  /// Color for warning notices, e.g. a `ChatBanner` bar.
   final Color warning;
 
   /// Sensible light palette.

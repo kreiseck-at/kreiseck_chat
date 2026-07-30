@@ -201,4 +201,20 @@ void main() {
     ));
     expect(find.byType(Composer), findsNothing);
   });
+
+  testWidgets('composerBanner bleibt bei readOnly sichtbar, Eingabefeld nicht',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: ChatThreadView(
+          messages: [nachricht('m1', ChatMessageKind.normal)],
+          onSend: (_) {},
+          readOnly: true,
+          composerBanner: const ChatBanner(text: 'Konversation geschlossen'),
+        ),
+      ),
+    ));
+    expect(find.text('Konversation geschlossen'), findsOneWidget);
+    expect(find.byType(Composer), findsNothing);
+  });
 }

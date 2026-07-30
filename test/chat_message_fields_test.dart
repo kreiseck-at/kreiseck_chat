@@ -64,6 +64,12 @@ void main() {
     expect(basis(errorText: 'x') == basis(), isFalse);
     expect(basis(kind: ChatMessageKind.system) == basis(), isFalse);
     expect(basis(headline: 'h') == basis(), isFalse);
+    expect(
+        basis(
+                translation:
+                    const ChatTranslation(text: 'Hi', languageLabel: 'EN')) ==
+            basis(),
+        isFalse);
   });
 
   test('ChatTranslation: copyWith und Gleichheit', () {
