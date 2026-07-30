@@ -112,9 +112,11 @@ ChatThreadView(
   messages: messages,
   onSend: send,
   capabilities: const ChatCapabilities.twilioSms(),
-  composerBanner: const ChatBanner(
+  composerBanner: ChatBanner(
     text: 'Über SMS sind keine Bilder möglich.',
     variant: ChatBannerVariant.warning,
+    theme: theme, // ChatThreadView can't hand its theme down to a
+    // pre-built child widget, so pass the same theme explicitly.
   ),
   composerLeading: myChannelPicker,
   customMessageBuilder: (m) => m.kind == ChatMessageKind.custom

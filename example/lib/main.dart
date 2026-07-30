@@ -197,9 +197,10 @@ class _DemoAppState extends State<DemoApp> {
       onAttach: (_) {},
       customMessageBuilder: (m) =>
           _CallSummaryCard(theme: _theme, text: m.text),
-      composerBanner: const ChatBanner(
+      composerBanner: ChatBanner(
         text: 'Nur Text möglich',
         variant: ChatBannerVariant.warning,
+        theme: _theme,
       ),
       composerLeading: DropdownButton<String>(
         value: _composerChannel,
