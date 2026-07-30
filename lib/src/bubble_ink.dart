@@ -36,10 +36,12 @@ class BubbleInk {
   }
 
   /// Mixes [base] towards [surface] in 5% steps and returns the softest color
-  /// that still reaches [target].
+  /// that still reaches [target]. Steps are counted as integers so the last
+  /// step is reached exactly, with no floating-point drift.
   static Color _mixUntil(Color base, Color surface, double target) {
     var result = base;
-    for (var t = 0.05; t <= 0.95; t += 0.05) {
+    for (var i = 1; i <= 19; i++) {
+      final t = i / 20;
       final candidate = Color.lerp(base, surface, t)!;
       if (contrastRatio(candidate, surface) < target) break;
       result = candidate;
@@ -70,7 +72,13 @@ Color readableOn(Color surface, Color desired, {double target = 4.5}) {
 
   var best = desired;
   var bestContrast = contrastRatio(desired, surface);
-  for (var t = 0.05; t <= 1.0; t += 0.05) {
+  // Steps are counted as integers (1..20) rather than accumulated by adding
+  // 0.05 repeatedly, so the loop reaches t == 1.0 exactly — the pure
+  // black/white endpoint, which is the candidate with the highest contrast
+  // that can possibly be reached. Floating-point drift on a `+=` loop would
+  // otherwise stop just short of it and silently skip that candidate.
+  for (var i = 1; i <= 20; i++) {
+    final t = i / 20;
     final candidate = Color.lerp(desired, towards, t)!;
     final contrast = contrastRatio(candidate, surface);
     if (contrast >= target) return candidate;

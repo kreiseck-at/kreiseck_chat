@@ -125,5 +125,74 @@ void main() {
             reason: 'auf $surface');
       }
     });
+
+    // Regression: the loop used to accumulate `t` by repeatedly adding 0.05,
+    // which drifts far enough that it never lands on t == 1.0 — the pure
+    // black/white endpoint, i.e. the highest-contrast candidate reachable at
+    // all. That silently dropped exactly the candidate needed whenever only
+    // the endpoint itself reaches the target. Every case below reaches 4.5:1
+    // only at the endpoint.
+    test('reaches the target when only the pure black/white endpoint does', () {
+      const cases = <(Color surface, Color desired)>[
+        (Color(0xFF0066FF), Color(0xFF000000)),
+        (Color(0xFF0066FF), Color(0xFF001A33)),
+        (Color(0xFF0066FF), Color(0xFF0D0D0D)),
+        (Color(0xFF0066FF), Color(0xFF003300)),
+        (Color(0xFF0066FF), Color(0xFF1A001A)),
+      ];
+      for (final (surface, desired) in cases) {
+        final fixed = readableOn(surface, desired, target: 4.5);
+        expect(contrastRatio(fixed, surface), greaterThanOrEqualTo(4.5),
+            reason: 'surface=$surface desired=$desired');
+      }
+    });
+
+    test(
+        'reaches any target that pure black or white can reach against the surface',
+        () {
+      // The real assurance: readableOn must never fall short of a target
+      // that is mathematically reachable. Black or white touching the target
+      // is proof of reachability (they are the highest-contrast candidates
+      // possible against any surface), so whenever either one does, the
+      // function's own result must reach it too. Swept across a grid
+      // spanning the color space rather than enumerating specific colors.
+      const steps = <int>[0, 32, 64, 96, 128, 160, 192, 224, 255];
+      const target = 4.5;
+      var checked = 0;
+      for (final sr in steps) {
+        for (final sg in steps) {
+          for (final sb in steps) {
+            final surface = Color.fromARGB(255, sr, sg, sb);
+            final blackContrast =
+                contrastRatio(const Color(0xFF000000), surface);
+            final whiteContrast =
+                contrastRatio(const Color(0xFFFFFFFF), surface);
+            if (blackContrast < target && whiteContrast < target) {
+              // Target is not reachable against this surface at all — skip,
+              // readableOn is only required to hit reachable targets.
+              continue;
+            }
+            // A desired color that itself fails the target, so readableOn
+            // is forced to mix. Derived from the surface so it varies across
+            // the grid instead of being a single fixed probe color.
+            final desired = Color.fromARGB(
+              255,
+              (sr + 96) % 256,
+              (sg + 48) % 256,
+              (sb + 160) % 256,
+            );
+            if (contrastRatio(desired, surface) >= target) continue;
+
+            checked++;
+            final fixed = readableOn(surface, desired, target: target);
+            expect(contrastRatio(fixed, surface), greaterThanOrEqualTo(target),
+                reason: 'surface=$surface desired=$desired');
+          }
+        }
+      }
+      // Sanity check: the sweep actually exercised a meaningful number of
+      // mixing cases rather than skipping almost everything.
+      expect(checked, greaterThanOrEqualTo(200));
+    });
   });
 }
