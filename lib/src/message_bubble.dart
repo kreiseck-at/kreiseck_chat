@@ -277,8 +277,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                 _showTranslation
                     ? message.translation!.languageLabel
                     : 'Original',
-                style: theme.typography.timestamp
-                    .copyWith(color: textColor.withValues(alpha: 0.7)),
+                style: theme.typography.timestamp.copyWith(color: ink.muted),
               ),
             ),
         ],
@@ -348,10 +347,9 @@ class _MessageBubbleState extends State<MessageBubble> {
                       padding: EdgeInsets.zero,
                       // Kept visually as a plain text link (no chip, no
                       // border), but the tappable box itself is floored to
-                      // the 44x44 minimum touch target -- the same target
-                      // size used for the reaction chips in this same
-                      // effort. shrinkWrap avoids adding Material's own
-                      // 48dp platform margin on top of that floor.
+                      // the commonly recommended 44x44 minimum touch target.
+                      // shrinkWrap avoids adding Material's own 48dp platform
+                      // margin on top of that floor.
                       minimumSize: const Size(44, 44),
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
@@ -420,19 +418,23 @@ class _MessageBubbleState extends State<MessageBubble> {
     }
     const small = Radius.circular(5);
     final big = Radius.circular(r);
-    // Tighten the corner nearest the tail when it is the last in the group.
+    // Tighten the corner nearest the tail when it is the last in the group --
+    // but only when a tail is actually painted there (see showBubbleTail):
+    // with no tail, tightening the corner would leave a stray asymmetric
+    // corner with nothing to justify it.
+    final tightenCorner = theme.showBubbleTail && widget.isLastInGroup;
     if (_isOutgoing) {
       return BorderRadius.only(
         topLeft: big,
         topRight: big,
         bottomLeft: big,
-        bottomRight: widget.isLastInGroup ? small : big,
+        bottomRight: tightenCorner ? small : big,
       );
     }
     return BorderRadius.only(
       topLeft: big,
       topRight: big,
-      bottomLeft: widget.isLastInGroup ? small : big,
+      bottomLeft: tightenCorner ? small : big,
       bottomRight: big,
     );
   }
@@ -784,7 +786,9 @@ class _StatusIcon extends StatelessWidget {
             size: 14,
             color: readableOn(bubbleColor, theme.colors.readReceipt, target: 3.0));
       case MessageStatus.failed:
-        return Icon(icons.error, size: 14, color: Colors.red);
+        return Icon(icons.error,
+            size: 14,
+            color: readableOn(bubbleColor, theme.colors.error, target: 3.0));
     }
   }
 }

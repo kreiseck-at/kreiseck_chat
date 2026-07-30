@@ -562,4 +562,71 @@ void main() {
     final bodyText = tester.widget<Text>(find.text('Hallo'));
     expect(headlineText.style?.color, bodyText.style?.color);
   });
+
+  testWidgets('failed status icon is readable, not raw red', (tester) async {
+    // Pink bubble from the audit: raw Colors.red measured 1.06:1 on it.
+    final theme = const ChatTheme.light().copyWith(
+      colors: const ChatColors.light()
+          .copyWith(outgoingBubble: const Color(0xFFFF2D95)),
+    );
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: MessageBubble(
+          message: _out('x', status: MessageStatus.failed),
+          theme: theme,
+        ),
+      ),
+    ));
+    final icon = tester.widget<Icon>(find.byType(Icon).last);
+    expect(icon.color, isNot(Colors.red));
+    expect(contrastRatio(icon.color!, theme.colors.outgoingBubble),
+        greaterThanOrEqualTo(3.0));
+  });
+
+  testWidgets('Original-Label nutzt ink.muted statt gedimmten Text',
+      (tester) async {
+    // Grüne Blase aus der Prüfung: 70% Deckkraft auf Weiß ergab dort 1,59:1.
+    final theme = const ChatTheme.light().copyWith(
+      colors: const ChatColors.light()
+          .copyWith(outgoingBubble: const Color(0xFF25D366)),
+    );
+    final msg = ChatMessage(
+      id: 'm5',
+      direction: MessageDirection.outgoing,
+      text: 'Привіт',
+      at: DateTime(2026, 7, 30, 10),
+      translation:
+          const ChatTranslation(text: 'Hallo dort', languageLabel: 'DE'),
+    );
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(body: MessageBubble(message: msg, theme: theme)),
+    ));
+    final label = tester.widget<Text>(find.text('Original'));
+    final ink = theme.colors.inkFor(theme.colors.outgoingBubble);
+    expect(label.style?.color, ink.muted);
+  });
+
+  testWidgets('Ecken bleiben gleichmäßig, wenn kein Zipfel gemalt wird',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: MessageBubble(
+          message: _out('x'),
+          // showBubbleTail ist hier (wie in jedem Preset) standardmäßig aus.
+          theme: ChatTheme.whatsApp(),
+          isLastInGroup: true,
+        ),
+      ),
+    ));
+    final container = tester
+        .widgetList<Container>(find.descendant(
+          of: find.byType(MessageBubble),
+          matching: find.byType(Container),
+        ))
+        .first;
+    final radius =
+        (container.decoration as BoxDecoration).borderRadius as BorderRadius;
+    expect(radius.bottomRight, radius.topRight);
+    expect(radius.bottomLeft, radius.topLeft);
+  });
 }
