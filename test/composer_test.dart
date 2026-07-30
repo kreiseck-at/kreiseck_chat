@@ -306,15 +306,17 @@ void main() {
     expect(scaleTransition, findsOneWidget);
   });
 
-  testWidgets('leading erscheint links im Eingabefeld', (tester) async {
+  testWidgets('leading sitzt links vom Eingabefeld', (tester) async {
     await tester.pumpWidget(MaterialApp(
       home: Scaffold(
         body: Composer(
           onSend: (_) {},
-          leading: const Icon(Icons.tune_rounded),
+          leading: const Icon(Icons.tune_rounded, key: Key('leading')),
         ),
       ),
     ));
-    expect(find.byIcon(Icons.tune_rounded), findsOneWidget);
+    final leadingLeft = tester.getTopLeft(find.byKey(const Key('leading'))).dx;
+    final fieldLeft = tester.getTopLeft(find.byType(TextField)).dx;
+    expect(leadingLeft, lessThan(fieldLeft));
   });
 }

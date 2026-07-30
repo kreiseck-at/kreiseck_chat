@@ -189,6 +189,21 @@ void main() {
     expect(find.byIcon(Icons.tune_rounded), findsOneWidget);
   });
 
+  testWidgets('composerBanner sitzt über dem Eingabefeld', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: ChatThreadView(
+          messages: [nachricht('m1', ChatMessageKind.normal)],
+          onSend: (_) {},
+          composerBanner: const ChatBanner(text: 'Nur SMS möglich'),
+        ),
+      ),
+    ));
+    final bannerTop = tester.getTopLeft(find.text('Nur SMS möglich')).dy;
+    final fieldTop = tester.getTopLeft(find.byType(TextField)).dy;
+    expect(bannerTop, lessThan(fieldTop));
+  });
+
   testWidgets('readOnly verbirgt das Eingabefeld', (tester) async {
     await tester.pumpWidget(MaterialApp(
       home: Scaffold(
