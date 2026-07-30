@@ -1,3 +1,32 @@
+## 0.13.0
+
+* New `ChatChannel` value object describing a channel a message travelled
+  over (id, label, icon, brand color), with ready-made templates —
+  `ChatChannel.whatsApp()`, `.sms()`, `.email()`, `.inApp()`, `.voice()` —
+  and a matching `ChatChannelBadge` widget.
+* `ChatMessage` gains `channel`, `errorText` (reason for a failed delivery),
+  `kind` (`ChatMessageKind.normal`/`system`/`custom`), `translation`
+  (`ChatTranslation`, toggleable in the bubble), and `headline` (a bold first
+  line, e.g. an email subject). `ChatConversation` gains `channels`.
+* New `ChatSystemCard` — a centered card for system notes/logged events;
+  messages with `kind: ChatMessageKind.system` render as this automatically
+  in `ChatThreadView`.
+* New `ChatBanner` (`ChatBannerVariant.info`/`.warning`) — a notice bar for
+  the composer, wired up via `ChatThreadView.composerBanner`.
+* `MessageBubble` renders the new `headline`, `channel` badge, `errorText`,
+  and a tap-to-toggle translation switcher.
+* `ChatThreadView`: new `customMessageBuilder` for `kind: ChatMessageKind.custom`
+  messages (falls back to the normal bubble when it returns `null`), new
+  `composerBanner`/`composerLeading` slots forwarded to the composer, and a
+  new `readOnly` flag that hides the composer entirely.
+* `Composer`: new `leading` slot to the left of the input field, e.g. for a
+  channel picker.
+* `ConversationListView`: new `onLongPress` and `titleBadgeBuilder`; each row
+  now also shows a compact strip of channel badges built from
+  `ChatConversation.channels` in the subtitle line (`channelBadge` still wins
+  when supplied, then `channels`, then the plain `channelLabel` text).
+* `ChatColors` gains `error` and `warning`.
+
 ## 0.12.0
 
 * `Composer`: when the field is empty and the channel offers no media/mic

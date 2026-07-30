@@ -14,7 +14,14 @@ and `ChatConversation` and handling the `onSend`/`onOpen` callbacks.
   `TypingState`: immutable data classes with `copyWith` and value equality.
   `ChatMessage` carries an optional `sender` (for group threads), typed
   `attachments`, a `replyTo` reference, `reactions`, and delivery/read
-  timestamps.
+  timestamps — plus `channel`, `errorText`, `kind`, `translation`, and
+  `headline` (see below). `ChatConversation` carries `channels`, a list of
+  `ChatChannel` feeding into it.
+* **`ChatChannel`** — a value object describing a channel a message travelled
+  over: an id, display label, icon, and brand color. Ready-made templates —
+  `ChatChannel.whatsApp()`, `.sms()`, `.email()`, `.inApp()`, `.voice()` —
+  cover the channels most apps have; override anything via `copyWith` to
+  match your own branding. Rendered consistently by `ChatChannelBadge`.
 * **`ChatCapabilities`** — a single flag set (`reactions`, `replies`, `media`,
   `typingIndicator`, `presence`, `readReceipts`) that tells the widgets which
   affordances a channel actually supports, so the UI never offers something
@@ -30,18 +37,39 @@ and `ChatConversation` and handling the `onSend`/`onOpen` callbacks.
   `ChatTheme.iMessage()` (the latter two take a `brightness`). Override just
   the sub-config you need; the pre-0.3 flat color getters (`accentColor`,
   `incomingBubbleColor`, ...) are preserved for existing call sites.
+  `ChatColors` now also carries `error` and `warning`.
 * **`MessageBubble`** — timestamp, delivery status icon, sender name/avatar
   in group threads, quoted replies, reaction chips, and media attachments —
-  each gated by `ChatCapabilities`.
+  each gated by `ChatCapabilities`. Also renders a bold `headline` above the
+  text, a `ChatChannelBadge` when the message has a `channel`, the
+  `errorText` under a failed bubble, and — when `translation` is set — a
+  tap-to-toggle between original text and translation.
+* **`ChatSystemCard`** — a centered card for non-message content in the
+  thread: system notes, logged events, summaries. Messages with
+  `kind: ChatMessageKind.system` render as this automatically.
+* **`ChatBanner`** — a notice bar (`ChatBannerVariant.info` / `.warning`)
+  for states affecting the reply: a restricted channel, a disconnected
+  connection, a locked thread.
 * **`Composer`** — an auto-growing text field with a send button, an
-  attach button gated on `capabilities.media`, and typing-change callbacks.
+  attach button gated on `capabilities.media`, typing-change callbacks, and
+  an optional `leading` widget (e.g. a channel picker).
 * **`ChatThreadView`** — a scrollable message list that groups consecutive
   messages by sender, inserts date separators, shows a `TypingIndicator`,
   auto-scrolls to the newest message, and renders an optional `header`.
+  `customMessageBuilder` lets the host render its own widget for
+  `kind: ChatMessageKind.custom` messages (falling back to the normal bubble
+  if it returns `null`); `composerBanner` and `composerLeading` are forwarded
+  to the composer; `readOnly` hides the composer entirely for archive or
+  supervisory views.
 * **`ChatHeader`** — a conversation header with avatar, title, and a
   presence/typing subtitle.
 * **`ConversationListView`** — a conversation inbox list with avatars,
-  presence dots, unread badges, and typing previews.
+  presence dots, unread badges, and typing previews. `onLongPress` opens an
+  action sheet from a row; `titleBadgeBuilder` renders a small badge before
+  the title (e.g. a spam marker); each row shows a compact strip of channel
+  badges built from `ChatConversation.channels` in the subtitle line
+  (`channelBadge` still wins when supplied, then `channels`, then the plain
+  `channelLabel` text).
 
 ## Installation
 
@@ -76,9 +104,30 @@ ConversationListView(
 )
 ```
 
+Channel-aware threads with a restricted composer, a channel picker, and
+custom message rendering:
+
+```dart
+ChatThreadView(
+  messages: messages,
+  onSend: send,
+  capabilities: const ChatCapabilities.twilioSms(),
+  composerBanner: const ChatBanner(
+    text: 'Über SMS sind keine Bilder möglich.',
+    variant: ChatBannerVariant.warning,
+  ),
+  composerLeading: myChannelPicker,
+  customMessageBuilder: (m) => m.kind == ChatMessageKind.custom
+      ? MyCallCard(message: m)
+      : null,
+)
+```
+
 See `example/lib/main.dart` for a self-contained demo gallery that switches
 between bubble presets, capability profiles, and light/dark mode against
-seeded data (presence, typing, reactions, a reply).
+seeded data (presence, typing, reactions, a reply, channels, translations,
+system/custom messages, and a conversation list with pinned rows and channel
+badges).
 
 ## Additional information
 
