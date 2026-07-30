@@ -122,7 +122,15 @@ class _GalleryPageState extends State<GalleryPage> {
 
   ChatColors get _colors {
     final base = _dark ? const ChatColors.dark() : const ChatColors.light();
-    return base.copyWith(outgoingBubble: _outgoingBubble);
+    // outgoingText follows the chosen bubble via BubbleInk.forSurface, the
+    // same derivation ChatColors.inkFor would fall back to -- otherwise a
+    // light swatch (yellow, white, #E9E9EB) would keep the fixed white
+    // outgoingText from the base palette and show white-on-white instead of
+    // demonstrating what the derivation is for.
+    return base.copyWith(
+      outgoingBubble: _outgoingBubble,
+      outgoingText: BubbleInk.forSurface(_outgoingBubble).text,
+    );
   }
 
   ChatTheme get _theme =>
