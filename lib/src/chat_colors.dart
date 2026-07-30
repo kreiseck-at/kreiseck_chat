@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'bubble_ink.dart';
+
 /// All colors used by the chat widgets. Every widget reads from here so hosts
 /// can rebrand and support light/dark without forking widgets.
 class ChatColors {
@@ -23,6 +25,8 @@ class ChatColors {
     this.readReceipt = const Color(0xFF34B7F1),
     this.error = const Color(0xFFB5374A),
     this.warning = const Color(0xFFB8860B),
+    this.incomingInk,
+    this.outgoingInk,
   });
 
   /// Incoming bubble fill.
@@ -81,9 +85,34 @@ class ChatColors {
   /// Color for warning notices, e.g. a `ChatBanner` bar.
   final Color warning;
 
+  /// Ink for the incoming bubble; derived from [incomingBubble] when null.
+  final BubbleInk? incomingInk;
+
+  /// Ink for the outgoing bubble; derived from [outgoingBubble] when null.
+  final BubbleInk? outgoingInk;
+
+  /// The colors that sit on [bubble]. Returns the matching override when the
+  /// host set one, otherwise derives them.
+  BubbleInk inkFor(Color bubble) {
+    if (bubble == outgoingBubble && outgoingInk != null) return outgoingInk!;
+    if (bubble == incomingBubble && incomingInk != null) return incomingInk!;
+    return BubbleInk.forSurface(bubble);
+  }
+
+  /// [error], lifted until it reaches 4.5:1 against [background]. Already
+  /// compliant in both built-in presets; this guards hosts that supply a
+  /// lower-contrast error tone of their own.
+  Color get errorOnBackground => readableOn(background, error);
+
+  /// [warning], lifted the same way. The raw light-preset warning manages
+  /// only 3.12:1 against its background — this restores 4.5:1.
+  Color get warningOnBackground => readableOn(background, warning);
+
   /// Sensible light palette.
-  const ChatColors.light()
-      : incomingBubble = const Color(0xFFE9E9EB),
+  const ChatColors.light({
+    this.incomingInk,
+    this.outgoingInk,
+  })  : incomingBubble = const Color(0xFFE9E9EB),
         outgoingBubble = const Color(0xFF3478F6),
         incomingText = const Color(0xFF1C1C1E),
         outgoingText = const Color(0xFFFFFFFF),
@@ -103,8 +132,10 @@ class ChatColors {
         warning = const Color(0xFFB8860B);
 
   /// Sensible dark palette.
-  const ChatColors.dark()
-      : incomingBubble = const Color(0xFF2C2C2E),
+  const ChatColors.dark({
+    this.incomingInk,
+    this.outgoingInk,
+  })  : incomingBubble = const Color(0xFF2C2C2E),
         outgoingBubble = const Color(0xFF3478F6),
         incomingText = const Color(0xFFF2F2F7),
         outgoingText = const Color(0xFFFFFFFF),
@@ -143,6 +174,8 @@ class ChatColors {
     Color? readReceipt,
     Color? error,
     Color? warning,
+    BubbleInk? incomingInk,
+    BubbleInk? outgoingInk,
   }) {
     return ChatColors(
       incomingBubble: incomingBubble ?? this.incomingBubble,
@@ -165,6 +198,8 @@ class ChatColors {
       readReceipt: readReceipt ?? this.readReceipt,
       error: error ?? this.error,
       warning: warning ?? this.warning,
+      incomingInk: incomingInk ?? this.incomingInk,
+      outgoingInk: outgoingInk ?? this.outgoingInk,
     );
   }
 
@@ -189,7 +224,9 @@ class ChatColors {
         other.replyAccent == replyAccent &&
         other.readReceipt == readReceipt &&
         other.error == error &&
-        other.warning == warning;
+        other.warning == warning &&
+        other.incomingInk == incomingInk &&
+        other.outgoingInk == outgoingInk;
   }
 
   @override
@@ -212,5 +249,7 @@ class ChatColors {
         readReceipt,
         error,
         warning,
+        incomingInk,
+        outgoingInk,
       ]);
 }
