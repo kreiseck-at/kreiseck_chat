@@ -680,4 +680,21 @@ void main() {
     ));
     expect(find.text('Erneut senden'), findsOneWidget);
   });
+
+  testWidgets(
+      'Anhang ohne Dateinamen fällt unter ukrainischem Kontext auf "Файл" zurück',
+      (tester) async {
+    final msg = ChatMessage(
+      id: 'm6',
+      direction: MessageDirection.incoming,
+      text: '',
+      at: DateTime(2026, 7, 31, 10),
+      attachments: const [ChatAttachment(kind: AttachmentKind.file)],
+    );
+    await tester.pumpWidget(_withLocale(
+      const Locale('uk'),
+      MessageBubble(message: msg),
+    ));
+    expect(find.text('Файл'), findsOneWidget);
+  });
 }
