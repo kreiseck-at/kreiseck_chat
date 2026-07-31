@@ -18,6 +18,7 @@ class _DemoAppState extends State<DemoApp> {
   BubbleStyle _style = BubbleStyle.iMessage;
   ChatCapabilities _caps = const ChatCapabilities.inApp();
   bool _dark = false;
+  bool _showBubbleTail = false;
   _Screen _screen = _Screen.thread;
   String _composerChannel = 'whatsapp';
   late List<ChatMessage> _messages;
@@ -105,14 +106,16 @@ class _DemoAppState extends State<DemoApp> {
 
   ChatTheme get _theme {
     final brightness = _dark ? Brightness.dark : Brightness.light;
-    switch (_style) {
-      case BubbleStyle.whatsApp:
-        return ChatTheme.whatsApp(brightness: brightness);
-      case BubbleStyle.iMessage:
-        return ChatTheme.iMessage(brightness: brightness);
-      case BubbleStyle.minimal:
-        return _dark ? const ChatTheme.dark() : const ChatTheme.light();
-    }
+    final base = switch (_style) {
+      BubbleStyle.whatsApp => ChatTheme.whatsApp(brightness: brightness),
+      BubbleStyle.iMessage => ChatTheme.iMessage(brightness: brightness),
+      BubbleStyle.minimal =>
+        _dark ? const ChatTheme.dark() : const ChatTheme.light(),
+    };
+    // Seit 0.14.0 zeichnen auch die whatsApp-/iMessage-Vorlagen von Haus aus
+    // keinen Blasenschweif mehr — der Schalter holt ihn zurück. Genau hier
+    // fällt die Verhaltensänderung auf, nicht in der Zustands-Galerie.
+    return base.copyWith(showBubbleTail: _showBubbleTail);
   }
 
   void _send(String text) {
@@ -327,6 +330,16 @@ class _DemoAppState extends State<DemoApp> {
                   _caps = const ChatCapabilities.inApp();
               }
             }),
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Schweif'),
+              Switch(
+                value: _showBubbleTail,
+                onChanged: (v) => setState(() => _showBubbleTail = v),
+              ),
+            ],
           ),
         ],
       ),

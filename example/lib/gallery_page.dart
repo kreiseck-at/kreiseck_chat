@@ -31,7 +31,8 @@ class _GalleryPageState extends State<GalleryPage> {
   bool _dark = false;
   bool _showBubbleTail = false;
   bool _maxContrastInk = false;
-  late final List<ChatMessage> _messages = _seed();
+  bool _bigReactions = false;
+  late List<ChatMessage> _messages = _seed();
 
   List<ChatMessage> _seed() {
     final now = DateTime.now();
@@ -122,6 +123,21 @@ class _GalleryPageState extends State<GalleryPage> {
     ];
   }
 
+  void _send(String text) {
+    setState(() {
+      _messages = [
+        ..._messages,
+        ChatMessage(
+          id: 'g${_messages.length + 1}',
+          direction: MessageDirection.outgoing,
+          text: text,
+          at: DateTime.now(),
+          status: MessageStatus.sent,
+        ),
+      ];
+    });
+  }
+
   ChatColors get _colors {
     final base = _dark ? const ChatColors.dark() : const ChatColors.light();
     final incoming = _incomingBubble ?? base.incomingBubble;
@@ -154,8 +170,18 @@ class _GalleryPageState extends State<GalleryPage> {
     );
   }
 
-  ChatTheme get _theme =>
-      ChatTheme(colors: _colors, showBubbleTail: _showBubbleTail);
+  ChatTheme get _theme {
+    final base = ChatTheme(colors: _colors, showBubbleTail: _showBubbleTail);
+    if (!_bigReactions) return base;
+    // Reaktions-Chips haben seit 0.14.0 einen eigenen Textstil statt des
+    // Zeitstempel-Stils. Der Schalter zeigt, dass ein Host ihn überschreiben
+    // kann -- die Chips wachsen mit, weil ihre Polsterung am Stil hängt.
+    return base.copyWith(
+      typography: base.typography.copyWith(
+        reaction: base.typography.reaction.copyWith(fontSize: 20),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -179,11 +205,23 @@ class _GalleryPageState extends State<GalleryPage> {
           Expanded(
             child: ChatThreadView(
               messages: _messages,
-              onSend: (_) {},
+              onSend: _send,
               theme: _theme,
-              readOnly: true,
               onRetry: (_) {},
               onReact: (_, _) {},
+              // Eingabefeld samt Hinweisleiste und Kanal-Slot gehören mit in
+              // die Farbwahl: ihre Lesbarkeit hängt an derselben Palette wie
+              // die Blasen, war hier aber bisher nicht zu sehen.
+              composerBanner: ChatBanner(
+                text: 'Hinweisleiste über dem Eingabefeld',
+                variant: ChatBannerVariant.warning,
+                theme: _theme,
+              ),
+              composerLeading: Icon(
+                Icons.tune_rounded,
+                size: 18,
+                color: _colors.accent,
+              ),
             ),
           ),
         ],
@@ -197,8 +235,11 @@ class _GalleryPageState extends State<GalleryPage> {
 
     Widget row(String label, Color bubble, bool isOutgoing) {
       final ink = colors.inkFor(bubble, isOutgoing: isOutgoing);
+      // Die Leuchtdichte erklärt, warum die Tinte kippt: ab 0,5 gilt eine
+      // Fläche als hell, darunter als dunkel.
+      final lum = relativeLuminance(bubble).toStringAsFixed(2);
       return Text(
-        '$label · Text ${on(ink.text, bubble)} · '
+        '$label (L $lum) · Text ${on(ink.text, bubble)} · '
         'Gedämpft ${on(ink.muted, bubble)} · Linie ${on(ink.line, bubble)}',
       );
     }
@@ -282,6 +323,11 @@ class _GalleryPageState extends State<GalleryPage> {
             label: 'Tinte: max. Kontrast',
             value: _maxContrastInk,
             onChanged: (v) => setState(() => _maxContrastInk = v),
+          ),
+          _labeledSwitch(
+            label: 'Reaktionen groß',
+            value: _bigReactions,
+            onChanged: (v) => setState(() => _bigReactions = v),
           ),
         ],
       ),
