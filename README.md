@@ -76,6 +76,10 @@ and `ChatConversation` and handling the `onSend`/`onOpen` callbacks.
   body yourself — e.g. linkified text — instead of a plain `Text`, and
   `ChatColors.incomingBubbleBorder` / `outgoingBubbleBorder` for a hairline
   around bubbles whose fill is close to the background.
+* **`showChatImageViewer`** — opens images full screen: pinch to zoom, swipe
+  between them, tap to close, counter when there is more than one. Wire it to
+  `ChatThreadView.onOpenImages`; `ChatAvatar` calls it by itself when it
+  shows a real picture.
 * **`ChatSystemCard`** — a centered card for non-message content in the
   thread: system notes, logged events, summaries. Messages with
   `kind: ChatMessageKind.system` render as this automatically.

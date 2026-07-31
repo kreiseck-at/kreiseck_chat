@@ -108,10 +108,15 @@ class _MessageBubbleState extends State<MessageBubble> {
   @override
   void didUpdateWidget(covariant MessageBubble oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // A widget of this type can be reused for a different message (e.g. an
-    // unkeyed ListView.builder recycling list items) — reset the toggle so a
-    // stale translation state doesn't leak onto the new message.
-    if (oldWidget.message.id != widget.message.id) {
+    // Two reasons to reset which side is shown:
+    // 1. A widget of this type can be reused for a different message (e.g. an
+    //    unkeyed ListView.builder recycling list items) — a stale toggle must
+    //    not leak onto the new message.
+    // 2. The host flipped [ChatTranslation.showFirst], e.g. a "show original"
+    //    switch above the whole thread. Without this the switch would change
+    //    the model and nothing on screen, because the id stayed the same.
+    if (oldWidget.message.id != widget.message.id ||
+        _initialSide(oldWidget.message) != _initialSide(widget.message)) {
       _showTranslation = _initialSide(widget.message);
     }
   }
@@ -129,8 +134,9 @@ class _MessageBubbleState extends State<MessageBubble> {
   /// The hairline around the bubble, when the host set one for this
   /// direction. Null leaves the bubble borderless as before.
   Border? _border(ChatColors colors) {
-    final farbe =
-        _isOutgoing ? colors.outgoingBubbleBorder : colors.incomingBubbleBorder;
+    final farbe = _isOutgoing
+        ? colors.outgoingBubbleBorder
+        : colors.incomingBubbleBorder;
     return farbe == null ? null : Border.all(color: farbe);
   }
 
@@ -157,7 +163,10 @@ class _MessageBubbleState extends State<MessageBubble> {
   /// resolved [ChatStrings] from [build] — resolved once there, passed down
   /// rather than looked up again.
   Future<void> _openActions(
-      BuildContext context, Offset globalPosition, ChatStrings strings) async {
+    BuildContext context,
+    Offset globalPosition,
+    ChatStrings strings,
+  ) async {
     if (widget.theme.motion.hapticsEnabled &&
         widget.theme.motion.hapticOnLongPress) {
       HapticFeedback.mediumImpact();
@@ -181,17 +190,19 @@ class _MessageBubbleState extends State<MessageBubble> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: ['👍', '❤️', '😂', '😮', '😢']
-                  .map((e) => IconButton(
-                        icon: Text(e, style: const TextStyle(fontSize: 22)),
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                          if (widget.theme.motion.hapticsEnabled &&
-                              widget.theme.motion.hapticOnReaction) {
-                            HapticFeedback.selectionClick();
-                          }
-                          widget.onReact?.call(e);
-                        },
-                      ))
+                  .map(
+                    (e) => IconButton(
+                      icon: Text(e, style: const TextStyle(fontSize: 22)),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        if (widget.theme.motion.hapticsEnabled &&
+                            widget.theme.motion.hapticOnReaction) {
+                          HapticFeedback.selectionClick();
+                        }
+                        widget.onReact?.call(e);
+                      },
+                    ),
+                  )
                   .toList(),
             ),
           ),
@@ -216,11 +227,13 @@ class _MessageBubbleState extends State<MessageBubble> {
   }
 
   Widget _menuRow(IconData icon, String label, Color color) {
-    return Row(children: [
-      Icon(icon, size: 20, color: color),
-      const SizedBox(width: 12),
-      Text(label, style: TextStyle(color: color)),
-    ]);
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: color),
+        const SizedBox(width: 12),
+        Text(label, style: TextStyle(color: color)),
+      ],
+    );
   }
 
   @override
@@ -230,8 +243,9 @@ class _MessageBubbleState extends State<MessageBubble> {
     final capabilities = widget.capabilities;
     final strings = ChatStrings.of(context, override: widget.strings);
     final colors = theme.colors;
-    final bubbleColor =
-        _isOutgoing ? colors.outgoingBubble : colors.incomingBubble;
+    final bubbleColor = _isOutgoing
+        ? colors.outgoingBubble
+        : colors.incomingBubble;
     final textColor = _isOutgoing ? colors.outgoingText : colors.incomingText;
     final ink = colors.inkFor(bubbleColor, isOutgoing: _isOutgoing);
 
@@ -261,11 +275,17 @@ class _MessageBubbleState extends State<MessageBubble> {
               padding: hasMedia
                   ? const EdgeInsets.fromLTRB(8, 6, 8, 0)
                   : EdgeInsets.zero,
-              child: _ReplyQuote(refText: message.replyTo!, theme: theme, ink: ink),
+              child: _ReplyQuote(
+                refText: message.replyTo!,
+                theme: theme,
+                ink: ink,
+              ),
             ),
           if (hasMedia)
             ClipRRect(
-              borderRadius: BorderRadius.circular((theme.bubbleRadius - 3).clamp(0, theme.bubbleRadius)),
+              borderRadius: BorderRadius.circular(
+                (theme.bubbleRadius - 3).clamp(0, theme.bubbleRadius),
+              ),
               child: _Album(
                 attachments: message.attachments,
                 onOpen: widget.onOpenAttachment,
@@ -293,24 +313,29 @@ class _MessageBubbleState extends State<MessageBubble> {
               child: message.translation == null
                   ? _body(theme, textColor)
                   : GestureDetector(
-                      onTap: () => setState(
-                          () => _showTranslation = !_showTranslation),
+                      onTap: () =>
+                          setState(() => _showTranslation = !_showTranslation),
                       child: _body(theme, textColor),
                     ),
             ),
-          Padding(
-            padding: hasMedia
-                ? const EdgeInsets.fromLTRB(8, 3, 6, 3)
-                : const EdgeInsets.only(top: 4),
-            child: _MetaRow(
-              time: _formatTime(message.at),
-              isOutgoing: _isOutgoing,
-              showStatus: _isOutgoing,
-              status: _effectiveStatus,
-              theme: theme,
-              ink: ink,
-              bubbleColor: bubbleColor,
-              channel: message.channel,
+          // Zeit und Häkchen sitzen rechts unten in der Blase — die Zeile
+          // selbst ist schmal, deshalb muss sie ausgerichtet werden.
+          Align(
+            alignment: Alignment.centerRight,
+            child: Padding(
+              padding: hasMedia
+                  ? const EdgeInsets.fromLTRB(8, 3, 6, 3)
+                  : const EdgeInsets.only(top: 4),
+              child: _MetaRow(
+                time: _formatTime(message.at),
+                isOutgoing: _isOutgoing,
+                showStatus: _isOutgoing,
+                status: _effectiveStatus,
+                theme: theme,
+                ink: ink,
+                bubbleColor: bubbleColor,
+                channel: message.channel,
+              ),
             ),
           ),
           // The translated-language / strings.original label only makes
@@ -342,7 +367,10 @@ class _MessageBubbleState extends State<MessageBubble> {
             right: _isOutgoing ? -6 : null,
             child: CustomPaint(
               size: const Size(10, 12),
-              painter: BubbleTailPainter(color: bubbleColor, isOutgoing: _isOutgoing),
+              painter: BubbleTailPainter(
+                color: bubbleColor,
+                isOutgoing: _isOutgoing,
+              ),
             ),
           ),
         ],
@@ -350,8 +378,9 @@ class _MessageBubbleState extends State<MessageBubble> {
     }
 
     Widget content = Column(
-      crossAxisAlignment:
-          _isOutgoing ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      crossAxisAlignment: _isOutgoing
+          ? CrossAxisAlignment.end
+          : CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
         bubble,
@@ -365,8 +394,11 @@ class _MessageBubbleState extends State<MessageBubble> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.error_outline,
-                    size: 14, color: theme.colors.errorOnBackground),
+                Icon(
+                  Icons.error_outline,
+                  size: 14,
+                  color: theme.colors.errorOnBackground,
+                ),
                 const SizedBox(width: 4),
                 Flexible(
                   child: Text(
@@ -402,7 +434,8 @@ class _MessageBubbleState extends State<MessageBubble> {
                     child: Text(
                       strings.retry,
                       style: theme.typography.timestamp.copyWith(
-                        fontSize: (theme.typography.timestamp.fontSize ?? 11) + 1,
+                        fontSize:
+                            (theme.typography.timestamp.fontSize ?? 11) + 1,
                         color: theme.colors.errorOnBackground,
                       ),
                     ),
@@ -417,7 +450,9 @@ class _MessageBubbleState extends State<MessageBubble> {
     );
 
     final canAct =
-        capabilities.reactions || capabilities.replies || message.text.isNotEmpty;
+        capabilities.reactions ||
+        capabilities.replies ||
+        message.text.isNotEmpty;
     content = GestureDetector(
       onLongPressStart: canAct
           ? (details) => _openActions(context, details.globalPosition, strings)
@@ -537,7 +572,11 @@ class _EntranceAnimationState extends State<_EntranceAnimation>
 }
 
 class _ReplyQuote extends StatelessWidget {
-  const _ReplyQuote({required this.refText, required this.theme, required this.ink});
+  const _ReplyQuote({
+    required this.refText,
+    required this.theme,
+    required this.ink,
+  });
 
   final ChatMessageRef refText;
   final ChatTheme theme;
@@ -553,21 +592,23 @@ class _ReplyQuote extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 6),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        border: Border(
-          left: BorderSide(color: ink.line, width: 3),
-        ),
+        border: Border(left: BorderSide(color: ink.line, width: 3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
           if (refText.senderLabel != null)
-            Text(refText.senderLabel!,
-                style: theme.typography.senderName.copyWith(color: ink.text)),
-          Text(refText.snippet,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: theme.typography.replyQuote.copyWith(color: ink.muted)),
+            Text(
+              refText.senderLabel!,
+              style: theme.typography.senderName.copyWith(color: ink.text),
+            ),
+          Text(
+            refText.snippet,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.typography.replyQuote.copyWith(color: ink.muted),
+          ),
         ],
       ),
     );
@@ -614,17 +655,22 @@ class _Album extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: attachments
-            .map((a) => Padding(
-                  padding: const EdgeInsets.all(6),
-                  child: GestureDetector(
-                    onTap: onOpen == null ? null : () => onOpen!(a),
-                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+            .map(
+              (a) => Padding(
+                padding: const EdgeInsets.all(6),
+                child: GestureDetector(
+                  onTap: onOpen == null ? null : () => onOpen!(a),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
                       const Icon(Icons.insert_drive_file_outlined, size: 20),
                       const SizedBox(width: 6),
                       Flexible(child: Text(a.fileName ?? strings.file)),
-                    ]),
+                    ],
                   ),
-                ))
+                ),
+              ),
+            )
             .toList(),
       );
     }
@@ -634,7 +680,9 @@ class _Album extends StatelessWidget {
     // Ein Bild: breit über die Bubble, leicht liegendes Format.
     if (images.length == 1) {
       return AspectRatio(
-          aspectRatio: 1.6, child: _tile(images.first, onTap: () => open(0)));
+        aspectRatio: 1.6,
+        child: _tile(images.first, onTap: () => open(0)),
+      );
     }
 
     // Mehrere: 2-Spalten-Grid quadratischer Kacheln (Expanded -> passt sich der
@@ -646,28 +694,39 @@ class _Album extends StatelessWidget {
       final hasRight = i + 1 < show;
       final li = i;
       final ri = i + 1;
-      rows.add(Padding(
-        padding: EdgeInsets.only(top: i == 0 ? 0 : _gap),
-        child: hasRight
-            ? Row(children: [
-                Expanded(
-                    child: AspectRatio(
+      rows.add(
+        Padding(
+          padding: EdgeInsets.only(top: i == 0 ? 0 : _gap),
+          child: hasRight
+              ? Row(
+                  children: [
+                    Expanded(
+                      child: AspectRatio(
                         aspectRatio: 1,
-                        child: _tile(images[li], onTap: () => open(li)))),
-                const SizedBox(width: _gap),
-                Expanded(
-                  child: AspectRatio(
-                    aspectRatio: 1,
-                    // "+N" liegt auf dem 4. sichtbaren Bild (Index 3).
-                    child: _tile(images[ri],
-                        onTap: () => open(ri), plusMore: ri == 3 ? plusMore : 0),
-                  ),
+                        child: _tile(images[li], onTap: () => open(li)),
+                      ),
+                    ),
+                    const SizedBox(width: _gap),
+                    Expanded(
+                      child: AspectRatio(
+                        aspectRatio: 1,
+                        // "+N" liegt auf dem 4. sichtbaren Bild (Index 3).
+                        child: _tile(
+                          images[ri],
+                          onTap: () => open(ri),
+                          plusMore: ri == 3 ? plusMore : 0,
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              // Ungerade Anzahl: letztes Bild über die volle Breite (liegend).
+              : AspectRatio(
+                  aspectRatio: 2,
+                  child: _tile(images[li], onTap: () => open(li)),
                 ),
-              ])
-            // Ungerade Anzahl: letztes Bild über die volle Breite (liegend).
-            : AspectRatio(
-                aspectRatio: 2, child: _tile(images[li], onTap: () => open(li))),
-      ));
+        ),
+      );
     }
     return Column(mainAxisSize: MainAxisSize.min, children: rows);
   }
@@ -699,11 +758,14 @@ class _Album extends StatelessWidget {
             Container(
               color: Colors.black54,
               alignment: Alignment.center,
-              child: Text('+$plusMore',
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.w600)),
+              child: Text(
+                '+$plusMore',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
         ],
       ),
@@ -738,15 +800,17 @@ class _Reactions extends StatelessWidget {
               children: [
                 Text(
                   r.emoji,
-                  style: theme.typography.reaction
-                      .copyWith(color: theme.colors.reactionChipText),
+                  style: theme.typography.reaction.copyWith(
+                    color: theme.colors.reactionChipText,
+                  ),
                 ),
                 if (r.count > 1) ...[
                   const SizedBox(width: 2),
                   Text(
                     '${r.count}',
-                    style: theme.typography.reaction
-                        .copyWith(color: theme.colors.reactionChipText),
+                    style: theme.typography.reaction.copyWith(
+                      color: theme.colors.reactionChipText,
+                    ),
                   ),
                 ],
               ],
@@ -807,7 +871,11 @@ class _MetaRow extends StatelessWidget {
         if (showStatus) ...[
           const SizedBox(width: 4),
           _StatusIcon(
-              status: status, ink: ink, bubbleColor: bubbleColor, theme: theme),
+            status: status,
+            ink: ink,
+            bubbleColor: bubbleColor,
+            theme: theme,
+          ),
         ],
       ],
     );
@@ -838,13 +906,17 @@ class _StatusIcon extends StatelessWidget {
       case MessageStatus.delivered:
         return Icon(icons.delivered, size: 14, color: ink.muted);
       case MessageStatus.read:
-        return Icon(icons.read,
-            size: 14,
-            color: readableOn(bubbleColor, theme.colors.readReceipt, target: 3.0));
+        return Icon(
+          icons.read,
+          size: 14,
+          color: readableOn(bubbleColor, theme.colors.readReceipt, target: 3.0),
+        );
       case MessageStatus.failed:
-        return Icon(icons.error,
-            size: 14,
-            color: readableOn(bubbleColor, theme.colors.error, target: 3.0));
+        return Icon(
+          icons.error,
+          size: 14,
+          color: readableOn(bubbleColor, theme.colors.error, target: 3.0),
+        );
     }
   }
 }

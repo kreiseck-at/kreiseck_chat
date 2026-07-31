@@ -553,6 +553,66 @@ void main() {
     expect(find.text('[Hallo dort]'), findsOneWidget);
   });
 
+  testWidgets('umgeschaltetes showFirst dreht eine schon gebaute Blase um',
+      (tester) async {
+    // Der Schalter über dem Verlauf ändert nur das Modell — die Blase muss
+    // trotzdem umschwenken, obwohl die Kennung dieselbe bleibt.
+    Future<void> zeige(bool uebersetzungZuerst) =>
+        tester.pumpWidget(MaterialApp(
+          home: Scaffold(
+            body: MessageBubble(
+              message: m(
+                text: 'Привіт',
+                translation: ChatTranslation(
+                  text: 'Hallo dort',
+                  languageLabel: 'DE',
+                  showFirst: uebersetzungZuerst,
+                ),
+              ),
+            ),
+          ),
+        ));
+
+    await zeige(true);
+    expect(find.text('Hallo dort'), findsOneWidget);
+
+    await zeige(false);
+    await tester.pumpAndSettle();
+    expect(find.text('Привіт'), findsOneWidget);
+    expect(find.text('Hallo dort'), findsNothing);
+
+    await zeige(true);
+    await tester.pumpAndSettle();
+    expect(find.text('Hallo dort'), findsOneWidget);
+  });
+
+  testWidgets('Zeit und Häkchen stehen rechts in der Blase', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: MessageBubble(
+          message: ChatMessage(
+            id: 'm1',
+            direction: MessageDirection.outgoing,
+            text: 'Ein deutlich längerer Text, damit die Blase breit wird.',
+            at: DateTime(2026, 7, 31, 14, 32),
+            status: MessageStatus.read,
+          ),
+        ),
+      ),
+    ));
+    await tester.pumpAndSettle();
+    final textLinks = tester.getTopLeft(
+        find.text('Ein deutlich längerer Text, damit die Blase breit wird.')).dx;
+    final textRechts = tester.getTopRight(
+        find.text('Ein deutlich längerer Text, damit die Blase breit wird.')).dx;
+    // Das Häkchen als letztes Element der Metazeile endet bündig mit dem
+    // Textblock; die Zeile klebt also rechts, nicht links.
+    final haekchen = tester.getTopRight(find.byIcon(Icons.done_all)).dx;
+    expect(haekchen, closeTo(textRechts, 1));
+    expect(tester.getTopLeft(find.text('14:32')).dx,
+        greaterThan((textLinks + textRechts) / 2));
+  });
+
   testWidgets('showFirst öffnet die Blase auf der Übersetzung',
       (tester) async {
     // Für Leserinnen mit einer bevorzugten Sprache: die Übersetzung steht

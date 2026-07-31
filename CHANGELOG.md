@@ -63,6 +63,22 @@
   to be an inline literal with no way to override it. For Turkish this is
   deliberately a single space rather than a word (see
   `ChatStrings.tr().lastSeenAtJoiner`).
+* **Fixed:** flipping `ChatTranslation.showFirst` on a message that is
+  already on screen had no effect — a "show the original" switch above the
+  thread changed the model and nothing else, because `MessageBubble` only
+  re-read the preferred side when the message *id* changed. It now also
+  re-reads it when `showFirst` itself changed; a per-bubble tap still
+  survives unrelated rebuilds.
+* The in-bubble timestamp and delivery ticks are now aligned to the right
+  edge of the bubble instead of sitting under the start of the text.
+* New `showChatImageViewer` — full screen, pinch to zoom, swipe between
+  several images, tap to close, with a counter when there is more than one.
+  It loads through `ChatTheme.imageProvider`, so a photo opened from a
+  bubble comes out of the cache the thread already filled.
+* `ChatAvatar` gained `onTap` and `openable`. An avatar that shows a real
+  picture now opens it full screen when tapped; pass `onTap` to do something
+  else (open a profile), or `openable: false` for none. A monogram stays
+  inert — there is nothing to enlarge.
 * Remote images (bubble attachments and avatars) are now fetched through
   `ChatTheme.imageProvider`, which defaults to `cachedChatImage` — a
   disk-backed provider, so opening a thread twice no longer re-downloads its
