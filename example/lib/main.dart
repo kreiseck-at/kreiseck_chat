@@ -204,6 +204,27 @@ class _DemoAppState extends State<DemoApp> {
       onReplyRequested: (_) {},
       onReact: (_, _) {},
       onAttach: (_) {},
+      // Ohne onRetry zeigt eine fehlgeschlagene Nachricht nur den Grund;
+      // mit ihm zusätzlich eine Wiederholen-Aktion mit 44x44-Tippfläche.
+      // Die Nachricht wird neu gebaut statt kopiert: copyWith kann einen
+      // gesetzten errorText nicht wieder entfernen (`errorText ?? this.…`).
+      onRetry: (message) => setState(() {
+        _messages = [
+          for (final m in _messages)
+            if (m.id == message.id)
+              ChatMessage(
+                id: m.id,
+                direction: m.direction,
+                text: m.text,
+                at: m.at,
+                status: MessageStatus.sent,
+                channel: m.channel,
+                headline: m.headline,
+              )
+            else
+              m,
+        ];
+      }),
       customMessageBuilder: (m) =>
           _CallSummaryCard(theme: _theme, text: m.text),
       composerBanner: ChatBanner(

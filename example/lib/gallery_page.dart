@@ -27,8 +27,10 @@ class GalleryPage extends StatefulWidget {
 
 class _GalleryPageState extends State<GalleryPage> {
   Color _outgoingBubble = _swatches.first;
+  Color? _incomingBubble;
   bool _dark = false;
   bool _showBubbleTail = false;
+  bool _maxContrastInk = false;
   late final List<ChatMessage> _messages = _seed();
 
   List<ChatMessage> _seed() {
@@ -122,6 +124,7 @@ class _GalleryPageState extends State<GalleryPage> {
 
   ChatColors get _colors {
     final base = _dark ? const ChatColors.dark() : const ChatColors.light();
+    final incoming = _incomingBubble ?? base.incomingBubble;
     // outgoingText follows the chosen bubble via BubbleInk.forSurface, the
     // same derivation ChatColors.inkFor would fall back to -- but, like
     // inkFor, steered by the base palette's own outgoingText so the gallery
@@ -136,6 +139,18 @@ class _GalleryPageState extends State<GalleryPage> {
       outgoingText:
           BubbleInk.forSurface(_outgoingBubble, textColor: base.outgoingText)
               .text,
+      incomingBubble: incoming,
+      incomingText:
+          BubbleInk.forSurface(incoming, textColor: base.incomingText).text,
+      // With the switch on, the host supplies the ink itself instead of
+      // letting inkFor derive it -- here the plain maximum-contrast
+      // derivation, without the textColor polarity. On the default blue that
+      // flips timestamp, quote bar and reply name from white to black while
+      // the message text stays white: the very disagreement the polarity
+      // rule exists to prevent, made visible side by side.
+      incomingInk: _maxContrastInk ? BubbleInk.forSurface(incoming) : null,
+      outgoingInk:
+          _maxContrastInk ? BubbleInk.forSurface(_outgoingBubble) : null,
     );
   }
 
@@ -145,13 +160,21 @@ class _GalleryPageState extends State<GalleryPage> {
   @override
   Widget build(BuildContext context) {
     final colors = _colors;
-    final ink = colors.inkFor(colors.outgoingBubble);
     return Scaffold(
       appBar: AppBar(title: const Text('Zustände')),
       body: Column(
         children: [
-          _measurements(ink, colors.outgoingBubble),
-          _colorPicker(),
+          _measurements(colors),
+          _colorPicker(
+            label: 'Ausgehend',
+            selected: _outgoingBubble,
+            onPick: (c) => setState(() => _outgoingBubble = c),
+          ),
+          _colorPicker(
+            label: 'Eingehend',
+            selected: colors.incomingBubble,
+            onPick: (c) => setState(() => _incomingBubble = c),
+          ),
           _switches(),
           Expanded(
             child: ChatThreadView(
@@ -168,32 +191,56 @@ class _GalleryPageState extends State<GalleryPage> {
     );
   }
 
-  Widget _measurements(BubbleInk ink, Color bubble) {
-    String ratio(Color a) => contrastRatio(a, bubble).toStringAsFixed(1);
+  Widget _measurements(ChatColors colors) {
+    String on(Color a, Color surface) =>
+        contrastRatio(a, surface).toStringAsFixed(1);
+
+    Widget row(String label, Color bubble, bool isOutgoing) {
+      final ink = colors.inkFor(bubble, isOutgoing: isOutgoing);
+      return Text(
+        '$label · Text ${on(ink.text, bubble)} · '
+        'Gedämpft ${on(ink.muted, bubble)} · Linie ${on(ink.line, bubble)}',
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-      child: Wrap(
-        spacing: 16,
-        runSpacing: 4,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Text · ${ratio(ink.text)}'),
-          Text('Gedämpft · ${ratio(ink.muted)}'),
-          Text('Linie · ${ratio(ink.line)}'),
+          row('Ausgehend', colors.outgoingBubble, true),
+          row('Eingehend', colors.incomingBubble, false),
+          // readableOn hebt eine Farbe, die eine eigene Bedeutung trägt, nur
+          // so weit Richtung Schwarz/Weiß an, bis sie das Ziel erreicht —
+          // der Farbton bleibt. Hier an Fehler- und Warnfarbe gezeigt.
+          Text(
+            'Fehler ${on(colors.error, colors.background)} → '
+            '${on(colors.errorOnBackground, colors.background)} · '
+            'Warnung ${on(colors.warning, colors.background)} → '
+            '${on(colors.warningOnBackground, colors.background)}',
+          ),
         ],
       ),
     );
   }
 
-  Widget _colorPicker() {
+  Widget _colorPicker({
+    required String label,
+    required Color selected,
+    required void Function(Color) onPick,
+  }) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
       child: Wrap(
         spacing: 10,
         runSpacing: 10,
-        children: _swatches.map((c) {
-          final selected = c == _outgoingBubble;
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          SizedBox(width: 84, child: Text(label)),
+          ..._swatches.map((c) {
+          final isSelected = c == selected;
           return GestureDetector(
-            onTap: () => setState(() => _outgoingBubble = c),
+            onTap: () => onPick(c),
             child: Container(
               width: 32,
               height: 32,
@@ -201,13 +248,14 @@ class _GalleryPageState extends State<GalleryPage> {
                 color: c,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: selected ? Colors.blueAccent : Colors.grey,
-                  width: selected ? 3 : 1,
+                  color: isSelected ? Colors.blueAccent : Colors.grey,
+                  width: isSelected ? 3 : 1,
                 ),
               ),
             ),
           );
-        }).toList(),
+          }),
+        ],
       ),
     );
   }
@@ -229,6 +277,11 @@ class _GalleryPageState extends State<GalleryPage> {
             label: 'Blasenschweif',
             value: _showBubbleTail,
             onChanged: (v) => setState(() => _showBubbleTail = v),
+          ),
+          _labeledSwitch(
+            label: 'Tinte: max. Kontrast',
+            value: _maxContrastInk,
+            onChanged: (v) => setState(() => _maxContrastInk = v),
           ),
         ],
       ),
