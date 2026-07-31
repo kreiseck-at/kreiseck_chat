@@ -1,36 +1,36 @@
 import 'package:flutter/material.dart';
 
 import 'chat_strings.dart';
+import 'mail_address.dart';
+import 'mail_draft.dart';
 import 'mail_theme.dart';
 
-/// A composer for a new mail: recipient, subject and body fields plus a
-/// send button.
+/// Writes a mail: recipients, copy and blind copy, subject, body and
+/// attachments.
 ///
-/// The send button is disabled while the recipient or body field is empty.
+/// The composer owns the text fields but not the mail — it starts from a
+/// [MailDraft] and hands a complete one back through [onSend], so a host has
+/// one value to deal with instead of a handful of strings, and reply,
+/// reply-all and forward differ only in the draft they start from.
 class MailComposer extends StatefulWidget {
-  /// Creates a mail composer that calls [onSend] with the entered
-  /// recipient, subject and body.
+  /// Creates a composer for [draft].
   const MailComposer({
     super.key,
     required this.onSend,
-    this.initialTo = '',
-    this.initialSubject = '',
-    this.initialBody = '',
+    this.draft = const MailDraft(),
     this.theme = const MailTheme.light(),
     this.strings,
+    this.onPickAttachment,
+    this.onRemoveAttachmentAt,
+    this.sending = false,
+    this.errorText,
   });
 
-  /// Called with (to, subject, body) when the user submits the mail.
-  final void Function(String to, String subject, String body) onSend;
+  /// Called with the finished draft when the user sends.
+  final void Function(MailDraft draft) onSend;
 
-  /// Initial value of the recipient field.
-  final String initialTo;
-
-  /// Initial value of the subject field.
-  final String initialSubject;
-
-  /// Initial value of the body field.
-  final String initialBody;
+  /// What the composer starts from — recipients, subject, quoted original.
+  final MailDraft draft;
 
   /// Visual configuration; defaults to [MailTheme.light].
   final MailTheme theme;
@@ -39,48 +39,84 @@ class MailComposer extends StatefulWidget {
   /// ambient locale (see [ChatStrings.of]).
   final ChatStrings? strings;
 
+  /// Called when the user wants to attach a file. Picking files is the
+  /// host's business — this package neither reads disks nor uploads. Null
+  /// hides the attach button.
+  final VoidCallback? onPickAttachment;
+
+  /// Called with the index of an attachment the user removed.
+  final void Function(int index)? onRemoveAttachmentAt;
+
+  /// Whether a send is in flight — disables the button and shows a spinner.
+  final bool sending;
+
+  /// Why the last send failed. Shown above the button; the text the user
+  /// typed stays where it is.
+  final String? errorText;
+
   @override
   State<MailComposer> createState() => _MailComposerState();
 }
 
 class _MailComposerState extends State<MailComposer> {
-  late final TextEditingController _toController;
-  late final TextEditingController _subjectController;
-  late final TextEditingController _bodyController;
+  late final TextEditingController _to;
+  late final TextEditingController _cc;
+  late final TextEditingController _bcc;
+  late final TextEditingController _subject;
+  late final TextEditingController _body;
+
+  /// Copy fields stay out of the way until they are needed — most mails
+  /// never use them.
+  bool _kopieOffen = false;
 
   @override
   void initState() {
     super.initState();
-    _toController = TextEditingController(text: widget.initialTo);
-    _subjectController = TextEditingController(text: widget.initialSubject);
-    _bodyController = TextEditingController(text: widget.initialBody);
-    _toController.addListener(_onChanged);
-    _bodyController.addListener(_onChanged);
+    _to = TextEditingController(text: _joined(widget.draft.to));
+    _cc = TextEditingController(text: _joined(widget.draft.cc));
+    _bcc = TextEditingController(text: _joined(widget.draft.bcc));
+    _subject = TextEditingController(text: widget.draft.subject);
+    _body = TextEditingController(text: widget.draft.body);
+    _kopieOffen = widget.draft.cc.isNotEmpty || widget.draft.bcc.isNotEmpty;
+    _to.addListener(_geaendert);
+    _body.addListener(_geaendert);
   }
 
   @override
   void dispose() {
-    _toController.dispose();
-    _subjectController.dispose();
-    _bodyController.dispose();
+    _to.dispose();
+    _cc.dispose();
+    _bcc.dispose();
+    _subject.dispose();
+    _body.dispose();
     super.dispose();
   }
 
-  void _onChanged() {
-    setState(() {});
-  }
+  void _geaendert() => setState(() {});
 
-  bool get _canSend =>
-      _toController.text.trim().isNotEmpty &&
-      _bodyController.text.trim().isNotEmpty;
+  static String _joined(List<MailAddress> a) => a.map((x) => x.email).join(', ');
 
-  void _submit() {
-    if (!_canSend) return;
-    widget.onSend(
-      _toController.text.trim(),
-      _subjectController.text.trim(),
-      _bodyController.text,
-    );
+  /// Kommagetrennte Eingabe zu Adressen. Was keine Adresse ist, fällt weg —
+  /// der Server prüft ohnehin noch einmal.
+  static List<MailAddress> _parsed(String raw) => [
+        for (final teil in raw.split(RegExp(r'[,;]')))
+          ?MailAddress.parse(teil.trim()),
+      ];
+
+  bool get _kannSenden =>
+      !widget.sending &&
+      _parsed(_to.text).isNotEmpty &&
+      (_body.text.trim().isNotEmpty || widget.draft.attachments.isNotEmpty);
+
+  void _senden() {
+    if (!_kannSenden) return;
+    widget.onSend(widget.draft.copyWith(
+      to: _parsed(_to.text),
+      cc: _parsed(_cc.text),
+      bcc: _parsed(_bcc.text),
+      subject: _subject.text.trim(),
+      body: _body.text,
+    ));
   }
 
   @override
@@ -95,36 +131,110 @@ class _MailComposerState extends State<MailComposer> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(
-              controller: _toController,
-              key: const ValueKey('mail-to'),
-              decoration: InputDecoration(labelText: strings.to),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _to,
+                    key: const ValueKey('mail-to'),
+                    decoration: InputDecoration(labelText: strings.to),
+                  ),
+                ),
+                if (!_kopieOffen)
+                  TextButton(
+                    key: const ValueKey('mail-cc-toggle'),
+                    onPressed: () => setState(() => _kopieOffen = true),
+                    child: Text('${strings.cc}/${strings.bcc}'),
+                  ),
+              ],
             ),
+            if (_kopieOffen) ...[
+              const SizedBox(height: 8),
+              TextField(
+                controller: _cc,
+                key: const ValueKey('mail-cc'),
+                decoration: InputDecoration(labelText: strings.cc),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _bcc,
+                key: const ValueKey('mail-bcc'),
+                decoration: InputDecoration(labelText: strings.bcc),
+              ),
+            ],
             const SizedBox(height: 8),
             TextField(
-              controller: _subjectController,
+              controller: _subject,
               key: const ValueKey('mail-subject'),
               decoration: InputDecoration(labelText: strings.subject),
             ),
             const SizedBox(height: 8),
             TextField(
-              controller: _bodyController,
+              controller: _body,
               key: const ValueKey('mail-body'),
               minLines: 3,
               maxLines: 10,
               decoration: InputDecoration(labelText: strings.body),
             ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              key: const ValueKey('mail-send'),
-              onPressed: _submit,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _canSend
-                    ? theme.accentColor
-                    : theme.accentColor.withValues(alpha: 0.4),
-                foregroundColor: Colors.white,
+            if (widget.draft.attachments.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final (i, a) in widget.draft.attachments.indexed)
+                    Chip(
+                      key: ValueKey('mail-attachment-$i'),
+                      avatar: const Icon(Icons.attach_file, size: 16),
+                      label: Text(a.name),
+                      backgroundColor: theme.background,
+                      labelStyle: TextStyle(color: theme.textColor),
+                      onDeleted: widget.onRemoveAttachmentAt == null
+                          ? null
+                          : () => widget.onRemoveAttachmentAt!(i),
+                    ),
+                ],
               ),
-              child: Text(strings.send),
+            ],
+            if (widget.errorText != null) ...[
+              const SizedBox(height: 12),
+              Text(
+                widget.errorText!,
+                key: const ValueKey('mail-error'),
+                style: const TextStyle(color: Color(0xFFB5374A), fontSize: 12),
+              ),
+            ],
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                if (widget.onPickAttachment != null)
+                  IconButton(
+                    key: const ValueKey('mail-attach'),
+                    onPressed: widget.sending ? null : widget.onPickAttachment,
+                    icon: const Icon(Icons.attach_file),
+                    color: theme.accentColor,
+                  ),
+                Expanded(
+                  child: ElevatedButton(
+                    key: const ValueKey('mail-send'),
+                    onPressed: _kannSenden ? _senden : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _kannSenden
+                          ? theme.accentColor
+                          : theme.accentColor.withValues(alpha: 0.4),
+                      foregroundColor: Colors.white,
+                    ),
+                    child: widget.sending
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: Colors.white),
+                          )
+                        : Text(strings.send),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

@@ -53,30 +53,29 @@ void main() {
     expect(find.text('Spam'), findsNothing);
   });
 
-  testWidgets('MailComposer onSend feuert mit Eingaben', (t) async {
-    String? to, subj, body;
+  testWidgets('MailComposer onSend feuert mit dem fertigen Entwurf', (t) async {
+    MailDraft? gesendet;
     await t.pumpWidget(MaterialApp(
         home: Scaffold(
             body: MailComposer(
-      onSend: (a, s, b) {
-        to = a;
-        subj = s;
-        body = b;
-      },
-      initialTo: 'x@y.at',
+      onSend: (d) => gesendet = d,
+      draft: const MailDraft(to: [MailAddress(email: 'x@y.at')]),
     ))));
     await t.enterText(find.byKey(const ValueKey('mail-subject')), 'Betr');
     await t.enterText(find.byKey(const ValueKey('mail-body')), 'Inhalt');
+    // Der Knopf ist bis zur nächsten Bildfolge gesperrt — leer abzuschicken
+    // soll gar nicht erst gehen.
+    await t.pump();
     await t.tap(find.byKey(const ValueKey('mail-send')));
     await t.pump();
-    expect(to, 'x@y.at');
-    expect(subj, 'Betr');
-    expect(body, 'Inhalt');
+    expect(gesendet?.to.single.email, 'x@y.at');
+    expect(gesendet?.subject, 'Betr');
+    expect(gesendet?.body, 'Inhalt');
   });
 
   testWidgets('Mail-Felder folgen der App-Sprache', (tester) async {
     await tester.pumpWidget(localeHost(
-      MailComposer(onSend: (String to, String subject, String body) {}),
+      MailComposer(onSend: (_) {}),
       locale: const Locale('uk'),
     ));
     expect(find.text('Кому'), findsOneWidget);

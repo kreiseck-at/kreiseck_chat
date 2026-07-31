@@ -32,6 +32,7 @@ export 'src/mail_address.dart';
 export 'src/mail_body_request.dart';
 export 'src/mail_draft.dart';
 export 'src/mail_models.dart';
+export 'src/mail_thread_view.dart';
 export 'src/mail_theme.dart';
 export 'src/message_bubble.dart';
 export 'src/models.dart';

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'chat_theme.dart';
+
 /// Visual configuration for the mail widgets in this package.
 ///
 /// Widgets never hard-code colors; every color used comes from an instance
@@ -29,6 +31,17 @@ class MailTheme {
 
   /// Accent color, e.g. for the send/reply button.
   final Color accentColor;
+
+  /// Derives the mail colors from a [ChatTheme], so a host that already
+  /// styled its chat gets a matching mail view without configuring anything
+  /// twice.
+  factory MailTheme.fromChat(ChatTheme chat) => MailTheme(
+        background: chat.colors.background,
+        surfaceColor: chat.colors.composer,
+        textColor: chat.colors.incomingText,
+        unreadDot: chat.colors.accent,
+        accentColor: chat.colors.accent,
+      );
 
   /// A light color scheme suitable as a sensible default.
   const factory MailTheme.light() = MailTheme._light;

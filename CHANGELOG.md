@@ -1,3 +1,47 @@
+## 0.16.0
+
+**The mail widgets were a skeleton and are now a mail client.** Everything
+below is a breaking change to that part of the package — deliberately so, and
+deliberately now: the mail widgets had no users yet, and every one of these
+model shapes would have been expensive to correct after publishing. The chat
+side is untouched.
+
+* `MailMessage.from` is now a `MailAddress`, `to` a `List<MailAddress>`; `cc`,
+  `bcc` and `replyTo` are new. A display name is the one part of a mail its
+  sender can put anything into, so the address it hides must stay visible —
+  `MailAddress.display` shows both, and `displayNameLooksLikeAddress` catches
+  the common disguise of putting a trusted address in the name.
+* `MailMessage` gained `messageId`, `inReplyTo`, `references` (threading) and
+  `senderVerified` — `null` meaning "not checked", which is not the same as
+  "failed", and the UI says neither when it doesn't know.
+* New `AttachmentSafety` on `MailAttachment` (`safe` / `unknown` / `blocked`,
+  defaulting to `unknown`) plus `contentType`, `blockedReason`, `canOpen` and
+  `canPreview`. The widgets classify nothing themselves — sniffing file types
+  belongs where the file arrives — but they enforce the verdict: a blocked
+  attachment cannot be opened, an unchecked one is labelled, and only a vetted
+  image is ever rendered.
+* New `MailDraft` with `reply`, `replyAll` and `forward` factories: subject
+  prefix (never stacked twice), recipients (reply-all drops your own address),
+  quoted original, and the identifier chain that keeps the thread together.
+  `MailComposer` now takes one and hands one back through `onSend` instead of
+  three strings; it gained collapsible Cc/Bcc fields, attachments with
+  `onPickAttachment`/`onRemoveAttachmentAt`, a `sending` state and
+  `errorText` — a failed send leaves the text where it is.
+* `MailDetailView` gained `bodyBuilder` (draw the body yourself — HTML stays
+  the host's business, this package takes no HTML engine), `remoteContentAllowed`
+  (**false by default**: a mail that loads a remote image tells its sender when
+  and where it was read) with `onAllowRemoteContent`, `onOpenLink`,
+  `onOpenAttachment`, `onReplyAll` and `onForward`. Links are never opened by
+  the widget, and `isFollowableMailLink` refuses anything that is not `https`
+  or `mailto`, so a `javascript:` link stays inert text.
+* New `MailThreadView` — the newest mail open, earlier ones collapsed into
+  rows that expand on tap.
+* New `MailTheme.fromChat(ChatTheme)` so colors are configured once.
+* `ChatStrings` gained eleven words in all five languages: `cc`, `bcc`,
+  `replyAll`, `forward`, `loadImages`, `remoteContentBlocked`,
+  `attachmentBlocked`, `attachmentUnknown`, `openAnyway`, `senderUnverified`,
+  `showQuoted`.
+
 ## 0.15.0
 
 **Behavior changes for existing users:**
