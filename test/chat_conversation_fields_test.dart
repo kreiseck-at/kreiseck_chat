@@ -1,5 +1,12 @@
+import 'dart:convert';
+
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kreiseck_chat/kreiseck_chat.dart';
+
+// 1x1 transparentes PNG als gültige Bytes für MemoryImage im Test.
+final _pixel = MemoryImage(base64Decode(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='));
 
 void main() {
   test('Standardwerte: keine Kanäle, nicht angepinnt', () {
@@ -70,9 +77,11 @@ void main() {
       channelLabel: 'SMS',
       lastText: 'Text',
       lastAt: DateTime(2026, 7, 31, 10),
+      avatar: _pixel,
       avatarUrl: 'https://example.invalid/a.png',
       presence: const ChatPresence.online(),
     );
+    expect(voll.avatar, _pixel);
     final leer = voll.copyWith(
       clearSubtitle: true,
       clearChannelLabel: true,

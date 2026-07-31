@@ -71,6 +71,7 @@ void main() {
     final voll = ChatAttachment(
       kind: AttachmentKind.file,
       url: 'https://example.invalid/a.pdf',
+      thumbnail: _pixel,
       thumbnailUrl: 'https://example.invalid/t.png',
       fileName: 'a.pdf',
       sizeBytes: 2048,
@@ -79,6 +80,7 @@ void main() {
     );
     final neu = voll.copyWith(kind: AttachmentKind.file);
     expect(neu.url, 'https://example.invalid/a.pdf');
+    expect(neu.thumbnail, _pixel);
     expect(neu.thumbnailUrl, 'https://example.invalid/t.png');
     expect(neu.fileName, 'a.pdf');
     expect(neu.sizeBytes, 2048);

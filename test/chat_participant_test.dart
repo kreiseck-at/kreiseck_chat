@@ -103,16 +103,18 @@ void main() {
   });
 
   test(
-      'ChatParticipant: ohne clear bleiben avatarUrl, presence und color stehen',
+      'ChatParticipant: ohne clear bleiben avatar, avatarUrl, presence und color stehen',
       () {
     final voll = ChatParticipant(
       id: '1',
       displayName: 'Ada',
+      avatar: _pixel,
       avatarUrl: 'https://example.invalid/a.png',
       presence: const ChatPresence.online(),
       color: const Color(0xFF3478F6),
     );
     final neu = voll.copyWith(displayName: 'Ada Lovelace');
+    expect(neu.avatar, _pixel);
     expect(neu.avatarUrl, 'https://example.invalid/a.png');
     expect(neu.presence, const ChatPresence.online());
     expect(neu.color, const Color(0xFF3478F6));
