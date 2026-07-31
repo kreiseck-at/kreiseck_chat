@@ -278,9 +278,9 @@ class _MessageBubbleState extends State<MessageBubble> {
               channel: message.channel,
             ),
           ),
-          // The translated-language / "Original" label only makes sense next
-          // to the text it toggles — hidden along with it when there is no
-          // text to show (e.g. a media-only message).
+          // The translated-language / strings.original label only makes
+          // sense next to the text it toggles — hidden along with it when
+          // there is no text to show (e.g. a media-only message).
           if (message.translation != null && message.text.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 2),

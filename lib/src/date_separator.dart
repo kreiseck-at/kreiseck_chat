@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'chat_strings.dart';
 import 'chat_theme.dart';
 
-/// A centered day-boundary pill ("Heute" / "Gestern" / date).
+/// A centered day-boundary pill showing "today" / "yesterday" (worded per
+/// [ChatStrings], see [ChatStrings.of]) or a date.
 class DateSeparator extends StatelessWidget {
   /// Creates a date separator.
   const DateSeparator({
