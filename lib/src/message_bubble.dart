@@ -8,6 +8,7 @@ import 'chat_attachment.dart';
 import 'chat_capabilities.dart';
 import 'chat_channel.dart';
 import 'chat_channel_badge.dart';
+import 'chat_colors.dart';
 import 'chat_reaction.dart';
 import 'chat_strings.dart';
 import 'chat_theme.dart';
@@ -125,6 +126,14 @@ class _MessageBubbleState extends State<MessageBubble> {
     return widget.message.status;
   }
 
+  /// The hairline around the bubble, when the host set one for this
+  /// direction. Null leaves the bubble borderless as before.
+  Border? _border(ChatColors colors) {
+    final farbe =
+        _isOutgoing ? colors.outgoingBubbleBorder : colors.incomingBubbleBorder;
+    return farbe == null ? null : Border.all(color: farbe);
+  }
+
   /// The message body, drawn by the host's [MessageBubble.textBuilder] when
   /// it supplied one and as a plain `Text` otherwise.
   Widget _body(ChatTheme theme, Color textColor) {
@@ -238,6 +247,7 @@ class _MessageBubbleState extends State<MessageBubble> {
       decoration: BoxDecoration(
         color: bubbleColor,
         borderRadius: _borderRadius(),
+        border: _border(colors),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

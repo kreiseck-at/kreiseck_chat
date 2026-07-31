@@ -468,6 +468,34 @@ void main() {
     expect(find.text('Original'), findsOneWidget);
   });
 
+  testWidgets('Haarlinie um die Blase nur, wenn der Host eine setzt',
+      (tester) async {
+    Border? rahmenVon(WidgetTester t) {
+      final container = t.widgetList<Container>(find.byType(Container))
+          .where((c) => (c.decoration as BoxDecoration?)?.color != null)
+          .first;
+      return ((container.decoration as BoxDecoration).border) as Border?;
+    }
+
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(body: MessageBubble(message: m())),
+    ));
+    expect(rahmenVon(tester), isNull);
+
+    const rand = Color(0xFFEAE8E5);
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: MessageBubble(
+          message: m(),
+          theme: const ChatTheme(
+            colors: ChatColors.light(incomingBubbleBorder: rand),
+          ),
+        ),
+      ),
+    ));
+    expect(rahmenVon(tester)?.top.color, rand);
+  });
+
   testWidgets('textBuilder ersetzt den Fließtext und bekommt den Stil',
       (tester) async {
     TextStyle? gereicht;

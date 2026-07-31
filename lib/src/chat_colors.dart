@@ -27,10 +27,20 @@ class ChatColors {
     this.warning = const Color(0xFFB8860B),
     this.incomingInk,
     this.outgoingInk,
+    this.incomingBubbleBorder,
+    this.outgoingBubbleBorder,
   });
 
   /// Incoming bubble fill.
   final Color incomingBubble;
+
+  /// Hairline around the incoming bubble. Null (both presets) paints none —
+  /// set it when the bubble fill sits close to [background] and would
+  /// otherwise blur into it.
+  final Color? incomingBubbleBorder;
+
+  /// Hairline around the outgoing bubble; null paints none.
+  final Color? outgoingBubbleBorder;
 
   /// Outgoing bubble fill.
   final Color outgoingBubble;
@@ -142,6 +152,8 @@ class ChatColors {
   const ChatColors.light({
     this.incomingInk,
     this.outgoingInk,
+    this.incomingBubbleBorder,
+    this.outgoingBubbleBorder,
   })  : incomingBubble = const Color(0xFFE9E9EB),
         outgoingBubble = const Color(0xFF3478F6),
         incomingText = const Color(0xFF1C1C1E),
@@ -165,6 +177,8 @@ class ChatColors {
   const ChatColors.dark({
     this.incomingInk,
     this.outgoingInk,
+    this.incomingBubbleBorder,
+    this.outgoingBubbleBorder,
   })  : incomingBubble = const Color(0xFF2C2C2E),
         outgoingBubble = const Color(0xFF3478F6),
         incomingText = const Color(0xFFF2F2F7),
@@ -206,7 +220,15 @@ class ChatColors {
     Color? warning,
     BubbleInk? incomingInk,
     BubbleInk? outgoingInk,
+    Color? incomingBubbleBorder,
+    Color? outgoingBubbleBorder,
+    bool clearIncomingBubbleBorder = false,
+    bool clearOutgoingBubbleBorder = false,
   }) {
+    assert(!(clearIncomingBubbleBorder && incomingBubbleBorder != null),
+        'clearIncomingBubbleBorder and incomingBubbleBorder are exclusive');
+    assert(!(clearOutgoingBubbleBorder && outgoingBubbleBorder != null),
+        'clearOutgoingBubbleBorder and outgoingBubbleBorder are exclusive');
     return ChatColors(
       incomingBubble: incomingBubble ?? this.incomingBubble,
       outgoingBubble: outgoingBubble ?? this.outgoingBubble,
@@ -231,6 +253,12 @@ class ChatColors {
       warning: warning ?? this.warning,
       incomingInk: incomingInk ?? this.incomingInk,
       outgoingInk: outgoingInk ?? this.outgoingInk,
+      incomingBubbleBorder: clearIncomingBubbleBorder
+          ? null
+          : incomingBubbleBorder ?? this.incomingBubbleBorder,
+      outgoingBubbleBorder: clearOutgoingBubbleBorder
+          ? null
+          : outgoingBubbleBorder ?? this.outgoingBubbleBorder,
     );
   }
 
@@ -258,7 +286,9 @@ class ChatColors {
         other.error == error &&
         other.warning == warning &&
         other.incomingInk == incomingInk &&
-        other.outgoingInk == outgoingInk;
+        other.outgoingInk == outgoingInk &&
+        other.incomingBubbleBorder == incomingBubbleBorder &&
+        other.outgoingBubbleBorder == outgoingBubbleBorder;
   }
 
   @override
@@ -284,5 +314,7 @@ class ChatColors {
         warning,
         incomingInk,
         outgoingInk,
+        incomingBubbleBorder,
+        outgoingBubbleBorder,
       ]);
 }

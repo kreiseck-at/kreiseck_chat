@@ -63,6 +63,12 @@
   to be an inline literal with no way to override it. For Turkish this is
   deliberately a single space rather than a word (see
   `ChatStrings.tr().lastSeenAtJoiner`).
+* New `ChatColors.incomingBubbleBorder` / `outgoingBubbleBorder` (both
+  `null` in the presets, so bubbles stay borderless as before): a hairline
+  around the bubble. For palettes whose bubble fill sits close to the
+  background — a near-white incoming bubble on a white thread would
+  otherwise have no edge at all. `copyWith` takes the matching
+  `clearIncomingBubbleBorder` / `clearOutgoingBubbleBorder` switches.
 * New `textBuilder` on `MessageBubble` and `ChatThreadView` (which forwards
   it to every bubble): renders the message body instead of the built-in
   plain `Text`, called with the text currently shown and the style the
