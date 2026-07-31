@@ -35,6 +35,7 @@ class MessageBubble extends StatefulWidget {
     this.onCopy,
     this.onRetry,
     this.strings,
+    this.textBuilder,
   });
 
   /// The message to render.
@@ -81,6 +82,16 @@ class MessageBubble extends StatefulWidget {
   /// ambient locale (see [ChatStrings.of]).
   final ChatStrings? strings;
 
+  /// Renders the message body. Left null, the text is drawn as a plain
+  /// `Text`. Supply one to make links tappable or to render rich text; it is
+  /// called with the text currently shown (original or translation) and the
+  /// style the bubble would have used.
+  ///
+  /// The returned widget sits inside the tap area that toggles the
+  /// translation, so a builder that consumes taps itself takes that
+  /// interaction away for the parts it covers.
+  final Widget Function(String text, TextStyle style)? textBuilder;
+
   @override
   State<MessageBubble> createState() => _MessageBubbleState();
 }
@@ -112,6 +123,16 @@ class _MessageBubbleState extends State<MessageBubble> {
       return MessageStatus.delivered;
     }
     return widget.message.status;
+  }
+
+  /// The message body, drawn by the host's [MessageBubble.textBuilder] when
+  /// it supplied one and as a plain `Text` otherwise.
+  Widget _body(ChatTheme theme, Color textColor) {
+    final style = theme.typography.body.copyWith(color: textColor);
+    final builder = widget.textBuilder;
+    return builder == null
+        ? Text(_displayText, style: style)
+        : builder(_displayText, style);
   }
 
   /// The text currently shown: the translation while toggled on, the
@@ -257,14 +278,11 @@ class _MessageBubbleState extends State<MessageBubble> {
                   ? const EdgeInsets.fromLTRB(8, 6, 8, 0)
                   : EdgeInsets.zero,
               child: message.translation == null
-                  ? Text(_displayText,
-                      style: theme.typography.body.copyWith(color: textColor))
+                  ? _body(theme, textColor)
                   : GestureDetector(
                       onTap: () => setState(
                           () => _showTranslation = !_showTranslation),
-                      child: Text(_displayText,
-                          style: theme.typography.body
-                              .copyWith(color: textColor)),
+                      child: _body(theme, textColor),
                     ),
             ),
           Padding(

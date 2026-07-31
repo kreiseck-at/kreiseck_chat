@@ -44,6 +44,7 @@ class ChatThreadView extends StatefulWidget {
     this.composerLeading,
     this.readOnly = false,
     this.strings,
+    this.textBuilder,
   });
 
   /// Messages, oldest first.
@@ -131,6 +132,10 @@ class ChatThreadView extends StatefulWidget {
   /// (`MessageBubble`, `DateSeparator`, `Composer`). Left null, they follow
   /// the ambient locale (see [ChatStrings.of]).
   final ChatStrings? strings;
+
+  /// Renders the body of every bubble; forwarded to
+  /// [MessageBubble.textBuilder]. Left null, bubbles draw plain text.
+  final Widget Function(String text, TextStyle style)? textBuilder;
 
   @override
   State<ChatThreadView> createState() => _ChatThreadViewState();
@@ -289,6 +294,7 @@ class _ChatThreadViewState extends State<ChatThreadView> {
                       ? null
                       : () => widget.onRetry!(mi.message),
                   strings: widget.strings,
+                  textBuilder: widget.textBuilder,
                 );
               },
               ),

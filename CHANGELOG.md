@@ -63,6 +63,12 @@
   to be an inline literal with no way to override it. For Turkish this is
   deliberately a single space rather than a word (see
   `ChatStrings.tr().lastSeenAtJoiner`).
+* New `textBuilder` on `MessageBubble` and `ChatThreadView` (which forwards
+  it to every bubble): renders the message body instead of the built-in
+  plain `Text`, called with the text currently shown and the style the
+  bubble would have used. For linkified or otherwise rich message text —
+  previously the only way to get tappable links in a bubble was to not use
+  the bubble.
 * New `ChatTranslation.showFirst` (default `false`, so nothing changes for
   existing callers): the bubble opens on the translation rather than the
   original, putting the original one tap away. For readers who picked a

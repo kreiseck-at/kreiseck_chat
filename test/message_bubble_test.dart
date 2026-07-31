@@ -468,6 +468,48 @@ void main() {
     expect(find.text('Original'), findsOneWidget);
   });
 
+  testWidgets('textBuilder ersetzt den Fließtext und bekommt den Stil',
+      (tester) async {
+    TextStyle? gereicht;
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: MessageBubble(
+          message: m(text: 'ruf 0664 an'),
+          textBuilder: (text, style) {
+            gereicht = style;
+            return Text('gebaut: $text');
+          },
+        ),
+      ),
+    ));
+    expect(find.text('gebaut: ruf 0664 an'), findsOneWidget);
+    expect(find.text('ruf 0664 an'), findsNothing);
+    // Der Stil ist der, den die Blase selbst gemalt hätte — inklusive der
+    // zur Blasenfarbe passenden Textfarbe.
+    expect(gereicht?.fontSize, const ChatTheme.light().typography.body.fontSize);
+    expect(gereicht?.color, isNotNull);
+  });
+
+  testWidgets('textBuilder bekommt beim Umschalten die Übersetzung',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: MessageBubble(
+          message: m(
+            text: 'Привіт',
+            translation:
+                const ChatTranslation(text: 'Hallo dort', languageLabel: 'DE'),
+          ),
+          textBuilder: (text, style) => Text('[$text]'),
+        ),
+      ),
+    ));
+    expect(find.text('[Привіт]'), findsOneWidget);
+    await tester.tap(find.text('[Привіт]'));
+    await tester.pumpAndSettle();
+    expect(find.text('[Hallo dort]'), findsOneWidget);
+  });
+
   testWidgets('showFirst öffnet die Blase auf der Übersetzung',
       (tester) async {
     // Für Leserinnen mit einer bevorzugten Sprache: die Übersetzung steht

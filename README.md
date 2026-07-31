@@ -69,7 +69,8 @@ and `ChatConversation` and handling the `onSend`/`onOpen` callbacks.
   "Erneut senden" action next to it (omit it to show just the failure
   reason, with no retry action), and — when `translation` is set — a
   tap-to-toggle between original text and translation (which side it opens
-  on follows `ChatTranslation.showFirst`).
+  on follows `ChatTranslation.showFirst`). Pass `textBuilder` to draw the
+  body yourself — e.g. linkified text — instead of a plain `Text`.
 * **`ChatSystemCard`** — a centered card for non-message content in the
   thread: system notes, logged events, summaries. Messages with
   `kind: ChatMessageKind.system` render as this automatically.
