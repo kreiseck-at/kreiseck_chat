@@ -55,6 +55,70 @@ void main() {
     });
   });
 
+  group('BubbleInk.forSurface with textColor', () {
+    test('without textColor, behaviour is unchanged from plain forSurface',
+        () {
+      // Belegt die Zusicherung, dass der neue Parameter optional ist: ohne
+      // ihn liefert forSurface exakt dasselbe Ergebnis wie zuvor -- auf dem
+      // Standard-Blau also weiterhin Schwarz als Basis (höherer Kontrast).
+      for (final surface in _surfaces) {
+        expect(BubbleInk.forSurface(surface),
+            equals(BubbleInk.forSurface(surface, textColor: null)));
+      }
+      final onBlue = BubbleInk.forSurface(const Color(0xFF3478F6));
+      expect(relativeLuminance(onBlue.text), lessThan(0.5));
+    });
+
+    test(
+        'white text on the standard blue keeps every derived tone light, '
+        'even though black would contrast more', () {
+      // Kern der Owner-Entscheidung: ohne textColor gewinnt hier Schwarz
+      // (5,16:1 gegen 4,07:1 für Weiß) -- mit weißer Textfarbe muss die
+      // Ableitung trotzdem bei Weiß bleiben, sonst stünde weißer
+      // Nachrichtentext neben fast schwarzer Uhrzeit/Reply-Name auf
+      // derselben Bubble. Dieser Test schlägt ohne die Änderung fehl, weil
+      // forSurface dann Schwarz wählt.
+      const surface = Color(0xFF3478F6);
+      const white = Color(0xFFFFFFFF);
+      final ink = BubbleInk.forSurface(surface, textColor: white);
+
+      expect(relativeLuminance(ink.text), greaterThan(0.5));
+      expect(relativeLuminance(ink.muted), greaterThan(0.5));
+      expect(relativeLuminance(ink.line), greaterThan(0.5));
+      // Bewusst in Kauf genommene Obergrenze: Weiß erreicht auf diesem Blau
+      // nur ~4,07:1, nicht die üblichen 4,5:1.
+      expect(contrastRatio(ink.text, surface), greaterThanOrEqualTo(4.0));
+      expect(contrastRatio(ink.text, surface), lessThan(4.5));
+    });
+
+    test('dark text on a light bubble gets dark derived tones', () {
+      const surface = Color(0xFFE9E9EB);
+      const darkText = Color(0xFF1C1C1E);
+      final ink = BubbleInk.forSurface(surface, textColor: darkText);
+
+      expect(relativeLuminance(ink.text), lessThan(0.5));
+      expect(relativeLuminance(ink.muted), lessThan(0.5));
+      expect(relativeLuminance(ink.line), lessThan(0.5));
+      expect(contrastRatio(ink.text, surface), greaterThanOrEqualTo(4.5));
+    });
+
+    test(
+        'white text on a white bubble still yields readable, dark tones '
+        'instead of collapsing to invisible white-on-white', () {
+      // Ausnahmefall: Weiß kann auf Weiß nicht einmal ansatzweise (< 3:1)
+      // lesbar werden -- die andere Polung (Schwarz) gewinnt dann trotz
+      // angeforderter weißer Textfarbe.
+      const surface = Color(0xFFFFFFFF);
+      const white = Color(0xFFFFFFFF);
+      final ink = BubbleInk.forSurface(surface, textColor: white);
+
+      expect(relativeLuminance(ink.text), lessThan(0.5));
+      expect(contrastRatio(ink.text, surface), greaterThanOrEqualTo(4.5));
+      expect(contrastRatio(ink.muted, surface), greaterThanOrEqualTo(4.5));
+      expect(contrastRatio(ink.line, surface), greaterThanOrEqualTo(3.0));
+    });
+  });
+
   group('BubbleInk equality', () {
     test('two separately-derived instances with equal fields compare equal',
         () {

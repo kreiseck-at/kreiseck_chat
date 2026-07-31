@@ -10,11 +10,14 @@ class BubbleInk {
   /// Creates an ink set explicitly. Prefer [BubbleInk.forSurface].
   const BubbleInk({required this.text, required this.muted, required this.line});
 
-  /// Message text and emphasised labels. Reaches at least 4.5:1.
+  /// Message text and emphasised labels. Reaches at least 4.5:1 — unless
+  /// [BubbleInk.forSurface] was given a `textColor` whose polarity itself
+  /// can't reach it (the accepted standard-blue trade-off; see there).
   final Color text;
 
-  /// Timestamps, delivery status, quoted text. Reaches at least 4.5:1 but is
-  /// visibly softer than [text].
+  /// Timestamps, delivery status, quoted text. Reaches at least 4.5:1 (with
+  /// the same `textColor` caveat as [text]) but is visibly softer than
+  /// [text].
   final Color muted;
 
   /// Quote bars, dividers and other non-text marks. Reaches at least 3:1.
@@ -32,19 +35,74 @@ class BubbleInk {
   @override
   int get hashCode => Object.hash(text, muted, line);
 
-  /// Derives an ink set from [surface]: white or black — whichever contrasts
-  /// more — is mixed back towards the surface as far as the target still
-  /// holds. The target is therefore a property of the calculation, not a hope.
-  factory BubbleInk.forSurface(Color surface) {
-    final base = contrastRatio(const Color(0xFFFFFFFF), surface) >=
-            contrastRatio(const Color(0xFF000000), surface)
-        ? const Color(0xFFFFFFFF)
-        : const Color(0xFF000000);
+  /// Derives an ink set from [surface]: white or black is mixed back towards
+  /// the surface as far as the target still holds. The target is therefore a
+  /// property of the calculation, not a hope.
+  ///
+  /// Which of white or black is picked as the base depends on [textColor]:
+  ///
+  /// * Left `null` (the default), the base is whichever of the two reaches
+  ///   the higher contrast against [surface]. This is the original behaviour
+  ///   and is unchanged by [textColor] — callers that never pass it see no
+  ///   difference.
+  /// * Given a color, the base instead follows that color's polarity: a
+  ///   light [textColor] (relative luminance ≥ 0.5) picks white, a dark one
+  ///   picks black. This exists so a surface's derived timestamp, quote bar
+  ///   and reply name match the message text actually painted on it, rather
+  ///   than independently chasing whichever of black/white contrasts more —
+  ///   the two can disagree (e.g. on the standard blue `#3478F6`, black
+  ///   reaches 5.16:1 against white's 4.07:1), and when they do, painting the
+  ///   text one way and everything else the other way reads as a rendering
+  ///   bug, not a considered choice. On the standard blue with a white
+  ///   [textColor], this deliberately caps [text] around 4.07:1 instead of
+  ///   the usual 4.5:1 — a known, accepted trade-off in favour of one
+  ///   consistent tone across the bubble.
+  ///
+  ///   Exception: if that polarity's extreme point — pure white or pure
+  ///   black itself, before any mixing towards [surface] — can't even reach
+  ///   3:1 against [surface] (the same floor [line] targets below, and
+  ///   WCAG's own minimum for large text/UI components), it is treated as
+  ///   unusable and the other polarity wins regardless of how it compares.
+  ///   3:1 rather than [text]'s own 4.5:1 target is deliberate: using 4.5:1
+  ///   here would reject the standard-blue trade-off above too, defeating
+  ///   the point of following [textColor] at all. 3:1 instead marks the
+  ///   point below which a tone is not "a bit low contrast" but effectively
+  ///   invisible — e.g. white ink on a white surface.
+  factory BubbleInk.forSurface(Color surface, {Color? textColor}) {
+    final base = _resolveBase(surface, textColor);
     return BubbleInk(
       text: base,
       muted: _mixUntil(base, surface, 4.5),
       line: _mixUntil(base, surface, 3.0),
     );
+  }
+
+  /// The floor an extreme point (pure white or pure black) must clear for
+  /// its polarity to be considered usable at all when [textColor] steers the
+  /// choice. See the "Exception" paragraph on [forSurface].
+  static const double _minimumUsableContrast = 3.0;
+
+  static Color _resolveBase(Color surface, Color? textColor) {
+    const white = Color(0xFFFFFFFF);
+    const black = Color(0xFF000000);
+    final whiteContrast = contrastRatio(white, surface);
+    final blackContrast = contrastRatio(black, surface);
+
+    if (textColor == null) {
+      return whiteContrast >= blackContrast ? white : black;
+    }
+
+    final wantsLight = relativeLuminance(textColor) >= 0.5;
+    final preferred = wantsLight ? white : black;
+    final preferredContrast = wantsLight ? whiteContrast : blackContrast;
+    final other = wantsLight ? black : white;
+    final otherContrast = wantsLight ? blackContrast : whiteContrast;
+
+    if (preferredContrast < _minimumUsableContrast &&
+        otherContrast >= _minimumUsableContrast) {
+      return other;
+    }
+    return preferred;
   }
 
   /// Mixes [base] towards [surface] in 5% steps and returns the softest color

@@ -100,10 +100,21 @@ class ChatColors {
   final BubbleInk? outgoingInk;
 
   /// The colors that sit on [bubble]. Returns the matching override when the
-  /// host set one, otherwise derives them.
+  /// host set one, otherwise derives them — following the polarity of
+  /// whichever text color is actually painted on that bubble ([outgoingText]
+  /// / [incomingText]), so timestamp, quote bar and reply name always match
+  /// the message text rather than independently chasing raw contrast (see
+  /// [BubbleInk.forSurface]). A [bubble] that is neither falls back to the
+  /// plain contrast-maximizing derivation.
   BubbleInk inkFor(Color bubble) {
-    if (bubble == outgoingBubble && outgoingInk != null) return outgoingInk!;
-    if (bubble == incomingBubble && incomingInk != null) return incomingInk!;
+    if (bubble == outgoingBubble) {
+      return outgoingInk ??
+          BubbleInk.forSurface(bubble, textColor: outgoingText);
+    }
+    if (bubble == incomingBubble) {
+      return incomingInk ??
+          BubbleInk.forSurface(bubble, textColor: incomingText);
+    }
     return BubbleInk.forSurface(bubble);
   }
 

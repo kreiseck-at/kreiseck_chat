@@ -5,9 +5,25 @@ import 'package:kreiseck_chat/kreiseck_chat.dart';
 void main() {
   test('inkFor derives from the given bubble color', () {
     const colors = ChatColors.light();
-    final ink = colors.inkFor(colors.outgoingBubble);
-    expect(contrastRatio(ink.text, colors.outgoingBubble),
+    final ink = colors.inkFor(colors.incomingBubble);
+    expect(contrastRatio(ink.text, colors.incomingBubble),
         greaterThanOrEqualTo(4.5));
+  });
+
+  test('inkFor follows the polarity of the text painted on the bubble', () {
+    // The light preset's outgoing bubble is the standard blue #3478F6, and
+    // outgoingText is white, which only reaches 4.07:1 against it -- below
+    // the usual 4.5:1 target. inkFor still follows that polarity (rather
+    // than switching to higher-contrast black) so the timestamp, reply name
+    // and quote bar all read as light, matching the message text instead of
+    // clashing with it. See BubbleInk.forSurface for the accepted trade-off.
+    const colors = ChatColors.light();
+    final ink = colors.inkFor(colors.outgoingBubble);
+    expect(relativeLuminance(ink.text), greaterThan(0.5));
+    expect(relativeLuminance(ink.muted), greaterThan(0.5));
+    expect(relativeLuminance(ink.line), greaterThan(0.5));
+    expect(contrastRatio(ink.text, colors.outgoingBubble),
+        greaterThanOrEqualTo(4.0));
   });
 
   test('an explicitly set ink wins over the derived one', () {
