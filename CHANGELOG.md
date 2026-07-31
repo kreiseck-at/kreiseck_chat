@@ -63,6 +63,9 @@
   to be an inline literal with no way to override it. For Turkish this is
   deliberately a single space rather than a word (see
   `ChatStrings.tr().lastSeenAtJoiner`).
+* A widget returned by `ChatThreadView.customMessageBuilder` is now inset
+  like a bubble (12 to each side, a little air above and below) instead of
+  being laid out flush against the viewport edge.
 * `MessageBubble` now renders a message's attachments regardless of
   `ChatCapabilities.media`, which from now on only governs the composer's
   attach affordances. A thread that mixes channels (a photo received over

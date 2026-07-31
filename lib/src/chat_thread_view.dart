@@ -116,6 +116,9 @@ class ChatThreadView extends StatefulWidget {
   /// Custom rendering for messages with [ChatMessageKind.custom]. If the
   /// builder returns `null`, the normal bubble is rendered instead.
   ///
+  /// The returned widget is inset like a bubble (12 to each side, a little
+  /// air above and below), so it lines up with the rest of the thread.
+  ///
   /// The returned widget is not given a `ValueKey` by `ChatThreadView`, so a
   /// stateful widget should set its own `ValueKey` (e.g. from the message
   /// id) to avoid having its state recycled onto a different message.
@@ -269,7 +272,15 @@ class _ChatThreadViewState extends State<ChatThreadView> {
                 }
                 if (mi.message.kind == ChatMessageKind.custom) {
                   final custom = widget.customMessageBuilder?.call(mi.message);
-                  if (custom != null) return custom;
+                  // Ein eigenes Widget bekommt dieselben Ränder wie eine Blase,
+                  // damit es in der Spalte steht statt am Rand zu kleben.
+                  if (custom != null) {
+                    return Padding(
+                      padding: EdgeInsets.fromLTRB(
+                          12, mi.isFirstInGroup ? 6 : 2, 12, 2),
+                      child: custom,
+                    );
+                  }
                 }
                 return MessageBubble(
                   key: ValueKey(mi.message.id),

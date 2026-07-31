@@ -266,6 +266,39 @@ void main() {
     expect(find.text('eigen c1'), findsOneWidget);
   });
 
+  testWidgets('eigenes Widget steht auf gleicher Höhe wie eine Blase',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: ChatThreadView(
+          messages: [
+            ChatMessage(
+                id: 'c',
+                direction: MessageDirection.incoming,
+                text: '',
+                at: DateTime(2026, 7, 21, 9),
+                kind: ChatMessageKind.custom),
+            ChatMessage(
+                id: 'm',
+                direction: MessageDirection.incoming,
+                text: 'Hallo',
+                at: DateTime(2026, 7, 21, 9, 1)),
+          ],
+          onSend: (_) {},
+          customMessageBuilder: (_) =>
+              Container(key: const ValueKey('eigen'), height: 30),
+        ),
+      ),
+    ));
+    await tester.pumpAndSettle();
+    // Dieselben 12 Punkte Rand, die auch die Blase innen setzt — das eigene
+    // Widget klebt nicht am Bildschirmrand, und der Blasentext beginnt weiter
+    // rechts (Blase plus deren Innenabstand).
+    final eigen = tester.getTopLeft(find.byKey(const ValueKey('eigen'))).dx;
+    expect(eigen, 12);
+    expect(eigen, lessThan(tester.getTopLeft(find.text('Hallo')).dx));
+  });
+
   testWidgets('custom mit null-Rückgabe fällt auf die Blase zurück',
       (tester) async {
     await tester.pumpWidget(MaterialApp(
