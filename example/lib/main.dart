@@ -7,6 +7,49 @@ void main() => runApp(const DemoApp());
 
 enum _Screen { thread, conversations }
 
+// Flutter's own Default(Material|Widgets)Localizations only declare
+// themselves supported for 'en' (see their isSupported overrides), so
+// switching MaterialApp.locale to 'de'/'hr'/'tr'/'uk' alone leaves widgets
+// that need MaterialLocalizations (the Composer's TextField, among others)
+// without resources to load, even once `supportedLocales` lists the locale.
+// These delegates hand back the very same English-only resources, just
+// without gating on the locale, so the demo can show all five languages
+// without depending on the flutter_localizations package (this package has
+// none of its own dependencies, and the example follows suit). See
+// test/locale_host.dart in the package root for the same pattern used by
+// the test suite.
+class _AnyLocaleWidgetsLocalizations
+    extends LocalizationsDelegate<WidgetsLocalizations> {
+  const _AnyLocaleWidgetsLocalizations();
+  @override
+  bool isSupported(Locale locale) => true;
+  @override
+  Future<WidgetsLocalizations> load(Locale locale) =>
+      DefaultWidgetsLocalizations.load(locale);
+  @override
+  bool shouldReload(_AnyLocaleWidgetsLocalizations old) => false;
+}
+
+class _AnyLocaleMaterialLocalizations
+    extends LocalizationsDelegate<MaterialLocalizations> {
+  const _AnyLocaleMaterialLocalizations();
+  @override
+  bool isSupported(Locale locale) => true;
+  @override
+  Future<MaterialLocalizations> load(Locale locale) =>
+      DefaultMaterialLocalizations.load(locale);
+  @override
+  bool shouldReload(_AnyLocaleMaterialLocalizations old) => false;
+}
+
+const _supportedLocales = [
+  Locale('en'),
+  Locale('de'),
+  Locale('hr'),
+  Locale('tr'),
+  Locale('uk'),
+];
+
 class DemoApp extends StatefulWidget {
   const DemoApp({super.key});
 
@@ -21,6 +64,7 @@ class _DemoAppState extends State<DemoApp> {
   bool _showBubbleTail = false;
   _Screen _screen = _Screen.thread;
   String _composerChannel = 'whatsapp';
+  Locale _locale = const Locale('de');
   late List<ChatMessage> _messages;
 
   @override
@@ -139,6 +183,14 @@ class _DemoAppState extends State<DemoApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      // Nothing is passed to the chat widgets themselves — locale is the
+      // only thing that changes, and ChatStrings.of picks it up from here.
+      locale: _locale,
+      supportedLocales: _supportedLocales,
+      localizationsDelegates: const [
+        _AnyLocaleMaterialLocalizations(),
+        _AnyLocaleWidgetsLocalizations(),
+      ],
       theme: ThemeData(brightness: _dark ? Brightness.dark : Brightness.light),
       home: Scaffold(
         appBar: AppBar(
@@ -340,6 +392,20 @@ class _DemoAppState extends State<DemoApp> {
                 onChanged: (v) => setState(() => _showBubbleTail = v),
               ),
             ],
+          ),
+          DropdownButton<Locale>(
+            value: _locale,
+            items: const [
+              DropdownMenuItem(value: Locale('en'), child: Text('English')),
+              DropdownMenuItem(value: Locale('de'), child: Text('Deutsch')),
+              DropdownMenuItem(value: Locale('hr'), child: Text('Hrvatski')),
+              DropdownMenuItem(value: Locale('tr'), child: Text('Türkçe')),
+              DropdownMenuItem(
+                value: Locale('uk'),
+                child: Text('Українська'),
+              ),
+            ],
+            onChanged: (l) => setState(() => _locale = l ?? _locale),
           ),
         ],
       ),

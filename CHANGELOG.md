@@ -1,3 +1,50 @@
+## 0.15.0
+
+**Behavior changes for existing users:**
+
+* Every word the widgets put on screen — reply/copy/original, retry,
+  today/yesterday, the composer's placeholder and attachment-source labels,
+  the typing indicator, and the mail widgets' subject/to/spam/"possible
+  spam" labels — used to be hard-coded German text. It now comes from the
+  new `ChatStrings`, resolved from the ambient `Locale`
+  (`Localizations.maybeLocaleOf(context)`) via each widget's new optional
+  `strings` parameter — a host that already sets its app `locale` needs to
+  pass nothing. **A host that never set an app locale before will now see
+  English instead of German**: English, not German, is `ChatStrings`'
+  fallback for an unset or unsupported locale.
+* **`ChatStrings`'s main constructor is not backward compatible.** It takes
+  all sixteen fields as `required`, so a call site that builds
+  `ChatStrings(...)` by hand needs to add the new `possibleSpam` field (see
+  below) to keep compiling. This does not affect the five language presets
+  (`ChatStrings.en()` … `ChatStrings.uk()`), which remain unchanged and are
+  the recommended way to get a full set.
+* `ChatHeader.typingLabel` and `ConversationListView.typingLabel` (the
+  per-instance override, not the private per-row field) changed from
+  `String` to `String?` so leaving it unset falls through to
+  `ChatStrings.typing` instead of forcing a value. This is the one
+  signature change in this release that isn't purely additive; every
+  existing call site that passed a `String` still compiles unchanged.
+
+* New `ChatStrings` — sixteen strings (`reply`, `copy`, `original`, `retry`,
+  `today`, `yesterday`, `messageHint`, `send`, `camera`, `gallery`, `file`,
+  `typing`, `spam`, `subject`, `to`, `possibleSpam`) in five languages
+  (`.en()`, `.de()`, `.hr()`, `.tr()`, `.uk()`), matched to the ambient
+  locale via `ChatStrings.forLocale`/`ChatStrings.of`. `possibleSpam` is the
+  sentence shown in an opened mail's header ("Possible spam"), distinct
+  from the short `spam` tag shown in a mail list row. `DateSeparator`,
+  `MessageBubble`, `Composer`, `ChatHeader`, `ConversationListView`,
+  `MailListView`, `MailDetailView`, and `MailComposer` each gained an
+  optional `strings: ChatStrings?` parameter to override individual words
+  without touching the ambient locale.
+* `copyWith` on `ChatMessage`, `ChatMessageRef`, `ChatConversation`,
+  `ChatPresence`, `ChatParticipant`, `ChatAttachment`, and `MailMessage`
+  gained a `clearX` switch (e.g. `clearAvatarUrl: true`) for every nullable
+  field, so a field can be reset to `null` — something `field ?? this.field`
+  alone can't express, since there is no way to tell "leave it" apart from
+  "set it back to null" through that value alone. Passing both `clearX:
+  true` and a non-null value for the same field is a programming error and
+  triggers an assertion.
+
 ## 0.14.0
 
 **Behavior changes for existing users** (nothing here breaks the API — every

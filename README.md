@@ -95,6 +95,34 @@ and `ChatConversation` and handling the `onSend`/`onOpen` callbacks.
   badges built from `ChatConversation.channels` in the subtitle line
   (`channelBadge` still wins when supplied, then `channels`, then the plain
   `channelLabel` text).
+* **`ChatStrings`** — every word the widgets put on screen (reply/copy/retry,
+  today/yesterday, the composer's hint and attachment labels, the typing
+  indicator, and the mail widgets' subject/to/spam labels) lives in one
+  immutable class, resolved from the ambient `Locale` — a host that already
+  sets its app locale needs to pass nothing:
+
+  ```dart
+  // Nothing to pass: the widgets follow the app's locale.
+  MaterialApp(
+    locale: const Locale('uk'),
+    supportedLocales: const [Locale('uk'), Locale('en')],
+    home: ChatThreadView(messages: messages, onSend: send),
+  );
+
+  // Or override a single word:
+  ChatThreadView(
+    messages: messages,
+    onSend: send,
+    strings: const ChatStrings.de().copyWith(retry: 'Nochmal versuchen'),
+  );
+  ```
+
+  Built-in presets cover English, German, Croatian, Turkish, and Ukrainian
+  (`ChatStrings.en()` … `.uk()`); any other locale falls back to English.
+  `copyWith` also takes a `clearX` switch (e.g. `clearAvatarUrl: true`) to
+  empty a nullable field on the various model classes across this package —
+  something `field ?? this.field` alone can't express, since there's no way
+  to tell "leave it" apart from "set it back to null".
 
 ## Installation
 
