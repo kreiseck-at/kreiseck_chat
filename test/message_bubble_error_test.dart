@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kreiseck_chat/kreiseck_chat.dart';
 
+import 'locale_host.dart';
+
 ChatMessage _failed({String errorText = 'Nicht zugestellt'}) => ChatMessage(
       id: 'm1',
       direction: MessageDirection.outgoing,
@@ -10,53 +12,11 @@ ChatMessage _failed({String errorText = 'Nicht zugestellt'}) => ChatMessage(
       errorText: errorText,
     );
 
-// The framework's Default(Material|Widgets)Localizations only declare
-// themselves supported for 'en' (see their isSupported overrides), so a
-// plain Localizations(locale: de, delegates: [Default...]) drops out of
-// Localizations.of<MaterialLocalizations> entirely -- fine for ChatStrings
-// (which only reads the locale field, not the resource map), but it makes
-// ChatThreadView's composer TextField throw "No MaterialLocalizations
-// found." These wrappers hand back the very same English-only resources,
-// just without gating on the locale, so a German ambient locale can coexist
-// with a TextField in a test without depending on flutter_localizations.
-class _AnyLocaleWidgetsLocalizations
-    extends LocalizationsDelegate<WidgetsLocalizations> {
-  const _AnyLocaleWidgetsLocalizations();
-  @override
-  bool isSupported(Locale locale) => true;
-  @override
-  Future<WidgetsLocalizations> load(Locale locale) =>
-      DefaultWidgetsLocalizations.load(locale);
-  @override
-  bool shouldReload(_AnyLocaleWidgetsLocalizations old) => false;
-}
-
-class _AnyLocaleMaterialLocalizations
-    extends LocalizationsDelegate<MaterialLocalizations> {
-  const _AnyLocaleMaterialLocalizations();
-  @override
-  bool isSupported(Locale locale) => true;
-  @override
-  Future<MaterialLocalizations> load(Locale locale) =>
-      DefaultMaterialLocalizations.load(locale);
-  @override
-  bool shouldReload(_AnyLocaleMaterialLocalizations old) => false;
-}
-
-/// Wraps [child] so [ChatStrings.of] resolves to [locale], while widgets
-/// that need [MaterialLocalizations] (like the composer's TextField) keep
-/// working -- see the delegates above for why the plain Default delegates
-/// alone are not enough here.
-Widget _germanLocaleHost(Widget child) => MaterialApp(
-      home: Localizations(
-        locale: const Locale('de'),
-        delegates: const [
-          _AnyLocaleWidgetsLocalizations(),
-          _AnyLocaleMaterialLocalizations(),
-        ],
-        child: Scaffold(body: child),
-      ),
-    );
+/// Wraps [child] with a German ambient locale -- see `locale_host.dart` for
+/// why a plain `Localizations(locale: de, delegates: [Default...])` is not
+/// enough once a `TextField` is in the tree.
+Widget _germanLocaleHost(Widget child) =>
+    localeHost(child, locale: const Locale('de'));
 
 void main() {
   testWidgets('the error line is readable on the dark background', (tester) async {

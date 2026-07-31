@@ -5,6 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kreiseck_chat/kreiseck_chat.dart';
 
+import 'locale_host.dart';
+
 // 1x1 transparentes PNG als gültige Bytes für MemoryImage im Test.
 final _pixel = MemoryImage(base64Decode(
     'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='));
@@ -44,20 +46,12 @@ ChatMessage _fehlgeschlagen() => ChatMessage(
 // MaterialApp(locale: ...) allein reicht nicht: ohne echte
 // MaterialLocalizations-Übersetzung für die gewünschte Sprache meldet
 // Flutter eine "not supported by all of its localization delegates"-
-// Warnung und der Test schlägt fehl, bevor er überhaupt prüft. Das innere
-// Localizations-Widget überschreibt für seine Nachfahren gezielt nur die
-// Locale, während Directionality/MediaQuery/Navigator/Material weiter von
-// der äußeren MaterialApp kommen.
-Widget _withLocale(Locale locale, Widget child) => MaterialApp(
-      home: Localizations(
-        locale: locale,
-        delegates: const [
-          DefaultWidgetsLocalizations.delegate,
-          DefaultMaterialLocalizations.delegate,
-        ],
-        child: Scaffold(body: child),
-      ),
-    );
+// Warnung und der Test schlägt fehl, bevor er überhaupt prüft. `localeHost`
+// (siehe `locale_host.dart`) überschreibt für seine Nachfahren gezielt nur
+// die Locale, während Directionality/MediaQuery/Navigator/Material weiter
+// von der äußeren MaterialApp kommen.
+Widget _withLocale(Locale locale, Widget child) =>
+    localeHost(child, locale: locale);
 
 void main() {
   testWidgets('renders text and time', (tester) async {
