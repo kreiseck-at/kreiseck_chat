@@ -67,9 +67,13 @@ void main() {
     late ChatStrings mitOverride;
 
     await tester.pumpWidget(
-      MaterialApp(
-        locale: const Locale('en'),
-        home: Builder(
+      Localizations(
+        locale: const Locale('uk'),
+        delegates: const [
+          DefaultWidgetsLocalizations.delegate,
+          DefaultMaterialLocalizations.delegate,
+        ],
+        child: Builder(
           builder: (context) {
             ausKontext = ChatStrings.of(context);
             mitOverride =
@@ -80,7 +84,7 @@ void main() {
       ),
     );
 
-    expect(ausKontext, const ChatStrings.en());
+    expect(ausKontext, const ChatStrings.uk());
     expect(mitOverride, const ChatStrings.de());
   });
 
