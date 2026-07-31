@@ -135,4 +135,17 @@ void main() {
       throwsAssertionError,
     );
   });
+
+  test('clearHeadline behält headline und channel bei einem normalen Aufruf',
+      () {
+    final mitHeadline = basis(
+      channel: const ChatChannel.sms(),
+      headline: 'Betreff',
+    );
+    expect(mitHeadline.copyWith(clearHeadline: true).headline, isNull);
+    // Der Regressionsfall: ohne clear bleiben headline und channel stehen.
+    final unveraendert = mitHeadline.copyWith(status: MessageStatus.sent);
+    expect(unveraendert.headline, 'Betreff');
+    expect(unveraendert.channel, const ChatChannel.sms());
+  });
 }

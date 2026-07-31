@@ -97,4 +97,46 @@ void main() {
     expect(voll.copyWith(clearSenderLabel: true).senderLabel, isNull);
     expect(voll.copyWith(snippet: 'z').senderLabel, 'Ada');
   });
+
+  test('ChatMessageRef: clear zusammen mit einem Wert ist ein Programmierfehler',
+      () {
+    const voll = ChatMessageRef(id: 'x', snippet: 'y', senderLabel: 'Ada');
+    expect(
+      () => voll.copyWith(senderLabel: 'Bea', clearSenderLabel: true),
+      throwsAssertionError,
+    );
+  });
+
+  test(
+      'ChatConversation: clear zusammen mit einem Wert ist ein Programmierfehler '
+      '(String- und DateTime-Feld)', () {
+    final voll = ChatConversation(
+      id: 'c1',
+      title: 'Ada',
+      subtitle: 'Untertitel',
+      lastAt: DateTime(2026, 7, 31, 10),
+    );
+    expect(
+      () => voll.copyWith(subtitle: 'Neu', clearSubtitle: true),
+      throwsAssertionError,
+    );
+    expect(
+      () => voll.copyWith(lastAt: DateTime(2026, 7, 31, 11), clearLastAt: true),
+      throwsAssertionError,
+    );
+  });
+
+  test('ChatConversation: ein normaler Aufruf behält subtitle und lastText',
+      () {
+    final voll = ChatConversation(
+      id: 'c1',
+      title: 'Ada',
+      subtitle: 'Untertitel',
+      lastText: 'Text',
+    );
+    final neu = voll.copyWith(title: 'Neu');
+    expect(neu.subtitle, 'Untertitel');
+    expect(neu.lastText, 'Text');
+    expect(neu.title, 'Neu');
+  });
 }
