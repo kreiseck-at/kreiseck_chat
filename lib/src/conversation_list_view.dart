@@ -4,6 +4,7 @@ import 'chat_avatar.dart';
 import 'chat_capabilities.dart';
 import 'chat_channel_badge.dart';
 import 'chat_participant.dart';
+import 'chat_strings.dart';
 import 'chat_theme.dart';
 import 'models.dart';
 
@@ -17,10 +18,11 @@ class ConversationListView extends StatelessWidget {
     required this.onOpen,
     this.theme = const ChatTheme.light(),
     this.capabilities = const ChatCapabilities.inApp(),
-    this.typingLabel = 'tippt…',
+    this.typingLabel,
     this.channelBadge,
     this.onLongPress,
     this.titleBadgeBuilder,
+    this.strings,
   });
 
   /// Conversations to display.
@@ -35,8 +37,9 @@ class ConversationListView extends StatelessWidget {
   /// Which affordances are allowed.
   final ChatCapabilities capabilities;
 
-  /// Preview label shown while the counterpart is typing.
-  final String typingLabel;
+  /// Preview label shown while the counterpart is typing. Left null, it
+  /// follows [ChatStrings.typing] for the ambient locale (see [strings]).
+  final String? typingLabel;
 
   /// Optional small badge overlaid on the bottom-right of each avatar (e.g. a
   /// channel marker). When provided, the textual channel label is hidden.
@@ -53,8 +56,13 @@ class ConversationListView extends StatelessWidget {
   /// marker.
   final Widget? Function(ChatConversation conversation)? titleBadgeBuilder;
 
+  /// Overrides the words used by this list. Left null, they follow the
+  /// ambient locale (see [ChatStrings.of]).
+  final ChatStrings? strings;
+
   @override
   Widget build(BuildContext context) {
+    final resolved = ChatStrings.of(context, override: strings);
     return Material(
       color: theme.colors.background,
       child: ListView.builder(
@@ -65,7 +73,7 @@ class ConversationListView extends StatelessWidget {
             conversation: c,
             theme: theme,
             capabilities: capabilities,
-            typingLabel: typingLabel,
+            typingLabel: typingLabel ?? resolved.typing,
             badge: channelBadge?.call(c),
             titleBadge: titleBadgeBuilder?.call(c),
             onTap: () => onOpen(c),

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kreiseck_chat/kreiseck_chat.dart';
 
+import 'locale_host.dart';
+
 void main() {
   testWidgets('renders title and last text; tap opens', (tester) async {
     ChatConversation? opened;
@@ -22,17 +24,16 @@ void main() {
   });
 
   testWidgets('typing preview overrides last text when enabled', (tester) async {
-    await tester.pumpWidget(MaterialApp(
-      home: Scaffold(
-        body: ConversationListView(
-          conversations: const [
-            ChatConversation(
-                id: 'c1', title: 'Ada', lastText: 'Bis morgen', typing: true),
-          ],
-          onOpen: (_) {},
-          capabilities: const ChatCapabilities.inApp(),
-        ),
+    await tester.pumpWidget(localeHost(
+      ConversationListView(
+        conversations: const [
+          ChatConversation(
+              id: 'c1', title: 'Ada', lastText: 'Bis morgen', typing: true),
+        ],
+        onOpen: (_) {},
+        capabilities: const ChatCapabilities.inApp(),
       ),
+      locale: const Locale('de'),
     ));
     expect(find.text('tippt…'), findsOneWidget);
     expect(find.text('Bis morgen'), findsNothing);
@@ -346,6 +347,19 @@ void main() {
       ),
     ));
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Tipp-Vorschau folgt der App-Sprache', (tester) async {
+    await tester.pumpWidget(localeHost(
+      ConversationListView(
+        conversations: const [
+          ChatConversation(id: 'c1', title: 'Ada', typing: true),
+        ],
+        onOpen: (_) {},
+      ),
+      locale: const Locale('uk'),
+    ));
+    expect(find.text('пише…'), findsOneWidget);
   });
 }
 

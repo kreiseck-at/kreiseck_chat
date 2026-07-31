@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'chat_avatar.dart';
 import 'chat_capabilities.dart';
 import 'chat_participant.dart';
+import 'chat_strings.dart';
 import 'chat_theme.dart';
 import 'presence_label.dart';
 
@@ -21,7 +22,8 @@ class ChatHeader extends StatelessWidget {
     this.now,
     this.actions = const [],
     this.onBack,
-    this.typingLabel = 'tippt…',
+    this.typingLabel,
+    this.strings,
   });
 
   /// Contact/group name.
@@ -54,11 +56,18 @@ class ChatHeader extends StatelessWidget {
   /// Optional back handler (renders a back button when set).
   final VoidCallback? onBack;
 
-  /// Label shown while typing.
-  final String typingLabel;
+  /// Label shown while typing. Left null, it follows [ChatStrings.typing]
+  /// for the ambient locale (see [strings]).
+  final String? typingLabel;
 
-  String? _subtitle() {
-    if (typing && capabilities.typingIndicator) return typingLabel;
+  /// Overrides the words used by this header. Left null, they follow the
+  /// ambient locale (see [ChatStrings.of]).
+  final ChatStrings? strings;
+
+  String? _subtitle(ChatStrings resolved) {
+    if (typing && capabilities.typingIndicator) {
+      return typingLabel ?? resolved.typing;
+    }
     if (capabilities.presence) {
       return formatPresenceLabel(presence, now: now ?? DateTime.now());
     }
@@ -67,7 +76,8 @@ class ChatHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final subtitle = _subtitle();
+    final resolved = ChatStrings.of(context, override: strings);
+    final subtitle = _subtitle(resolved);
     return Material(
       color: theme.colors.composer,
       child: SafeArea(
