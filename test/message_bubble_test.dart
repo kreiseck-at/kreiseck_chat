@@ -32,6 +32,33 @@ ChatMessage _withImages(int n, {String text = ''}) {
   );
 }
 
+ChatMessage _fehlgeschlagen() => ChatMessage(
+      id: 'loc1',
+      direction: MessageDirection.outgoing,
+      text: 'Hallo',
+      at: DateTime(2026, 7, 31, 10),
+      status: MessageStatus.failed,
+      errorText: 'Grund',
+    );
+
+// MaterialApp(locale: ...) allein reicht nicht: ohne echte
+// MaterialLocalizations-Übersetzung für die gewünschte Sprache meldet
+// Flutter eine "not supported by all of its localization delegates"-
+// Warnung und der Test schlägt fehl, bevor er überhaupt prüft. Das innere
+// Localizations-Widget überschreibt für seine Nachfahren gezielt nur die
+// Locale, während Directionality/MediaQuery/Navigator/Material weiter von
+// der äußeren MaterialApp kommen.
+Widget _withLocale(Locale locale, Widget child) => MaterialApp(
+      home: Localizations(
+        locale: locale,
+        delegates: const [
+          DefaultWidgetsLocalizations.delegate,
+          DefaultMaterialLocalizations.delegate,
+        ],
+        child: Scaffold(body: child),
+      ),
+    );
+
 void main() {
   testWidgets('renders text and time', (tester) async {
     await tester.pumpWidget(MaterialApp(
@@ -286,6 +313,7 @@ void main() {
           // Like the SMS/WhatsApp profile: no reactions/replies, just copy.
           capabilities: const ChatCapabilities.custom(readReceipts: true),
           onCopy: () => copied++,
+          strings: const ChatStrings.de(),
         ),
       ),
     ));
@@ -476,6 +504,7 @@ void main() {
                 const ChatTranslation(text: 'Hallo dort', languageLabel: 'DE'),
           ),
           onCopy: () => copied++,
+          strings: const ChatStrings.de(),
         ),
       ),
     ));
@@ -628,5 +657,33 @@ void main() {
         (container.decoration as BoxDecoration).borderRadius as BorderRadius;
     expect(radius.bottomRight, radius.topRight);
     expect(radius.bottomLeft, radius.topLeft);
+  });
+
+  testWidgets('Texte folgen der App-Sprache', (tester) async {
+    await tester.pumpWidget(_withLocale(
+      const Locale('uk'),
+      MessageBubble(message: _fehlgeschlagen(), onRetry: () {}),
+    ));
+    expect(find.text('Надіслати ще раз'), findsOneWidget);
+  });
+
+  testWidgets('strings-Override gewinnt über die App-Sprache', (tester) async {
+    await tester.pumpWidget(_withLocale(
+      const Locale('uk'),
+      MessageBubble(
+        message: _fehlgeschlagen(),
+        onRetry: () {},
+        strings: const ChatStrings.de(),
+      ),
+    ));
+    expect(find.text('Erneut senden'), findsOneWidget);
+  });
+
+  testWidgets('unter Locale de bleibt alles wie bisher', (tester) async {
+    await tester.pumpWidget(_withLocale(
+      const Locale('de'),
+      MessageBubble(message: _fehlgeschlagen(), onRetry: () {}),
+    ));
+    expect(find.text('Erneut senden'), findsOneWidget);
   });
 }

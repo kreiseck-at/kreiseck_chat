@@ -9,6 +9,7 @@ import 'chat_capabilities.dart';
 import 'chat_channel.dart';
 import 'chat_channel_badge.dart';
 import 'chat_reaction.dart';
+import 'chat_strings.dart';
 import 'chat_theme.dart';
 import 'models.dart';
 
@@ -33,6 +34,7 @@ class MessageBubble extends StatefulWidget {
     this.onOpenImages,
     this.onCopy,
     this.onRetry,
+    this.strings,
   });
 
   /// The message to render.
@@ -75,6 +77,10 @@ class MessageBubble extends StatefulWidget {
   /// hides the action, leaving only the failure reason.
   final VoidCallback? onRetry;
 
+  /// Overrides the words used by this bubble. Left null, they follow the
+  /// ambient locale (see [ChatStrings.of]).
+  final ChatStrings? strings;
+
   @override
   State<MessageBubble> createState() => _MessageBubbleState();
 }
@@ -113,8 +119,11 @@ class _MessageBubbleState extends State<MessageBubble> {
   }
 
   /// Opens a context menu anchored at the long-press position (not a bottom
-  /// sheet), like a native message dropdown.
-  Future<void> _openActions(BuildContext context, Offset globalPosition) async {
+  /// sheet), like a native message dropdown. [strings] is the already
+  /// resolved [ChatStrings] from [build] — resolved once there, passed down
+  /// rather than looked up again.
+  Future<void> _openActions(
+      BuildContext context, Offset globalPosition, ChatStrings strings) async {
     if (widget.theme.motion.hapticsEnabled &&
         widget.theme.motion.hapticOnLongPress) {
       HapticFeedback.mediumImpact();
@@ -155,12 +164,12 @@ class _MessageBubbleState extends State<MessageBubble> {
         if (widget.capabilities.replies)
           PopupMenuItem<String>(
             value: 'reply',
-            child: _menuRow(widget.theme.icons.reply, 'Antworten', menuColor),
+            child: _menuRow(widget.theme.icons.reply, strings.reply, menuColor),
           ),
         if (widget.message.text.isNotEmpty)
           PopupMenuItem<String>(
             value: 'copy',
-            child: _menuRow(widget.theme.icons.copy, 'Kopieren', menuColor),
+            child: _menuRow(widget.theme.icons.copy, strings.copy, menuColor),
           ),
       ],
     );
@@ -185,6 +194,7 @@ class _MessageBubbleState extends State<MessageBubble> {
     final theme = widget.theme;
     final message = widget.message;
     final capabilities = widget.capabilities;
+    final strings = ChatStrings.of(context, override: widget.strings);
     final colors = theme.colors;
     final bubbleColor =
         _isOutgoing ? colors.outgoingBubble : colors.incomingBubble;
@@ -223,6 +233,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                 onOpen: widget.onOpenAttachment,
                 onOpenImages: widget.onOpenImages,
                 theme: theme,
+                strings: strings,
               ),
             ),
           if ((message.headline ?? '').isNotEmpty)
@@ -276,7 +287,7 @@ class _MessageBubbleState extends State<MessageBubble> {
               child: Text(
                 _showTranslation
                     ? message.translation!.languageLabel
-                    : 'Original',
+                    : strings.original,
                 style: theme.typography.timestamp.copyWith(color: ink.muted),
               ),
             ),
@@ -354,7 +365,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
                     child: Text(
-                      'Erneut senden',
+                      strings.retry,
                       style: theme.typography.timestamp.copyWith(
                         fontSize: (theme.typography.timestamp.fontSize ?? 11) + 1,
                         color: theme.colors.errorOnBackground,
@@ -373,8 +384,9 @@ class _MessageBubbleState extends State<MessageBubble> {
     final canAct =
         capabilities.reactions || capabilities.replies || message.text.isNotEmpty;
     content = GestureDetector(
-      onLongPressStart:
-          canAct ? (details) => _openActions(context, details.globalPosition) : null,
+      onLongPressStart: canAct
+          ? (details) => _openActions(context, details.globalPosition, strings)
+          : null,
       onHorizontalDragEnd: capabilities.replies
           ? (details) {
               final v = details.primaryVelocity ?? 0;
@@ -536,12 +548,16 @@ class _Album extends StatelessWidget {
     required this.onOpen,
     required this.onOpenImages,
     required this.theme,
+    required this.strings,
   });
 
   final List<ChatAttachment> attachments;
   final void Function(ChatAttachment)? onOpen;
   final void Function(List<ChatAttachment> images, int index)? onOpenImages;
   final ChatTheme theme;
+
+  /// Resolved by the caller's [ChatStrings.of] — not looked up again here.
+  final ChatStrings strings;
 
   static const double _gap = 2;
 
@@ -570,7 +586,7 @@ class _Album extends StatelessWidget {
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
                       const Icon(Icons.insert_drive_file_outlined, size: 20),
                       const SizedBox(width: 6),
-                      Flexible(child: Text(a.fileName ?? 'Datei')),
+                      Flexible(child: Text(a.fileName ?? strings.file)),
                     ]),
                   ),
                 ))
