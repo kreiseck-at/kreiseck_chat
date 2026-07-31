@@ -87,7 +87,11 @@ class MessageBubble extends StatefulWidget {
 
 class _MessageBubbleState extends State<MessageBubble> {
   /// Shows the translation instead of the original text.
-  bool _showTranslation = false;
+  late bool _showTranslation = _initialSide(widget.message);
+
+  /// Which side the bubble opens on — the translation when it is marked
+  /// [ChatTranslation.showFirst], the original otherwise.
+  static bool _initialSide(ChatMessage m) => m.translation?.showFirst ?? false;
 
   @override
   void didUpdateWidget(covariant MessageBubble oldWidget) {
@@ -96,7 +100,7 @@ class _MessageBubbleState extends State<MessageBubble> {
     // unkeyed ListView.builder recycling list items) — reset the toggle so a
     // stale translation state doesn't leak onto the new message.
     if (oldWidget.message.id != widget.message.id) {
-      _showTranslation = false;
+      _showTranslation = _initialSide(widget.message);
     }
   }
 

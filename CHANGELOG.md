@@ -63,6 +63,11 @@
   to be an inline literal with no way to override it. For Turkish this is
   deliberately a single space rather than a word (see
   `ChatStrings.tr().lastSeenAtJoiner`).
+* New `ChatTranslation.showFirst` (default `false`, so nothing changes for
+  existing callers): the bubble opens on the translation rather than the
+  original, putting the original one tap away. For readers who picked a
+  language they prefer to read in — an inbox that translates incoming
+  messages into the reader's language wants the translation in front.
 * `copyWith` on `ChatMessage`, `ChatMessageRef`, `ChatConversation`,
   `ChatPresence`, `ChatParticipant`, `ChatAttachment`, and `MailMessage`
   gained a `clearX` switch (e.g. `clearAvatarUrl: true`) for every nullable

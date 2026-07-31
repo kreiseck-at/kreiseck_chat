@@ -56,7 +56,11 @@ enum ChatMessageKind {
 @immutable
 class ChatTranslation {
   /// Creates a translation.
-  const ChatTranslation({required this.text, required this.languageLabel});
+  const ChatTranslation({
+    required this.text,
+    required this.languageLabel,
+    this.showFirst = false,
+  });
 
   /// The translated text.
   final String text;
@@ -64,11 +68,22 @@ class ChatTranslation {
   /// Short language label, e.g. `'UK'` or `'German'`.
   final String languageLabel;
 
+  /// Whether the bubble opens on the translation rather than the original.
+  ///
+  /// Set this when the reader has chosen a language they prefer to read in —
+  /// the original then sits one tap away, instead of the other way round.
+  final bool showFirst;
+
   /// Returns a copy of this translation with the given fields replaced.
-  ChatTranslation copyWith({String? text, String? languageLabel}) =>
+  ChatTranslation copyWith({
+    String? text,
+    String? languageLabel,
+    bool? showFirst,
+  }) =>
       ChatTranslation(
         text: text ?? this.text,
         languageLabel: languageLabel ?? this.languageLabel,
+        showFirst: showFirst ?? this.showFirst,
       );
 
   @override
@@ -76,11 +91,12 @@ class ChatTranslation {
     if (identical(this, other)) return true;
     return other is ChatTranslation &&
         other.text == text &&
-        other.languageLabel == languageLabel;
+        other.languageLabel == languageLabel &&
+        other.showFirst == showFirst;
   }
 
   @override
-  int get hashCode => Object.hash(text, languageLabel);
+  int get hashCode => Object.hash(text, languageLabel, showFirst);
 }
 
 /// A single message within a chat thread.

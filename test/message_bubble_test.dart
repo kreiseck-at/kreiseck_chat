@@ -468,6 +468,32 @@ void main() {
     expect(find.text('Original'), findsOneWidget);
   });
 
+  testWidgets('showFirst öffnet die Blase auf der Übersetzung',
+      (tester) async {
+    // Für Leserinnen mit einer bevorzugten Sprache: die Übersetzung steht
+    // vorne, das Original ist einen Tipp entfernt.
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: MessageBubble(
+          message: m(
+            text: 'Привіт',
+            translation: const ChatTranslation(
+              text: 'Hallo dort',
+              languageLabel: 'DE',
+              showFirst: true,
+            ),
+          ),
+        ),
+      ),
+    ));
+    expect(find.text('Hallo dort'), findsOneWidget);
+    expect(find.text('DE'), findsOneWidget);
+    await tester.tap(find.text('Hallo dort'));
+    await tester.pumpAndSettle();
+    expect(find.text('Привіт'), findsOneWidget);
+    expect(find.text('Original'), findsOneWidget);
+  });
+
   testWidgets(
       'Sprach-/Original-Label bleibt bei leerem Originaltext verborgen',
       (tester) async {

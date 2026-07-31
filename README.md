@@ -68,7 +68,8 @@ and `ChatConversation` and handling the `onSend`/`onOpen` callbacks.
   `errorText` under a failed bubble with an `onRetry` callback that shows a
   "Erneut senden" action next to it (omit it to show just the failure
   reason, with no retry action), and — when `translation` is set — a
-  tap-to-toggle between original text and translation.
+  tap-to-toggle between original text and translation (which side it opens
+  on follows `ChatTranslation.showFirst`).
 * **`ChatSystemCard`** — a centered card for non-message content in the
   thread: system notes, logged events, summaries. Messages with
   `kind: ChatMessageKind.system` render as this automatically.
