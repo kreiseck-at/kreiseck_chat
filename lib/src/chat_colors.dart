@@ -106,14 +106,25 @@ class ChatColors {
   /// the message text rather than independently chasing raw contrast (see
   /// [BubbleInk.forSurface]). A [bubble] that is neither falls back to the
   /// plain contrast-maximizing derivation.
-  BubbleInk inkFor(Color bubble) {
-    if (bubble == outgoingBubble) {
-      return outgoingInk ??
-          BubbleInk.forSurface(bubble, textColor: outgoingText);
+  ///
+  /// [isOutgoing] disambiguates which bubble [bubble] is when a host's
+  /// [incomingBubble] and [outgoingBubble] share the same color — in that
+  /// case comparing [bubble] against either field can't tell them apart, so
+  /// a caller that already knows the direction of the bubble it is painting
+  /// should pass it explicitly. Left `null` (the default), the direction is
+  /// inferred from [bubble] as before, which is ambiguous only in that
+  /// shared-color case.
+  BubbleInk inkFor(Color bubble, {bool? isOutgoing}) {
+    final matchesOutgoing = isOutgoing ?? bubble == outgoingBubble;
+    final matchesIncoming = isOutgoing == null ? bubble == incomingBubble : !isOutgoing;
+
+    if (matchesOutgoing && outgoingInk != null) return outgoingInk!;
+    if (matchesIncoming && incomingInk != null) return incomingInk!;
+    if (matchesOutgoing) {
+      return BubbleInk.forSurface(bubble, textColor: outgoingText);
     }
-    if (bubble == incomingBubble) {
-      return incomingInk ??
-          BubbleInk.forSurface(bubble, textColor: incomingText);
+    if (matchesIncoming) {
+      return BubbleInk.forSurface(bubble, textColor: incomingText);
     }
     return BubbleInk.forSurface(bubble);
   }

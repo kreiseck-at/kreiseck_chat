@@ -32,12 +32,15 @@ even for hosts that never touch `ChatColors` or `ChatTheme` directly):
   `ChatColors.inkFor` now passes it (`outgoingText`/`incomingText`) so a
   bubble's derived timestamp, reply name and quote bar follow the polarity
   of the message text actually painted on it, instead of independently
-  picking whichever of black/white contrasts more. On the standard blue
+  picking whichever of black/white contrasts more. `line` still guarantees
+  3:1; `text`/`muted` reach 4.5:1 wherever that polarity allows it, and fall
+  back to that same 3:1 floor where it doesn't. On the standard blue
   `#3478F6` outgoing bubble with white `outgoingText`, this deliberately
-  caps the derived text contrast around 4.07:1 instead of the usual 4.5:1 —
-  a known trade-off in favor of one consistent, non-clashing tone across the
-  bubble; `forSurface` still falls back to the higher-contrast polarity when
-  the requested one can't clear even 3:1.
+  caps `text` around 4.07:1 and `muted` around 3:1 instead of the usual
+  4.5:1 — a known trade-off in favor of one consistent, non-clashing tone
+  across the bubble rather than maximum contrast; `forSurface` still falls
+  back to the higher-contrast polarity when the requested one can't clear
+  even 3:1.
 * `ChatColors.replyAccent` is now `@Deprecated`: the reply quote's border,
   sender name and quoted text come from the bubble's derived ink (see above)
   and no longer read this field, so setting it has no effect. It stays in

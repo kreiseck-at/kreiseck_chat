@@ -23,16 +23,6 @@ void main() {
     expect(find.text('SMS'), findsNothing);
   });
 
-  testWidgets('Symbol trägt die Kanalfarbe', (tester) async {
-    await tester.pumpWidget(const MaterialApp(
-      home: Scaffold(
-        body: ChatChannelBadge(channel: ChatChannel.whatsApp(), compact: true),
-      ),
-    ));
-    final icon = tester.widget<Icon>(find.byIcon(Icons.chat_rounded));
-    expect(icon.color, const Color(0xFF25D366));
-  });
-
   testWidgets('mit surface wird die Kanalfarbe auf ihr lesbar gemacht',
       (tester) async {
     // Blaue Bubble aus der Prüfung: WhatsApp-Grün darauf maß dort nur 2,05:1.

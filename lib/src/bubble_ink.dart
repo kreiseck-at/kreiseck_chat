@@ -15,9 +15,11 @@ class BubbleInk {
   /// can't reach it (the accepted standard-blue trade-off; see there).
   final Color text;
 
-  /// Timestamps, delivery status, quoted text. Reaches at least 4.5:1 (with
-  /// the same `textColor` caveat as [text]) but is visibly softer than
-  /// [text].
+  /// Timestamps, delivery status, quoted text. Reaches at least 4.5:1 when
+  /// [text] itself does (same `textColor` caveat as [text]); when [text]
+  /// falls short of 4.5:1, [muted] still mixes further towards the surface
+  /// than [text], as far as the shared 3:1 floor allows, so it stays
+  /// visibly softer instead of collapsing to the exact same color as [text].
   final Color muted;
 
   /// Quote bars, dividers and other non-text marks. Reaches at least 3:1.
@@ -70,9 +72,15 @@ class BubbleInk {
   ///   invisible — e.g. white ink on a white surface.
   factory BubbleInk.forSurface(Color surface, {Color? textColor}) {
     final base = _resolveBase(surface, textColor);
+    // When the base itself already falls short of 4.5:1 (the accepted
+    // standard-blue trade-off above), aiming _mixUntil at 4.5 would abort on
+    // its very first step and leave `muted` identical to `text`. Falling
+    // back to the shared 3:1 floor in that case still lets it mix one step
+    // softer, exactly as `line` does, instead of collapsing to `text`.
+    final mutedTarget = contrastRatio(base, surface) >= 4.5 ? 4.5 : 3.0;
     return BubbleInk(
       text: base,
-      muted: _mixUntil(base, surface, 4.5),
+      muted: _mixUntil(base, surface, mutedTarget),
       line: _mixUntil(base, surface, 3.0),
     );
   }

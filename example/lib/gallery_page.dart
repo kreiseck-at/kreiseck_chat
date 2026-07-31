@@ -123,13 +123,19 @@ class _GalleryPageState extends State<GalleryPage> {
   ChatColors get _colors {
     final base = _dark ? const ChatColors.dark() : const ChatColors.light();
     // outgoingText follows the chosen bubble via BubbleInk.forSurface, the
-    // same derivation ChatColors.inkFor would fall back to -- otherwise a
-    // light swatch (yellow, white, #E9E9EB) would keep the fixed white
-    // outgoingText from the base palette and show white-on-white instead of
-    // demonstrating what the derivation is for.
+    // same derivation ChatColors.inkFor would fall back to -- but, like
+    // inkFor, steered by the base palette's own outgoingText so the gallery
+    // shows the real shipped state: white stays white on the default blue
+    // (the accepted ~4.07:1 trade-off) instead of switching to
+    // higher-contrast black just because black measures better in
+    // isolation. On a light swatch (yellow, white, #E9E9EB) white can't even
+    // reach 3:1, so the polarity exception in BubbleInk.forSurface still
+    // switches it to black -- exactly what would happen in the app.
     return base.copyWith(
       outgoingBubble: _outgoingBubble,
-      outgoingText: BubbleInk.forSurface(_outgoingBubble).text,
+      outgoingText:
+          BubbleInk.forSurface(_outgoingBubble, textColor: base.outgoingText)
+              .text,
     );
   }
 

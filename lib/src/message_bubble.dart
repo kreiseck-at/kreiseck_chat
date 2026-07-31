@@ -189,7 +189,7 @@ class _MessageBubbleState extends State<MessageBubble> {
     final bubbleColor =
         _isOutgoing ? colors.outgoingBubble : colors.incomingBubble;
     final textColor = _isOutgoing ? colors.outgoingText : colors.incomingText;
-    final ink = colors.inkFor(bubbleColor);
+    final ink = colors.inkFor(bubbleColor, isOutgoing: _isOutgoing);
 
     final hasMedia = capabilities.media && message.attachments.isNotEmpty;
     final maxBubbleWidth = MediaQuery.of(context).size.width * 0.75;

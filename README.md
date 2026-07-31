@@ -47,10 +47,16 @@ and `ChatConversation` and handling the `onSend`/`onOpen` callbacks.
   fixed values: `ChatColors.inkFor(bubble)` returns a `BubbleInk` derived
   from that bubble's own fill color via `BubbleInk.forSurface`, so a host
   picking any custom `outgoingBubble`/`incomingBubble` color still gets
-  legible text without hand-picking a matching text color. `text` and
-  `muted` reach at least 4.5:1 against the bubble, `line` at least 3:1.
-  Set `incomingInk`/`outgoingInk` on `ChatColors` to override the
-  derivation for a given bubble. The lower-level `readableOn(surface,
+  legible text without hand-picking a matching text color. The derived
+  tones follow the polarity of that bubble's own text color
+  (`outgoingText`/`incomingText`), so timestamp, quote bar and reply name
+  always match the message text instead of independently chasing raw
+  contrast. `line` is guaranteed at least 3:1; `text` and `muted` reach
+  4.5:1 wherever that polarity allows it, and fall back to the same 3:1
+  floor where it doesn't — e.g. on the default outgoing blue, white text
+  only reaches 4.07:1, an accepted trade-off for one consistent tone over
+  maximum contrast. Set `incomingInk`/`outgoingInk` on `ChatColors` to
+  override the derivation for a given bubble. The lower-level `readableOn(surface,
   desired, {target})` and `contrastRatio(a, b)` helpers do the same for
   colors that must keep their own hue (e.g. an error red or the read-tick
   blue) rather than being replaced outright — used throughout the bubble,

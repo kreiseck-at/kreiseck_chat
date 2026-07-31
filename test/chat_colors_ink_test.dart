@@ -38,6 +38,47 @@ void main() {
     expect(colors.inkFor(colors.incomingBubble).text, isNot(const Color(0xFF00FF00)));
   });
 
+  test(
+      'a set incomingInk still wins when incoming and outgoing bubbles share '
+      'a color', () {
+    // Regression: inkFor used to return unconditionally as soon as bubble ==
+    // outgoingBubble, so once both bubbles share a fill color a set
+    // incomingInk was silently ignored -- the caller must pass isOutgoing to
+    // disambiguate, since bubble color equality can no longer do it.
+    const incomingInk = BubbleInk(
+      text: Color(0xFF00FF00),
+      muted: Color(0xFF00FF00),
+      line: Color(0xFF00FF00),
+    );
+    const base = ChatColors.light();
+    final colors =
+        base.copyWith(outgoingBubble: base.incomingBubble, incomingInk: incomingInk);
+    expect(colors.incomingBubble, colors.outgoingBubble);
+
+    expect(colors.inkFor(colors.incomingBubble, isOutgoing: false), incomingInk);
+    // The outgoing bubble must not pick up incomingInk just because the
+    // colors match, nor should it fall back to incomingText's polarity.
+    expect(colors.inkFor(colors.outgoingBubble, isOutgoing: true), isNot(incomingInk));
+  });
+
+  test(
+      'the incoming bubble derives from incomingText, not outgoingText, when '
+      'both bubbles share a color', () {
+    // Regression: with incomingBubble == outgoingBubble, inkFor used to
+    // treat every call as the outgoing bubble and derive from outgoingText's
+    // polarity regardless of which bubble was actually meant.
+    const base = ChatColors.light();
+    // The light preset already has a dark incomingText and a light
+    // outgoingText -- share the outgoing bubble's blue so a bug that
+    // defaults to outgoingText's polarity is visible as light (not dark)
+    // derived tones.
+    final colors = base.copyWith(incomingBubble: base.outgoingBubble);
+    expect(colors.incomingBubble, colors.outgoingBubble);
+
+    final ink = colors.inkFor(colors.incomingBubble, isOutgoing: false);
+    expect(relativeLuminance(ink.text), lessThan(0.5));
+  });
+
   test('the error tone is readable on both backgrounds', () {
     const light = ChatColors.light();
     const dark = ChatColors.dark();

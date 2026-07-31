@@ -177,6 +177,7 @@ class _ConversationTile extends StatelessWidget {
                           channel: c,
                           compact: true,
                           theme: theme,
+                          surface: theme.colors.background,
                         ))
                     .toList(),
               ),

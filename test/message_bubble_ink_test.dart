@@ -65,8 +65,11 @@ void main() {
     // 4.5:1 target. inkFor deliberately keeps that polarity anyway (see
     // BubbleInk.forSurface) so timestamp, reply name and quote bar stay
     // light like the message text instead of flipping to a higher-contrast
-    // black that would clash with it. 4.0 gives a hair of floating-point
-    // headroom below the measured 4.067:1 floor.
+    // black that would clash with it. Since the base tone itself falls short
+    // of 4.5:1 here, `muted` mixes further towards the bubble than `text`
+    // down to the shared 3:1 floor instead of collapsing to the same tone
+    // (see BubbleInk.forSurface) -- 3.0 is therefore the floor every derived
+    // color is held to, not the 4.0 that `text`/`line` individually clear.
     const theme = ChatTheme.light();
     final colors = await _textColors(tester, theme: theme);
 
@@ -74,7 +77,7 @@ void main() {
       expect(relativeLuminance(c), greaterThan(0.5),
           reason: 'Farbe $c auf der Bubble');
       expect(contrastRatio(c, theme.colors.outgoingBubble),
-          greaterThanOrEqualTo(4.0),
+          greaterThanOrEqualTo(3.0),
           reason: 'Farbe $c auf der Bubble');
     }
   });

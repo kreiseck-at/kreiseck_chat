@@ -182,6 +182,33 @@ void main() {
     expect(find.byType(ChatChannelBadge), findsNWidgets(2));
   });
 
+  testWidgets('Kanäle-Reihe reicht die Listen-Fläche als surface durch',
+      (tester) async {
+    // Regression: ohne surface malt ChatChannelBadge die rohe Markenfarbe --
+    // z. B. WhatsApp-Grün mit nur 2,05:1 auf dem hellen Listenhintergrund.
+    // Die Fläche ist hier bekannt (die Zeile liegt auf theme.colors.background),
+    // anders als bei der freistehenden Verwendung, für die surface null
+    // bleiben soll.
+    const theme = ChatTheme.light();
+    await tester.pumpWidget(const MaterialApp(
+      home: Scaffold(
+        body: ConversationListView(
+          conversations: [
+            ChatConversation(
+              id: 'c1',
+              title: 'Ada',
+              channels: [ChatChannel.whatsApp()],
+            ),
+          ],
+          onOpen: _nichts,
+          theme: theme,
+        ),
+      ),
+    ));
+    final badge = tester.widget<ChatChannelBadge>(find.byType(ChatChannelBadge));
+    expect(badge.surface, theme.colors.background);
+  });
+
   testWidgets('channelBadge hat Vorrang vor der Kanäle-Reihe', (tester) async {
     await tester.pumpWidget(MaterialApp(
       home: Scaffold(
