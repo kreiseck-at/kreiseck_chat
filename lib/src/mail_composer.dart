@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'chat_strings.dart';
 import 'mail_theme.dart';
 
 /// A composer for a new mail: recipient, subject and body fields plus a
@@ -16,6 +17,7 @@ class MailComposer extends StatefulWidget {
     this.initialSubject = '',
     this.initialBody = '',
     this.theme = const MailTheme.light(),
+    this.strings,
   });
 
   /// Called with (to, subject, body) when the user submits the mail.
@@ -32,6 +34,10 @@ class MailComposer extends StatefulWidget {
 
   /// Visual configuration; defaults to [MailTheme.light].
   final MailTheme theme;
+
+  /// Overrides the words used by this composer. Left null, they follow the
+  /// ambient locale (see [ChatStrings.of]).
+  final ChatStrings? strings;
 
   @override
   State<MailComposer> createState() => _MailComposerState();
@@ -80,6 +86,7 @@ class _MailComposerState extends State<MailComposer> {
   @override
   Widget build(BuildContext context) {
     final theme = widget.theme;
+    final strings = ChatStrings.of(context, override: widget.strings);
     return Material(
       color: theme.surfaceColor,
       child: Padding(
@@ -91,13 +98,13 @@ class _MailComposerState extends State<MailComposer> {
             TextField(
               controller: _toController,
               key: const ValueKey('mail-to'),
-              decoration: const InputDecoration(labelText: 'An'),
+              decoration: InputDecoration(labelText: strings.to),
             ),
             const SizedBox(height: 8),
             TextField(
               controller: _subjectController,
               key: const ValueKey('mail-subject'),
-              decoration: const InputDecoration(labelText: 'Betreff'),
+              decoration: InputDecoration(labelText: strings.subject),
             ),
             const SizedBox(height: 8),
             TextField(
@@ -117,7 +124,7 @@ class _MailComposerState extends State<MailComposer> {
                     : theme.accentColor.withValues(alpha: 0.4),
                 foregroundColor: Colors.white,
               ),
-              child: const Text('Senden'),
+              child: Text(strings.send),
             ),
           ],
         ),

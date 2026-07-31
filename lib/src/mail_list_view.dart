@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'chat_strings.dart';
 import 'mail_models.dart';
 import 'mail_theme.dart';
 
@@ -15,6 +16,7 @@ class MailListView extends StatelessWidget {
     required this.onOpen,
     this.theme = const MailTheme.light(),
     this.badge,
+    this.strings,
   });
 
   /// Messages to display.
@@ -30,8 +32,13 @@ class MailListView extends StatelessWidget {
   /// a leading sender avatar. When null, no avatar column is shown.
   final Widget? badge;
 
+  /// Overrides the words used by this view. Left null, they follow the
+  /// ambient locale (see [ChatStrings.of]).
+  final ChatStrings? strings;
+
   @override
   Widget build(BuildContext context) {
+    final strings = ChatStrings.of(context, override: this.strings);
     if (messages.isEmpty) {
       return Material(
         color: theme.background,
@@ -58,6 +65,7 @@ class MailListView extends StatelessWidget {
             message: message,
             theme: theme,
             badge: badge,
+            strings: strings,
             onTap: () => onOpen(message),
           );
         },
@@ -71,12 +79,14 @@ class _MailTile extends StatelessWidget {
     required this.message,
     required this.theme,
     required this.badge,
+    required this.strings,
     required this.onTap,
   });
 
   final MailMessage message;
   final MailTheme theme;
   final Widget? badge;
+  final ChatStrings strings;
   final VoidCallback onTap;
 
   String get _initial {
@@ -146,7 +156,7 @@ class _MailTile extends StatelessWidget {
                       ),
                       if (message.spam) ...[
                         const SizedBox(width: 6),
-                        _SpamLabel(theme: theme),
+                        _SpamLabel(theme: theme, text: strings.spam),
                       ],
                     ],
                   ),
@@ -167,9 +177,10 @@ class _MailTile extends StatelessWidget {
 
 /// Small muted "Spam" tag shown next to the subject of a flagged message.
 class _SpamLabel extends StatelessWidget {
-  const _SpamLabel({required this.theme});
+  const _SpamLabel({required this.theme, required this.text});
 
   final MailTheme theme;
+  final String text;
 
   @override
   Widget build(BuildContext context) {
@@ -180,7 +191,7 @@ class _SpamLabel extends StatelessWidget {
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(
-        'Spam',
+        text,
         style: TextStyle(
           fontSize: 10,
           fontWeight: FontWeight.w600,

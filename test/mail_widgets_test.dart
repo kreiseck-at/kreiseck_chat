@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kreiseck_chat/kreiseck_chat.dart';
 
+import 'locale_host.dart';
+
 MailMessage _m(String id, String subject, {bool seen = false, bool spam = false}) =>
     MailMessage(
       id: id,
@@ -70,5 +72,37 @@ void main() {
     expect(to, 'x@y.at');
     expect(subj, 'Betr');
     expect(body, 'Inhalt');
+  });
+
+  testWidgets('Mail-Felder folgen der App-Sprache', (tester) async {
+    await tester.pumpWidget(localeHost(
+      MailComposer(onSend: (String to, String subject, String body) {}),
+      locale: const Locale('uk'),
+    ));
+    expect(find.text('Кому'), findsOneWidget);
+    expect(find.text('Тема'), findsOneWidget);
+    expect(find.text('Надіслати'), findsOneWidget);
+  });
+
+  testWidgets('Spam-Kennzeichnung folgt der App-Sprache', (tester) async {
+    await tester.pumpWidget(localeHost(
+      MailListView(
+        messages: [
+          MailMessage(
+            id: 'm1',
+            direction: MailDirection.incoming,
+            from: 'ada@example.invalid',
+            to: 'ich@example.invalid',
+            subject: 'Angebot',
+            bodyText: 'Text',
+            date: DateTime(2026, 7, 31, 10),
+            spam: true,
+          ),
+        ],
+        onOpen: (_) {},
+      ),
+      locale: const Locale('uk'),
+    ));
+    expect(find.text('Спам'), findsOneWidget);
   });
 }
