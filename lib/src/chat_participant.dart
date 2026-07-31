@@ -28,16 +28,32 @@ class ChatPresence {
   /// If set, shown verbatim instead of a computed label.
   final String? customLabel;
 
-  /// Returns a copy with the given fields replaced.
+  /// Returns a copy of this presence info with the given fields replaced.
+  ///
+  /// For each nullable field there is a matching `clearX` flag: passing
+  /// `clearX: true` sets that field to null, passing a value for the field
+  /// sets it, and passing neither keeps the current value. Passing both a
+  /// value and the matching `clearX: true` for the same field is a
+  /// programming error and triggers an assertion.
   ChatPresence copyWith({
     PresenceState? state,
     DateTime? lastSeen,
+    bool clearLastSeen = false,
     String? customLabel,
+    bool clearCustomLabel = false,
   }) {
+    assert(
+      !(clearLastSeen && lastSeen != null),
+      'clearLastSeen und ein lastSeen-Wert schließen sich aus.',
+    );
+    assert(
+      !(clearCustomLabel && customLabel != null),
+      'clearCustomLabel und ein customLabel-Wert schließen sich aus.',
+    );
     return ChatPresence(
       state: state ?? this.state,
-      lastSeen: lastSeen ?? this.lastSeen,
-      customLabel: customLabel ?? this.customLabel,
+      lastSeen: clearLastSeen ? null : (lastSeen ?? this.lastSeen),
+      customLabel: clearCustomLabel ? null : (customLabel ?? this.customLabel),
     );
   }
 
@@ -101,22 +117,48 @@ class ChatParticipant {
         .toUpperCase();
   }
 
-  /// Returns a copy with the given fields replaced.
+  /// Returns a copy of this participant with the given fields replaced.
+  ///
+  /// For each nullable field there is a matching `clearX` flag: passing
+  /// `clearX: true` sets that field to null, passing a value for the field
+  /// sets it, and passing neither keeps the current value. Passing both a
+  /// value and the matching `clearX: true` for the same field is a
+  /// programming error and triggers an assertion.
   ChatParticipant copyWith({
     String? id,
     String? displayName,
     ImageProvider? avatar,
+    bool clearAvatar = false,
     String? avatarUrl,
+    bool clearAvatarUrl = false,
     ChatPresence? presence,
+    bool clearPresence = false,
     Color? color,
+    bool clearColor = false,
   }) {
+    assert(
+      !(clearAvatar && avatar != null),
+      'clearAvatar und ein avatar-Wert schließen sich aus.',
+    );
+    assert(
+      !(clearAvatarUrl && avatarUrl != null),
+      'clearAvatarUrl und ein avatarUrl-Wert schließen sich aus.',
+    );
+    assert(
+      !(clearPresence && presence != null),
+      'clearPresence und ein presence-Wert schließen sich aus.',
+    );
+    assert(
+      !(clearColor && color != null),
+      'clearColor und ein color-Wert schließen sich aus.',
+    );
     return ChatParticipant(
       id: id ?? this.id,
       displayName: displayName ?? this.displayName,
-      avatar: avatar ?? this.avatar,
-      avatarUrl: avatarUrl ?? this.avatarUrl,
-      presence: presence ?? this.presence,
-      color: color ?? this.color,
+      avatar: clearAvatar ? null : (avatar ?? this.avatar),
+      avatarUrl: clearAvatarUrl ? null : (avatarUrl ?? this.avatarUrl),
+      presence: clearPresence ? null : (presence ?? this.presence),
+      color: clearColor ? null : (color ?? this.color),
     );
   }
 

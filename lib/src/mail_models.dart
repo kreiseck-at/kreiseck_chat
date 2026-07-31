@@ -173,6 +173,12 @@ class MailMessage {
   }
 
   /// Returns a copy of this message with the given fields replaced.
+  ///
+  /// For each nullable field there is a matching `clearX` flag: passing
+  /// `clearX: true` sets that field to null, passing a value for the field
+  /// sets it, and passing neither keeps the current value. Passing both a
+  /// value and the matching `clearX: true` for the same field is a
+  /// programming error and triggers an assertion.
   MailMessage copyWith({
     String? id,
     MailDirection? direction,
@@ -181,11 +187,16 @@ class MailMessage {
     String? subject,
     String? bodyText,
     String? bodyHtml,
+    bool clearBodyHtml = false,
     DateTime? date,
     bool? seen,
     List<MailAttachment>? attachments,
     bool? spam,
   }) {
+    assert(
+      !(clearBodyHtml && bodyHtml != null),
+      'clearBodyHtml und ein bodyHtml-Wert schließen sich aus.',
+    );
     return MailMessage(
       id: id ?? this.id,
       direction: direction ?? this.direction,
@@ -193,7 +204,7 @@ class MailMessage {
       to: to ?? this.to,
       subject: subject ?? this.subject,
       bodyText: bodyText ?? this.bodyText,
-      bodyHtml: bodyHtml ?? this.bodyHtml,
+      bodyHtml: clearBodyHtml ? null : (bodyHtml ?? this.bodyHtml),
       date: date ?? this.date,
       seen: seen ?? this.seen,
       attachments: attachments ?? this.attachments,

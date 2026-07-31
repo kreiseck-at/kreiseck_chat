@@ -72,26 +72,68 @@ class ChatAttachment {
     };
   }
 
-  /// Returns a copy with the given fields replaced.
+  /// Returns a copy of this attachment with the given fields replaced.
+  ///
+  /// For each nullable field there is a matching `clearX` flag: passing
+  /// `clearX: true` sets that field to null, passing a value for the field
+  /// sets it, and passing neither keeps the current value. Passing both a
+  /// value and the matching `clearX: true` for the same field is a
+  /// programming error and triggers an assertion.
   ChatAttachment copyWith({
     AttachmentKind? kind,
     String? url,
+    bool clearUrl = false,
     ImageProvider? thumbnail,
+    bool clearThumbnail = false,
     String? thumbnailUrl,
+    bool clearThumbnailUrl = false,
     String? fileName,
+    bool clearFileName = false,
     int? sizeBytes,
+    bool clearSizeBytes = false,
     int? width,
+    bool clearWidth = false,
     int? height,
+    bool clearHeight = false,
   }) {
+    assert(
+      !(clearUrl && url != null),
+      'clearUrl und ein url-Wert schließen sich aus.',
+    );
+    assert(
+      !(clearThumbnail && thumbnail != null),
+      'clearThumbnail und ein thumbnail-Wert schließen sich aus.',
+    );
+    assert(
+      !(clearThumbnailUrl && thumbnailUrl != null),
+      'clearThumbnailUrl und ein thumbnailUrl-Wert schließen sich aus.',
+    );
+    assert(
+      !(clearFileName && fileName != null),
+      'clearFileName und ein fileName-Wert schließen sich aus.',
+    );
+    assert(
+      !(clearSizeBytes && sizeBytes != null),
+      'clearSizeBytes und ein sizeBytes-Wert schließen sich aus.',
+    );
+    assert(
+      !(clearWidth && width != null),
+      'clearWidth und ein width-Wert schließen sich aus.',
+    );
+    assert(
+      !(clearHeight && height != null),
+      'clearHeight und ein height-Wert schließen sich aus.',
+    );
     return ChatAttachment(
       kind: kind ?? this.kind,
-      url: url ?? this.url,
-      thumbnail: thumbnail ?? this.thumbnail,
-      thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl,
-      fileName: fileName ?? this.fileName,
-      sizeBytes: sizeBytes ?? this.sizeBytes,
-      width: width ?? this.width,
-      height: height ?? this.height,
+      url: clearUrl ? null : (url ?? this.url),
+      thumbnail: clearThumbnail ? null : (thumbnail ?? this.thumbnail),
+      thumbnailUrl:
+          clearThumbnailUrl ? null : (thumbnailUrl ?? this.thumbnailUrl),
+      fileName: clearFileName ? null : (fileName ?? this.fileName),
+      sizeBytes: clearSizeBytes ? null : (sizeBytes ?? this.sizeBytes),
+      width: clearWidth ? null : (width ?? this.width),
+      height: clearHeight ? null : (height ?? this.height),
     );
   }
 

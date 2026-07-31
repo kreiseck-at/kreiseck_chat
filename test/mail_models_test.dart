@@ -36,4 +36,55 @@ void main() {
     expect(spamMsg == m, false);
     expect(spamMsg, m.copyWith(spam: true));
   });
+
+  test('bodyHtml von MailMessage lässt sich leeren', () {
+    final voll = MailMessage(
+      id: 'm1',
+      direction: MailDirection.incoming,
+      from: 'ada@example.invalid',
+      to: 'ich@example.invalid',
+      subject: 'Angebot',
+      bodyText: 'Text',
+      date: DateTime(2026, 7, 31, 10),
+      bodyHtml: '<p>Text</p>',
+    );
+    final leer = voll.copyWith(clearBodyHtml: true);
+    expect(leer.bodyHtml, isNull);
+    expect(leer.subject, 'Angebot');
+  });
+
+  test('MailMessage: ohne clear bleibt bodyHtml stehen', () {
+    final voll = MailMessage(
+      id: 'm1',
+      direction: MailDirection.incoming,
+      from: 'ada@example.invalid',
+      to: 'ich@example.invalid',
+      subject: 'Angebot',
+      bodyText: 'Text',
+      date: DateTime(2026, 7, 31, 10),
+      bodyHtml: '<p>Text</p>',
+    );
+    final neu = voll.copyWith(subject: 'Neues Angebot');
+    expect(neu.bodyHtml, '<p>Text</p>');
+    expect(neu.subject, 'Neues Angebot');
+  });
+
+  test(
+      'MailMessage: clear zusammen mit einem Wert ist ein Programmierfehler',
+      () {
+    final voll = MailMessage(
+      id: 'm1',
+      direction: MailDirection.incoming,
+      from: 'ada@example.invalid',
+      to: 'ich@example.invalid',
+      subject: 'Angebot',
+      bodyText: 'Text',
+      date: DateTime(2026, 7, 31, 10),
+      bodyHtml: '<p>Text</p>',
+    );
+    expect(
+      () => voll.copyWith(bodyHtml: '<p>Neu</p>', clearBodyHtml: true),
+      throwsAssertionError,
+    );
+  });
 }
