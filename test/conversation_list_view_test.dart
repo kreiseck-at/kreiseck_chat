@@ -361,6 +361,22 @@ void main() {
     ));
     expect(find.text('пише…'), findsOneWidget);
   });
+
+  testWidgets('typingLabel gewinnt weiterhin', (tester) async {
+    await tester.pumpWidget(localeHost(
+      ConversationListView(
+        conversations: const [
+          ChatConversation(id: 'c1', title: 'Ada', typing: true),
+        ],
+        onOpen: (_) {},
+        capabilities: const ChatCapabilities.inApp(),
+        typingLabel: 'schreibt',
+      ),
+      locale: const Locale('uk'),
+    ));
+    expect(find.text('schreibt'), findsOneWidget);
+    expect(find.text('пише…'), findsNothing);
+  });
 }
 
 void _nichts(ChatConversation c) {}
