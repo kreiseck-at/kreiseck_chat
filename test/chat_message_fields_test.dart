@@ -80,4 +80,59 @@ void main() {
     expect(t.hashCode,
         const ChatTranslation(text: 'Hi', languageLabel: 'EN').hashCode);
   });
+
+  test('clearErrorText leert, ein normaler Aufruf behält', () {
+    final mitFehler = basis(errorText: 'Grund');
+    expect(mitFehler.copyWith(clearErrorText: true).errorText, isNull);
+    // Der Regressionsfall: ohne clear bleibt der Wert stehen.
+    expect(mitFehler.copyWith(status: MessageStatus.sent).errorText, 'Grund');
+  });
+
+  test('jedes nullable Feld von ChatMessage lässt sich leeren', () {
+    final voll = ChatMessage(
+      id: 'm1',
+      direction: MessageDirection.outgoing,
+      text: 'Hallo',
+      at: DateTime(2026, 7, 31, 10),
+      sender: const ChatParticipant(id: 'a', displayName: 'Ada'),
+      replyTo: const ChatMessageRef(id: 'x', snippet: 'y'),
+      editedAt: DateTime(2026, 7, 31, 11),
+      deliveredAt: DateTime(2026, 7, 31, 12),
+      readAt: DateTime(2026, 7, 31, 13),
+      channel: const ChatChannel.sms(),
+      errorText: 'Grund',
+      translation: const ChatTranslation(text: 'Hi', languageLabel: 'EN'),
+      headline: 'Betreff',
+    );
+    final leer = voll.copyWith(
+      clearSender: true,
+      clearReplyTo: true,
+      clearEditedAt: true,
+      clearDeliveredAt: true,
+      clearReadAt: true,
+      clearChannel: true,
+      clearErrorText: true,
+      clearTranslation: true,
+      clearHeadline: true,
+    );
+    expect(leer.sender, isNull);
+    expect(leer.replyTo, isNull);
+    expect(leer.editedAt, isNull);
+    expect(leer.deliveredAt, isNull);
+    expect(leer.readAt, isNull);
+    expect(leer.channel, isNull);
+    expect(leer.errorText, isNull);
+    expect(leer.translation, isNull);
+    expect(leer.headline, isNull);
+    // Nicht-nullable Felder bleiben unangetastet.
+    expect(leer.id, 'm1');
+    expect(leer.text, 'Hallo');
+  });
+
+  test('clear zusammen mit einem Wert ist ein Programmierfehler', () {
+    expect(
+      () => basis().copyWith(errorText: 'x', clearErrorText: true),
+      throwsAssertionError,
+    );
+  });
 }

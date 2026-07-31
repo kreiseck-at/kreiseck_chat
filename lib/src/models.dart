@@ -161,6 +161,12 @@ class ChatMessage {
   final String? headline;
 
   /// Returns a copy of this message with the given fields replaced.
+  ///
+  /// For each nullable field there is a matching `clearX` flag: passing
+  /// `clearX: true` sets that field to null, passing a value for the field
+  /// sets it, and passing neither keeps the current value. Passing both a
+  /// value and the matching `clearX: true` for the same field is a
+  /// programming error and triggers an assertion.
   ChatMessage copyWith({
     String? id,
     MessageDirection? direction,
@@ -168,36 +174,81 @@ class ChatMessage {
     DateTime? at,
     MessageStatus? status,
     ChatParticipant? sender,
+    bool clearSender = false,
     List<ChatAttachment>? attachments,
     ChatMessageRef? replyTo,
+    bool clearReplyTo = false,
     List<MessageReaction>? reactions,
     DateTime? editedAt,
+    bool clearEditedAt = false,
     DateTime? deliveredAt,
+    bool clearDeliveredAt = false,
     DateTime? readAt,
+    bool clearReadAt = false,
     ChatChannel? channel,
+    bool clearChannel = false,
     String? errorText,
+    bool clearErrorText = false,
     ChatMessageKind? kind,
     ChatTranslation? translation,
+    bool clearTranslation = false,
     String? headline,
+    bool clearHeadline = false,
   }) {
+    assert(
+      !(clearSender && sender != null),
+      'clearSender und ein sender-Wert schließen sich aus.',
+    );
+    assert(
+      !(clearReplyTo && replyTo != null),
+      'clearReplyTo und ein replyTo-Wert schließen sich aus.',
+    );
+    assert(
+      !(clearEditedAt && editedAt != null),
+      'clearEditedAt und ein editedAt-Wert schließen sich aus.',
+    );
+    assert(
+      !(clearDeliveredAt && deliveredAt != null),
+      'clearDeliveredAt und ein deliveredAt-Wert schließen sich aus.',
+    );
+    assert(
+      !(clearReadAt && readAt != null),
+      'clearReadAt und ein readAt-Wert schließen sich aus.',
+    );
+    assert(
+      !(clearChannel && channel != null),
+      'clearChannel und ein channel-Wert schließen sich aus.',
+    );
+    assert(
+      !(clearErrorText && errorText != null),
+      'clearErrorText und ein errorText-Wert schließen sich aus.',
+    );
+    assert(
+      !(clearTranslation && translation != null),
+      'clearTranslation und ein translation-Wert schließen sich aus.',
+    );
+    assert(
+      !(clearHeadline && headline != null),
+      'clearHeadline und ein headline-Wert schließen sich aus.',
+    );
     return ChatMessage(
       id: id ?? this.id,
       direction: direction ?? this.direction,
       text: text ?? this.text,
       at: at ?? this.at,
       status: status ?? this.status,
-      sender: sender ?? this.sender,
+      sender: clearSender ? null : (sender ?? this.sender),
       attachments: attachments ?? this.attachments,
-      replyTo: replyTo ?? this.replyTo,
+      replyTo: clearReplyTo ? null : (replyTo ?? this.replyTo),
       reactions: reactions ?? this.reactions,
-      editedAt: editedAt ?? this.editedAt,
-      deliveredAt: deliveredAt ?? this.deliveredAt,
-      readAt: readAt ?? this.readAt,
-      channel: channel ?? this.channel,
-      errorText: errorText ?? this.errorText,
+      editedAt: clearEditedAt ? null : (editedAt ?? this.editedAt),
+      deliveredAt: clearDeliveredAt ? null : (deliveredAt ?? this.deliveredAt),
+      readAt: clearReadAt ? null : (readAt ?? this.readAt),
+      channel: clearChannel ? null : (channel ?? this.channel),
+      errorText: clearErrorText ? null : (errorText ?? this.errorText),
       kind: kind ?? this.kind,
-      translation: translation ?? this.translation,
-      headline: headline ?? this.headline,
+      translation: clearTranslation ? null : (translation ?? this.translation),
+      headline: clearHeadline ? null : (headline ?? this.headline),
     );
   }
 
@@ -265,11 +316,26 @@ class ChatMessageRef {
   final String? senderLabel;
 
   /// Returns a copy of this reference with the given fields replaced.
-  ChatMessageRef copyWith({String? id, String? snippet, String? senderLabel}) {
+  ///
+  /// For each nullable field there is a matching `clearX` flag: passing
+  /// `clearX: true` sets that field to null, passing a value for the field
+  /// sets it, and passing neither keeps the current value. Passing both a
+  /// value and the matching `clearX: true` for the same field is a
+  /// programming error and triggers an assertion.
+  ChatMessageRef copyWith({
+    String? id,
+    String? snippet,
+    String? senderLabel,
+    bool clearSenderLabel = false,
+  }) {
+    assert(
+      !(clearSenderLabel && senderLabel != null),
+      'clearSenderLabel und ein senderLabel-Wert schließen sich aus.',
+    );
     return ChatMessageRef(
       id: id ?? this.id,
       snippet: snippet ?? this.snippet,
-      senderLabel: senderLabel ?? this.senderLabel,
+      senderLabel: clearSenderLabel ? null : (senderLabel ?? this.senderLabel),
     );
   }
 
@@ -377,33 +443,75 @@ class ChatConversation {
   final List<ChatChannel> channels;
 
   /// Returns a copy of this conversation with the given fields replaced.
+  ///
+  /// For each nullable field there is a matching `clearX` flag: passing
+  /// `clearX: true` sets that field to null, passing a value for the field
+  /// sets it, and passing neither keeps the current value. Passing both a
+  /// value and the matching `clearX: true` for the same field is a
+  /// programming error and triggers an assertion.
   ChatConversation copyWith({
     String? id,
     String? title,
     String? subtitle,
+    bool clearSubtitle = false,
     String? channelLabel,
+    bool clearChannelLabel = false,
     String? lastText,
+    bool clearLastText = false,
     DateTime? lastAt,
+    bool clearLastAt = false,
     int? unread,
     ImageProvider? avatar,
+    bool clearAvatar = false,
     String? avatarUrl,
+    bool clearAvatarUrl = false,
     ChatPresence? presence,
+    bool clearPresence = false,
     bool? typing,
     bool? muted,
     bool? pinned,
     List<ChatChannel>? channels,
   }) {
+    assert(
+      !(clearSubtitle && subtitle != null),
+      'clearSubtitle und ein subtitle-Wert schließen sich aus.',
+    );
+    assert(
+      !(clearChannelLabel && channelLabel != null),
+      'clearChannelLabel und ein channelLabel-Wert schließen sich aus.',
+    );
+    assert(
+      !(clearLastText && lastText != null),
+      'clearLastText und ein lastText-Wert schließen sich aus.',
+    );
+    assert(
+      !(clearLastAt && lastAt != null),
+      'clearLastAt und ein lastAt-Wert schließen sich aus.',
+    );
+    assert(
+      !(clearAvatar && avatar != null),
+      'clearAvatar und ein avatar-Wert schließen sich aus.',
+    );
+    assert(
+      !(clearAvatarUrl && avatarUrl != null),
+      'clearAvatarUrl und ein avatarUrl-Wert schließen sich aus.',
+    );
+    assert(
+      !(clearPresence && presence != null),
+      'clearPresence und ein presence-Wert schließen sich aus.',
+    );
     return ChatConversation(
       id: id ?? this.id,
       title: title ?? this.title,
-      subtitle: subtitle ?? this.subtitle,
-      channelLabel: channelLabel ?? this.channelLabel,
-      lastText: lastText ?? this.lastText,
-      lastAt: lastAt ?? this.lastAt,
+      subtitle: clearSubtitle ? null : (subtitle ?? this.subtitle),
+      channelLabel:
+          clearChannelLabel ? null : (channelLabel ?? this.channelLabel),
+      lastText: clearLastText ? null : (lastText ?? this.lastText),
+      lastAt: clearLastAt ? null : (lastAt ?? this.lastAt),
       unread: unread ?? this.unread,
-      avatar: avatar ?? this.avatar,
-      avatarUrl: avatarUrl ?? this.avatarUrl,
-      presence: presence ?? this.presence,
+      avatar: clearAvatar ? null : (avatar ?? this.avatar),
+      avatarUrl: clearAvatarUrl ? null : (avatarUrl ?? this.avatarUrl),
+      presence: clearPresence ? null : (presence ?? this.presence),
       typing: typing ?? this.typing,
       muted: muted ?? this.muted,
       pinned: pinned ?? this.pinned,

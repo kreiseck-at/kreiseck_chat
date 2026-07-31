@@ -61,4 +61,40 @@ void main() {
     expect(a, b);
     expect(a.hashCode, b.hashCode);
   });
+
+  test('jedes nullable Feld von ChatConversation lässt sich leeren', () {
+    final voll = ChatConversation(
+      id: 'c1',
+      title: 'Ada',
+      subtitle: 'Untertitel',
+      channelLabel: 'SMS',
+      lastText: 'Text',
+      lastAt: DateTime(2026, 7, 31, 10),
+      avatarUrl: 'https://example.invalid/a.png',
+      presence: const ChatPresence.online(),
+    );
+    final leer = voll.copyWith(
+      clearSubtitle: true,
+      clearChannelLabel: true,
+      clearLastText: true,
+      clearLastAt: true,
+      clearAvatar: true,
+      clearAvatarUrl: true,
+      clearPresence: true,
+    );
+    expect(leer.subtitle, isNull);
+    expect(leer.channelLabel, isNull);
+    expect(leer.lastText, isNull);
+    expect(leer.lastAt, isNull);
+    expect(leer.avatar, isNull);
+    expect(leer.avatarUrl, isNull);
+    expect(leer.presence, isNull);
+    expect(leer.title, 'Ada');
+  });
+
+  test('ChatMessageRef: senderLabel lässt sich leeren', () {
+    const voll = ChatMessageRef(id: 'x', snippet: 'y', senderLabel: 'Ada');
+    expect(voll.copyWith(clearSenderLabel: true).senderLabel, isNull);
+    expect(voll.copyWith(snippet: 'z').senderLabel, 'Ada');
+  });
 }
