@@ -1,0 +1,26 @@
+# Spiegelt .gitignore — sobald diese Datei existiert, wertet pub die
+# .gitignore beim Packen nicht mehr aus.
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.buildlog/
+.history
+.svn/
+migrate_working_dir/
+*.iml
+*.ipr
+*.iws
+.idea/
+/pubspec.lock
+**/doc/api/
+.dart_tool/
+.flutter-plugins-dependencies
+/build/
+/coverage/
+
+# Interne Planungs- und Arbeitsdateien gehören nicht ins veröffentlichte Paket.
+docs/
+.superpowers/
