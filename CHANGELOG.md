@@ -63,6 +63,23 @@
   to be an inline literal with no way to override it. For Turkish this is
   deliberately a single space rather than a word (see
   `ChatStrings.tr().lastSeenAtJoiner`).
+* `ChatThreadView` now draws its list reversed (`reverse: true`), so the
+  newest message sits at scroll offset 0. This replaces every scroll
+  correction the view used to run — the multi-frame settle on open, the
+  delayed re-snap after sending, the jump on new messages. A thread now
+  opens at the bottom, stays there while an image finishes loading or the
+  keyboard opens, and keeps its place when the reader has scrolled up. On
+  screen nothing moved: messages still run oldest to newest, top to bottom.
+  `onLoadEarlier` now fires at the end of the scroll extent (the oldest
+  message), not at offset 0.
+* `ChatThreadView.groupMedia` (new, **on by default**): consecutive
+  image-only messages going the same direction and within five minutes of
+  each other are folded into one album bubble via the new public
+  `groupMediaRuns`. Channels that carry one photo per message (MMS,
+  WhatsApp) would otherwise fill the thread with one bubble per photo. The
+  merged message keeps the first message's id and the last one's timestamp
+  and status. Pass `groupMedia: false` for the old one-bubble-per-message
+  rendering.
 * `ConversationListView` now emphasizes an unread row: bold title, preview
   at full opacity instead of 60%. Rows with `unread == 0` are unchanged, so
   a host that never sets `unread` sees no difference.

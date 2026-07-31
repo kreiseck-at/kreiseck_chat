@@ -84,7 +84,13 @@ and `ChatConversation` and handling the `onSend`/`onOpen` callbacks.
   an optional `leading` widget (e.g. a channel picker).
 * **`ChatThreadView`** — a scrollable message list that groups consecutive
   messages by sender, inserts date separators, shows a `TypingIndicator`,
-  auto-scrolls to the newest message, and renders an optional `header`.
+  and renders an optional `header`. The list is drawn reversed, so the newest
+  message is the anchor: opening lands at the bottom, an opening keyboard or
+  a late-loading image doesn't push it out of view, and a reader who scrolled
+  up keeps their place — no scroll juggling needed on the host side.
+  Consecutive image-only messages are folded into one album
+  (`groupMedia`, on by default; the merge itself is the public
+  `groupMediaRuns`).
   `customMessageBuilder` lets the host render its own widget for
   `kind: ChatMessageKind.custom` messages (falling back to the normal bubble
   if it returns `null`); `composerBanner` and `composerLeading` are forwarded

@@ -33,5 +33,6 @@ export 'src/mail_theme.dart';
 export 'src/message_bubble.dart';
 export 'src/models.dart';
 export 'src/presence_label.dart';
+export 'src/media_grouping.dart';
 export 'src/thread_items.dart';
 export 'src/typing_indicator.dart';

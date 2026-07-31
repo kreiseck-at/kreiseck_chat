@@ -1,9 +1,15 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kreiseck_chat/kreiseck_chat.dart';
 
 import 'locale_host.dart';
+
+// 1×1-Pixel statt Netz-Bild: Im Test liefert jede HTTP-Anfrage 400.
+final _pixel = MemoryImage(base64Decode(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='));
 
 List<ChatMessage> _seed() => [
       ChatMessage(
@@ -19,6 +25,105 @@ List<ChatMessage> _seed() => [
     ];
 
 void main() {
+  testWidgets('neueste Nachricht steht unten, Trenner über ihrem Tag',
+      (tester) async {
+    // Der Verlauf zeichnet umgekehrt — die Reihenfolge auf dem Schirm muss
+    // trotzdem chronologisch von oben nach unten laufen.
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: ChatThreadView(
+          messages: [
+            ChatMessage(
+                id: '1',
+                direction: MessageDirection.incoming,
+                text: 'Gestern',
+                at: DateTime(2026, 7, 20, 9)),
+            ChatMessage(
+                id: '2',
+                direction: MessageDirection.incoming,
+                text: 'Heute',
+                at: DateTime(2026, 7, 21, 9)),
+          ],
+          now: DateTime(2026, 7, 21, 10),
+          onSend: (_) {},
+        ),
+      ),
+    ));
+    final gestern = tester.getTopLeft(find.text('Gestern')).dy;
+    final heute = tester.getTopLeft(find.text('Heute')).dy;
+    expect(gestern, lessThan(heute));
+    // Der Trenner gehört über die Nachricht von heute.
+    final trenner = tester.getTopLeft(find.text('Today')).dy;
+    expect(trenner, greaterThan(gestern));
+    expect(trenner, lessThan(heute));
+  });
+
+  testWidgets('am Boden bleibt der Verlauf am Boden, wenn Nachrichten kommen',
+      (tester) async {
+    final msgs = [
+      for (var i = 0; i < 30; i++)
+        ChatMessage(
+            id: '$i',
+            direction: MessageDirection.incoming,
+            text: 'Nachricht $i',
+            at: DateTime(2026, 7, 21, 9, i)),
+    ];
+    Future<void> zeige(List<ChatMessage> m) => tester.pumpWidget(MaterialApp(
+          home: Scaffold(
+            body: ChatThreadView(messages: m, onSend: (_) {}),
+          ),
+        ));
+
+    await zeige(msgs);
+    // Ohne jedes Nachfassen: Der Verlauf startet unten, die jüngste Nachricht
+    // ist sichtbar.
+    expect(find.text('Nachricht 29'), findsOneWidget);
+    expect(find.text('Nachricht 0'), findsNothing);
+
+    await zeige([
+      ...msgs,
+      ChatMessage(
+          id: 'neu',
+          direction: MessageDirection.incoming,
+          text: 'Ganz neu',
+          at: DateTime(2026, 7, 21, 10)),
+    ]);
+    await tester.pumpAndSettle();
+    expect(find.text('Ganz neu'), findsOneWidget);
+  });
+
+  testWidgets('mehrere Fotos hintereinander werden ein Album',
+      (tester) async {
+    ChatMessage foto(String id, int minute) => ChatMessage(
+          id: id,
+          direction: MessageDirection.incoming,
+          text: '',
+          at: DateTime(2026, 7, 21, 9, minute),
+          attachments: [
+            ChatAttachment(kind: AttachmentKind.image, thumbnail: _pixel),
+          ],
+        );
+
+    Future<void> zeige({required bool gruppieren}) =>
+        tester.pumpWidget(MaterialApp(
+          home: Scaffold(
+            body: ChatThreadView(
+              messages: [foto('a', 0), foto('b', 1), foto('c', 2)],
+              onSend: (_) {},
+              groupMedia: gruppieren,
+            ),
+          ),
+        ));
+
+    await zeige(gruppieren: true);
+    expect(find.byType(MessageBubble), findsOneWidget);
+
+    // Ohne Gruppierung je Foto eine Blase — wie viele davon gerade sichtbar
+    // sind, hängt an der Fenstergröße; mehr als eine genügt als Nachweis.
+    await zeige(gruppieren: false);
+    expect(find.byType(MessageBubble), findsAtLeastNWidgets(2));
+  });
+
   testWidgets('renders messages and a date separator', (tester) async {
     await tester.pumpWidget(MaterialApp(
       home: Scaffold(

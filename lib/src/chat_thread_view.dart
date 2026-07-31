@@ -8,6 +8,7 @@ import 'chat_system_card.dart';
 import 'chat_theme.dart';
 import 'composer.dart';
 import 'date_separator.dart';
+import 'media_grouping.dart';
 import 'message_bubble.dart';
 import 'models.dart';
 import 'thread_items.dart';
@@ -45,6 +46,7 @@ class ChatThreadView extends StatefulWidget {
     this.readOnly = false,
     this.strings,
     this.textBuilder,
+    this.groupMedia = true,
   });
 
   /// Messages, oldest first.
@@ -137,11 +139,22 @@ class ChatThreadView extends StatefulWidget {
   /// [MessageBubble.textBuilder]. Left null, bubbles draw plain text.
   final Widget Function(String text, TextStyle style)? textBuilder;
 
+  /// Whether consecutive image-only messages are folded into one album (see
+  /// [groupMediaRuns]). On by default — channels that send one photo per
+  /// message would otherwise fill the thread with single-image bubbles.
+  final bool groupMedia;
+
   @override
   State<ChatThreadView> createState() => _ChatThreadViewState();
 }
 
 class _ChatThreadViewState extends State<ChatThreadView> {
+  /// The list is reversed: offset 0 IS the newest message. That single fact
+  /// removes every scroll correction a chat usually needs -- opening lands at
+  /// the bottom, a new message pushes the older ones up without moving the
+  /// viewport, and an opening keyboard shrinks the viewport from the top
+  /// instead of scrolling the newest message out of sight. Images that finish
+  /// loading late grow upward for the same reason.
   final ScrollController _scroll = ScrollController();
   int _lastCount = 0;
 
@@ -150,7 +163,6 @@ class _ChatThreadViewState extends State<ChatThreadView> {
     super.initState();
     _lastCount = widget.messages.length;
     _scroll.addListener(_onScroll);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _settleToBottom());
   }
 
   @override
@@ -165,8 +177,10 @@ class _ChatThreadViewState extends State<ChatThreadView> {
           widget.theme.motion.hapticOnReceive) {
         HapticFeedback.lightImpact();
       }
+      // Wer gerade weiter oben liest, wird nicht weggerissen -- nur wer ohnehin
+      // unten steht (oder selbst gesendet hat) folgt der neuen Nachricht.
+      if (grew) _scrollToBottom();
       _lastCount = widget.messages.length;
-      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
     }
   }
 
@@ -177,55 +191,35 @@ class _ChatThreadViewState extends State<ChatThreadView> {
     super.dispose();
   }
 
+  /// In a reversed list the OLDEST message sits at the maximum offset -- so
+  /// "scrolled to the top" means near the end of the scroll extent.
   void _onScroll() {
-    if (_scroll.position.pixels <= 8 && widget.onLoadEarlier != null) {
-      widget.onLoadEarlier!();
-    }
+    if (widget.onLoadEarlier == null || !_scroll.hasClients) return;
+    final pos = _scroll.position;
+    if (pos.pixels >= pos.maxScrollExtent - 8) widget.onLoadEarlier!();
   }
 
-  /// Reliably settles to the very bottom when opening. A lazy
-  /// `ListView.builder` doesn't know its full extent until items are built --
-  /// each jump builds further items toward the bottom, the next jump goes
-  /// further, until the bottom is stable. Hence re-settling across several
-  /// frames plus a short delay.
-  void _settleToBottom({int framesLeft = 6}) {
-    if (!mounted || !_scroll.hasClients) return;
-    final max = _scroll.position.maxScrollExtent;
-    if (_scroll.position.pixels != max) _scroll.jumpTo(max);
-    if (framesLeft > 0) {
-      WidgetsBinding.instance
-          .addPostFrameCallback((_) => _settleToBottom(framesLeft: framesLeft - 1));
-    }
-  }
-
+  /// Back to the newest message, i.e. offset 0. Only needed when the reader
+  /// had scrolled away; standing at the bottom, the list stays there by
+  /// itself.
   void _scrollToBottom() {
-    if (!_scroll.hasClients) return;
-    final target = _scroll.position.maxScrollExtent;
+    if (!_scroll.hasClients || _scroll.position.pixels <= 0) return;
     if (widget.theme.motion.animatedAutoScroll) {
       _scroll.animateTo(
-        target,
+        0,
         duration: widget.theme.motion.autoScrollDuration,
         curve: Curves.easeOut,
       );
     } else {
-      _scroll.jumpTo(target);
+      _scroll.jumpTo(0);
     }
-    // Nachfassen: Bild-Bubbles und das Einklappen der Anhang-Vorschau im
-    // Composer verändern die Höhe erst nach diesem Frame -- ein einzelner Sprung
-    // träfe dann nicht mehr den echten Boden. Zweimal nachziehen (nächster Frame
-    // + kurze Verzögerung) hält den Verlauf zuverlässig ganz unten.
-    WidgetsBinding.instance.addPostFrameCallback((_) => _snapToBottom());
-    Future.delayed(const Duration(milliseconds: 250), _snapToBottom);
-  }
-
-  void _snapToBottom() {
-    if (!mounted || !_scroll.hasClients) return;
-    _scroll.jumpTo(_scroll.position.maxScrollExtent);
   }
 
   @override
   Widget build(BuildContext context) {
-    final items = buildThreadItems(widget.messages);
+    final items = buildThreadItems(
+      widget.groupMedia ? groupMediaRuns(widget.messages) : widget.messages,
+    );
     final showTyping =
         widget.typing.anyoneTyping && widget.capabilities.typingIndicator;
     final childCount = items.length + (showTyping ? 1 : 0);
@@ -244,12 +238,16 @@ class _ChatThreadViewState extends State<ChatThreadView> {
               onTap: () => FocusScope.of(context).unfocus(),
               child: ListView.builder(
               controller: _scroll,
+              // Umgekehrt gezeichnet: der Boden ist Offset 0 (siehe _scroll).
+              reverse: true,
               padding: const EdgeInsets.symmetric(vertical: 8),
               itemCount: childCount,
-              itemBuilder: (context, index) {
-                if (showTyping && index == items.length) {
+              itemBuilder: (context, reversed) {
+                if (showTyping && reversed == 0) {
                   return TypingIndicator(theme: widget.theme);
                 }
+                final index =
+                    items.length - 1 - (showTyping ? reversed - 1 : reversed);
                 final item = items[index];
                 if (item is DateSeparatorItem) {
                   return DateSeparator(
