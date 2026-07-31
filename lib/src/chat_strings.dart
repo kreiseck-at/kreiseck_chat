@@ -33,6 +33,17 @@ class ChatStrings {
     required this.lastSeenAtJoiner,
     required this.noMailYet,
     required this.body,
+    required this.cc,
+    required this.bcc,
+    required this.replyAll,
+    required this.forward,
+    required this.loadImages,
+    required this.remoteContentBlocked,
+    required this.attachmentBlocked,
+    required this.attachmentUnknown,
+    required this.openAnyway,
+    required this.senderUnverified,
+    required this.showQuoted,
   });
 
   /// Context-menu entry that quotes a message.
@@ -107,6 +118,39 @@ class ChatStrings {
   /// Mail field: the body text input's label in [MailComposer].
   final String body;
 
+  /// Label of the copy-recipients field.
+  final String cc;
+
+  /// Label of the blind-copy-recipients field.
+  final String bcc;
+
+  /// Action: answer everyone on the mail.
+  final String replyAll;
+
+  /// Action: pass the mail on.
+  final String forward;
+
+  /// Button on the notice that remote images were held back.
+  final String loadImages;
+
+  /// Notice that remote content was not loaded.
+  final String remoteContentBlocked;
+
+  /// Shown instead of a refused attachment.
+  final String attachmentBlocked;
+
+  /// Shown on an attachment nobody vouched for.
+  final String attachmentUnknown;
+
+  /// Confirms opening an unchecked attachment.
+  final String openAnyway;
+
+  /// Notice that the sender's origin could not be verified.
+  final String senderUnverified;
+
+  /// Expands the quoted earlier mail.
+  final String showQuoted;
+
   /// English — also the fallback for every unsupported language.
   const ChatStrings.en()
       : reply = 'Reply',
@@ -131,7 +175,18 @@ class ChatStrings {
         lastSeenDatePrefix = 'last seen on ',
         lastSeenAtJoiner = ' at ',
         noMailYet = 'No mail yet',
-        body = 'Text';
+        body = 'Text',
+        cc = 'Cc',
+        bcc = 'Bcc',
+        replyAll = 'Reply all',
+        forward = 'Forward',
+        loadImages = 'Load images',
+        remoteContentBlocked = 'Images were not loaded.',
+        attachmentBlocked = 'Blocked',
+        attachmentUnknown = 'Not checked',
+        openAnyway = 'Open anyway',
+        senderUnverified = 'Sender could not be verified.',
+        showQuoted = 'Show earlier mail';
 
   /// German.
   const ChatStrings.de()
@@ -157,7 +212,18 @@ class ChatStrings {
         lastSeenDatePrefix = 'zuletzt gesehen am ',
         lastSeenAtJoiner = ' um ',
         noMailYet = 'Noch keine Mails',
-        body = 'Text';
+        body = 'Text',
+        cc = 'Cc',
+        bcc = 'Bcc',
+        replyAll = 'Allen antworten',
+        forward = 'Weiterleiten',
+        loadImages = 'Bilder laden',
+        remoteContentBlocked = 'Bilder wurden nicht geladen.',
+        attachmentBlocked = 'Gesperrt',
+        attachmentUnknown = 'Ungeprüft',
+        openAnyway = 'Trotzdem öffnen',
+        senderUnverified = 'Absender konnte nicht bestätigt werden.',
+        showQuoted = 'Frühere Nachricht anzeigen';
 
   /// Croatian.
   const ChatStrings.hr()
@@ -183,7 +249,18 @@ class ChatStrings {
         lastSeenDatePrefix = 'posljednji put viđen ',
         lastSeenAtJoiner = ' u ',
         noMailYet = 'Još nema pošte',
-        body = 'Tekst';
+        body = 'Tekst',
+        cc = 'Cc',
+        bcc = 'Bcc',
+        replyAll = 'Odgovori svima',
+        forward = 'Proslijedi',
+        loadImages = 'Učitaj slike',
+        remoteContentBlocked = 'Slike nisu učitane.',
+        attachmentBlocked = 'Blokirano',
+        attachmentUnknown = 'Neprovjereno',
+        openAnyway = 'Ipak otvori',
+        senderUnverified = 'Pošiljatelja nije bilo moguće potvrditi.',
+        showQuoted = 'Prikaži raniju poruku';
 
   /// Turkish.
   const ChatStrings.tr()
@@ -214,7 +291,18 @@ class ChatStrings {
         // standard one.
         lastSeenAtJoiner = ' ',
         noMailYet = 'Henüz posta yok',
-        body = 'Metin';
+        body = 'Metin',
+        cc = 'Cc',
+        bcc = 'Bcc',
+        replyAll = 'Tümünü yanıtla',
+        forward = 'İlet',
+        loadImages = 'Görselleri yükle',
+        remoteContentBlocked = 'Görseller yüklenmedi.',
+        attachmentBlocked = 'Engellendi',
+        attachmentUnknown = 'Denetlenmedi',
+        openAnyway = 'Yine de aç',
+        senderUnverified = 'Gönderen doğrulanamadı.',
+        showQuoted = 'Önceki iletiyi göster';
 
   /// Ukrainian.
   const ChatStrings.uk()
@@ -240,7 +328,18 @@ class ChatStrings {
         lastSeenDatePrefix = 'востаннє в мережі ',
         lastSeenAtJoiner = ' о ',
         noMailYet = 'Ще немає листів',
-        body = 'Текст';
+        body = 'Текст',
+        cc = 'Копія',
+        bcc = 'Прихована копія',
+        replyAll = 'Відповісти всім',
+        forward = 'Переслати',
+        loadImages = 'Завантажити зображення',
+        remoteContentBlocked = 'Зображення не завантажено.',
+        attachmentBlocked = 'Заблоковано',
+        attachmentUnknown = 'Не перевірено',
+        openAnyway = 'Усе одно відкрити',
+        senderUnverified = 'Не вдалося підтвердити відправника.',
+        showQuoted = 'Показати попереднє повідомлення';
 
   /// The preset for [locale]'s language, or English when there is none.
   ///
@@ -291,6 +390,17 @@ class ChatStrings {
     String? lastSeenAtJoiner,
     String? noMailYet,
     String? body,
+    String? cc,
+    String? bcc,
+    String? replyAll,
+    String? forward,
+    String? loadImages,
+    String? remoteContentBlocked,
+    String? attachmentBlocked,
+    String? attachmentUnknown,
+    String? openAnyway,
+    String? senderUnverified,
+    String? showQuoted,
   }) {
     return ChatStrings(
       reply: reply ?? this.reply,
@@ -317,6 +427,17 @@ class ChatStrings {
       lastSeenAtJoiner: lastSeenAtJoiner ?? this.lastSeenAtJoiner,
       noMailYet: noMailYet ?? this.noMailYet,
       body: body ?? this.body,
+      cc: cc ?? this.cc,
+      bcc: bcc ?? this.bcc,
+      replyAll: replyAll ?? this.replyAll,
+      forward: forward ?? this.forward,
+      loadImages: loadImages ?? this.loadImages,
+      remoteContentBlocked: remoteContentBlocked ?? this.remoteContentBlocked,
+      attachmentBlocked: attachmentBlocked ?? this.attachmentBlocked,
+      attachmentUnknown: attachmentUnknown ?? this.attachmentUnknown,
+      openAnyway: openAnyway ?? this.openAnyway,
+      senderUnverified: senderUnverified ?? this.senderUnverified,
+      showQuoted: showQuoted ?? this.showQuoted,
     );
   }
 
