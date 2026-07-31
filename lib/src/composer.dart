@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'chat_capabilities.dart';
+import 'chat_strings.dart';
 import 'chat_theme.dart';
 
 /// Where an attachment comes from.
@@ -26,12 +27,13 @@ class Composer extends StatefulWidget {
     this.textCapitalization = TextCapitalization.sentences,
     this.sendOnEnter = false,
     this.leading,
+    this.strings,
   });
 
   /// Called with the trimmed message text on submit.
   final void Function(String) onSend;
 
-  /// Placeholder text.
+  /// Placeholder text. Takes precedence over [strings]' `messageHint` when set.
   final String? hintText;
 
   /// Visual configuration.
@@ -72,6 +74,10 @@ class Composer extends StatefulWidget {
 
   /// Widget to the left of the text field, e.g. a channel picker.
   final Widget? leading;
+
+  /// Overrides the words used by this composer. Left null, they follow the
+  /// ambient locale (see [ChatStrings.of]).
+  final ChatStrings? strings;
 
   @override
   State<Composer> createState() => _ComposerState();
@@ -124,7 +130,11 @@ class _ComposerState extends State<Composer> with SingleTickerProviderStateMixin
     _controller.clear();
   }
 
-  void _openAttachMenu() {
+  // The sheet is pushed onto the enclosing Navigator, whose route lives
+  // outside this widget's ambient Localizations override -- so it takes the
+  // already-resolved [strings] from [build] rather than calling
+  // [ChatStrings.of] again in its own (different) context.
+  void _openAttachMenu(ChatStrings strings) {
     showModalBottomSheet<void>(
       context: context,
       builder: (ctx) => SafeArea(
@@ -132,7 +142,7 @@ class _ComposerState extends State<Composer> with SingleTickerProviderStateMixin
           children: [
             ListTile(
               leading: Icon(widget.theme.icons.camera),
-              title: const Text('Kamera'),
+              title: Text(strings.camera),
               onTap: () {
                 Navigator.of(ctx).pop();
                 widget.onAttach?.call(AttachSource.camera);
@@ -140,7 +150,7 @@ class _ComposerState extends State<Composer> with SingleTickerProviderStateMixin
             ),
             ListTile(
               leading: const Icon(Icons.photo_library_outlined),
-              title: const Text('Galerie'),
+              title: Text(strings.gallery),
               onTap: () {
                 Navigator.of(ctx).pop();
                 widget.onAttach?.call(AttachSource.gallery);
@@ -148,7 +158,7 @@ class _ComposerState extends State<Composer> with SingleTickerProviderStateMixin
             ),
             ListTile(
               leading: Icon(widget.theme.icons.attach),
-              title: const Text('Datei'),
+              title: Text(strings.file),
               onTap: () {
                 Navigator.of(ctx).pop();
                 widget.onAttach?.call(AttachSource.file);
@@ -163,6 +173,7 @@ class _ComposerState extends State<Composer> with SingleTickerProviderStateMixin
   @override
   Widget build(BuildContext context) {
     final theme = widget.theme;
+    final strings = ChatStrings.of(context, override: widget.strings);
     final hasText = _controller.text.trim().isNotEmpty;
     final showSend = hasText || widget.attachmentPreviews.isNotEmpty;
     return Material(
@@ -192,7 +203,7 @@ class _ComposerState extends State<Composer> with SingleTickerProviderStateMixin
               if (widget.capabilities.media)
                 IconButton(
                   icon: Icon(theme.icons.attach, color: theme.colors.accent),
-                  onPressed: _openAttachMenu,
+                  onPressed: () => _openAttachMenu(strings),
                 ),
               Expanded(
                 child: TextField(
@@ -206,7 +217,7 @@ class _ComposerState extends State<Composer> with SingleTickerProviderStateMixin
                       : TextInputAction.newline,
                   onSubmitted: widget.sendOnEnter ? (_) => _submit() : null,
                   decoration: InputDecoration(
-                    hintText: widget.hintText ?? 'Nachricht',
+                    hintText: widget.hintText ?? strings.messageHint,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(20),
                       borderSide: BorderSide.none,

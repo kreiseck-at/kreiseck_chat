@@ -5,6 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kreiseck_chat/kreiseck_chat.dart';
 
+import 'locale_host.dart';
+
 // 1x1 transparentes PNG -- gültige Bytes, damit MemoryImage im Test nicht wirft.
 final _pixel = MemoryImage(base64Decode(
     'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='));
@@ -318,5 +320,37 @@ void main() {
     final leadingLeft = tester.getTopLeft(find.byKey(const Key('leading'))).dx;
     final fieldLeft = tester.getTopLeft(find.byType(TextField)).dx;
     expect(leadingLeft, lessThan(fieldLeft));
+  });
+
+  testWidgets('Platzhalter folgt der App-Sprache', (tester) async {
+    await tester.pumpWidget(localeHost(
+      Composer(onSend: (_) {}),
+      locale: const Locale('uk'),
+    ));
+    expect(find.text('Повідомлення'), findsOneWidget);
+  });
+
+  testWidgets('hintText gewinnt weiterhin über die Sprache', (tester) async {
+    await tester.pumpWidget(localeHost(
+      Composer(onSend: (_) {}, hintText: 'Eigener Platzhalter'),
+      locale: const Locale('uk'),
+    ));
+    expect(find.text('Eigener Platzhalter'), findsOneWidget);
+  });
+
+  testWidgets('Anhang-Auswahl folgt der App-Sprache', (tester) async {
+    await tester.pumpWidget(localeHost(
+      Composer(
+        onSend: (_) {},
+        onAttach: (_) {},
+        capabilities: const ChatCapabilities.inApp(),
+      ),
+      locale: const Locale('uk'),
+    ));
+    await tester.tap(find.byIcon(const ChatIcons().attach).last);
+    await tester.pumpAndSettle();
+    expect(find.text('Камера'), findsOneWidget);
+    expect(find.text('Галерея'), findsOneWidget);
+    expect(find.text('Файл'), findsOneWidget);
   });
 }
