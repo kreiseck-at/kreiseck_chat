@@ -7,6 +7,8 @@ List<String> _all(ChatStrings s) => [
       s.reply, s.copy, s.original, s.retry, s.today, s.yesterday,
       s.messageHint, s.send, s.camera, s.gallery, s.file, s.typing,
       s.spam, s.subject, s.to, s.possibleSpam,
+      s.online, s.lastSeenTodayPrefix, s.lastSeenYesterdayPrefix,
+      s.lastSeenDatePrefix, s.lastSeenAtJoiner, s.noMailYet,
     ];
 
 void main() {
@@ -18,10 +20,10 @@ void main() {
     'uk': ChatStrings.uk(),
   };
 
-  test('jede Sprache füllt alle sechzehn Felder', () {
+  test('jede Sprache füllt alle zweiundzwanzig Felder', () {
     for (final entry in presets.entries) {
       final werte = _all(entry.value);
-      expect(werte.length, 16, reason: entry.key);
+      expect(werte.length, 22, reason: entry.key);
       expect(
         werte.where((w) => w.trim().isEmpty),
         isEmpty,

@@ -26,6 +26,12 @@ class ChatStrings {
     required this.subject,
     required this.to,
     required this.possibleSpam,
+    required this.online,
+    required this.lastSeenTodayPrefix,
+    required this.lastSeenYesterdayPrefix,
+    required this.lastSeenDatePrefix,
+    required this.lastSeenAtJoiner,
+    required this.noMailYet,
   });
 
   /// Context-menu entry that quotes a message.
@@ -76,6 +82,27 @@ class ChatStrings {
   /// Notice shown on a message flagged as possible junk.
   final String possibleSpam;
 
+  /// Presence line shown while a participant is online. See
+  /// [PresenceLabels.fromStrings].
+  final String online;
+
+  /// Presence prefix before a same-day last-seen time, e.g. `'last seen at '`.
+  final String lastSeenTodayPrefix;
+
+  /// Presence prefix before a previous-day last-seen time, e.g.
+  /// `'last seen yesterday at '`.
+  final String lastSeenYesterdayPrefix;
+
+  /// Presence prefix before an older last-seen date, e.g. `'last seen on '`.
+  final String lastSeenDatePrefix;
+
+  /// Joiner between an older last-seen date and its time, e.g. `' at '` in
+  /// `'last seen on 3.2.2026 at 14:30'`.
+  final String lastSeenAtJoiner;
+
+  /// Shown in [MailListView] when there are no messages to list.
+  final String noMailYet;
+
   /// English — also the fallback for every unsupported language.
   const ChatStrings.en()
       : reply = 'Reply',
@@ -93,7 +120,13 @@ class ChatStrings {
         spam = 'Spam',
         subject = 'Subject',
         to = 'To',
-        possibleSpam = 'Possible spam';
+        possibleSpam = 'Possible spam',
+        online = 'Online',
+        lastSeenTodayPrefix = 'last seen at ',
+        lastSeenYesterdayPrefix = 'last seen yesterday at ',
+        lastSeenDatePrefix = 'last seen on ',
+        lastSeenAtJoiner = ' at ',
+        noMailYet = 'No mail yet';
 
   /// German.
   const ChatStrings.de()
@@ -112,7 +145,13 @@ class ChatStrings {
         spam = 'Spam',
         subject = 'Betreff',
         to = 'An',
-        possibleSpam = 'Möglicher Spam';
+        possibleSpam = 'Möglicher Spam',
+        online = 'Online',
+        lastSeenTodayPrefix = 'zuletzt gesehen um ',
+        lastSeenYesterdayPrefix = 'zuletzt gesehen gestern um ',
+        lastSeenDatePrefix = 'zuletzt gesehen am ',
+        lastSeenAtJoiner = ' um ',
+        noMailYet = 'Noch keine Mails';
 
   /// Croatian.
   const ChatStrings.hr()
@@ -131,7 +170,13 @@ class ChatStrings {
         spam = 'Neželjeno',
         subject = 'Predmet',
         to = 'Za',
-        possibleSpam = 'Moguće neželjeno';
+        possibleSpam = 'Moguće neželjeno',
+        online = 'Na mreži',
+        lastSeenTodayPrefix = 'posljednji put viđen u ',
+        lastSeenYesterdayPrefix = 'posljednji put viđen jučer u ',
+        lastSeenDatePrefix = 'posljednji put viđen ',
+        lastSeenAtJoiner = ' u ',
+        noMailYet = 'Još nema pošte';
 
   /// Turkish.
   const ChatStrings.tr()
@@ -150,7 +195,13 @@ class ChatStrings {
         spam = 'Spam',
         subject = 'Konu',
         to = 'Kime',
-        possibleSpam = 'Olası spam';
+        possibleSpam = 'Olası spam',
+        online = 'Çevrimiçi',
+        lastSeenTodayPrefix = 'son görülme ',
+        lastSeenYesterdayPrefix = 'dün son görülme ',
+        lastSeenDatePrefix = 'son görülme ',
+        lastSeenAtJoiner = ' ',
+        noMailYet = 'Henüz posta yok';
 
   /// Ukrainian.
   const ChatStrings.uk()
@@ -169,7 +220,13 @@ class ChatStrings {
         spam = 'Спам',
         subject = 'Тема',
         to = 'Кому',
-        possibleSpam = 'Можливий спам';
+        possibleSpam = 'Можливий спам',
+        online = 'У мережі',
+        lastSeenTodayPrefix = 'востаннє в мережі о ',
+        lastSeenYesterdayPrefix = 'востаннє в мережі вчора о ',
+        lastSeenDatePrefix = 'востаннє в мережі ',
+        lastSeenAtJoiner = ' о ',
+        noMailYet = 'Ще немає листів';
 
   /// The preset for [locale]'s language, or English when there is none.
   ///
@@ -213,6 +270,12 @@ class ChatStrings {
     String? subject,
     String? to,
     String? possibleSpam,
+    String? online,
+    String? lastSeenTodayPrefix,
+    String? lastSeenYesterdayPrefix,
+    String? lastSeenDatePrefix,
+    String? lastSeenAtJoiner,
+    String? noMailYet,
   }) {
     return ChatStrings(
       reply: reply ?? this.reply,
@@ -231,6 +294,13 @@ class ChatStrings {
       subject: subject ?? this.subject,
       to: to ?? this.to,
       possibleSpam: possibleSpam ?? this.possibleSpam,
+      online: online ?? this.online,
+      lastSeenTodayPrefix: lastSeenTodayPrefix ?? this.lastSeenTodayPrefix,
+      lastSeenYesterdayPrefix:
+          lastSeenYesterdayPrefix ?? this.lastSeenYesterdayPrefix,
+      lastSeenDatePrefix: lastSeenDatePrefix ?? this.lastSeenDatePrefix,
+      lastSeenAtJoiner: lastSeenAtJoiner ?? this.lastSeenAtJoiner,
+      noMailYet: noMailYet ?? this.noMailYet,
     );
   }
 
@@ -253,12 +323,22 @@ class ChatStrings {
         other.spam == spam &&
         other.subject == subject &&
         other.to == to &&
-        other.possibleSpam == possibleSpam;
+        other.possibleSpam == possibleSpam &&
+        other.online == online &&
+        other.lastSeenTodayPrefix == lastSeenTodayPrefix &&
+        other.lastSeenYesterdayPrefix == lastSeenYesterdayPrefix &&
+        other.lastSeenDatePrefix == lastSeenDatePrefix &&
+        other.lastSeenAtJoiner == lastSeenAtJoiner &&
+        other.noMailYet == noMailYet;
   }
 
+  // Object.hash tops out at 20 positional arguments -- this class carries
+  // 22 fields, so hashAll over the full list is used instead.
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
         reply, copy, original, retry, today, yesterday, messageHint, send,
         camera, gallery, file, typing, spam, subject, to, possibleSpam,
-      );
+        online, lastSeenTodayPrefix, lastSeenYesterdayPrefix,
+        lastSeenDatePrefix, lastSeenAtJoiner, noMailYet,
+      ]);
 }
