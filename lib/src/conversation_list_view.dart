@@ -227,8 +227,11 @@ class _ConversationTile extends StatelessWidget {
               conversation.title,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: theme.typography.headerTitle
-                  .copyWith(color: theme.colors.incomingText),
+              style: theme.typography.headerTitle.copyWith(
+                color: theme.colors.incomingText,
+                // Ungelesenes zieht den Blick — wie in jedem Postfach.
+                fontWeight: conversation.unread > 0 ? FontWeight.w700 : null,
+              ),
             ),
           ),
           if (conversation.pinned)
@@ -279,7 +282,8 @@ class _ConversationTile extends StatelessWidget {
               style: theme.typography.headerSubtitle.copyWith(
                 color: _typing
                     ? theme.colors.accent
-                    : theme.colors.incomingText.withValues(alpha: 0.6),
+                    : theme.colors.incomingText.withValues(
+                        alpha: conversation.unread > 0 ? 1.0 : 0.6),
               ),
             ),
           ),

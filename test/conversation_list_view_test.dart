@@ -23,6 +23,38 @@ void main() {
     expect(opened?.id, 'c1');
   });
 
+  testWidgets('ungelesene Zeile hebt Titel und Vorschau hervor',
+      (tester) async {
+    Future<void> zeige(int ungelesen) => tester.pumpWidget(MaterialApp(
+          home: Scaffold(
+            body: ConversationListView(
+              conversations: [
+                ChatConversation(
+                    id: 'c1',
+                    title: 'Ada',
+                    lastText: 'Bis morgen',
+                    unread: ungelesen),
+              ],
+              onOpen: _egal,
+            ),
+          ),
+        ));
+
+    await zeige(0);
+    final gelesenTitel = tester.widget<Text>(find.text('Ada')).style;
+    final gelesenVorschau =
+        tester.widget<Text>(find.text('Bis morgen')).style;
+
+    await zeige(2);
+    final offenTitel = tester.widget<Text>(find.text('Ada')).style;
+    final offenVorschau = tester.widget<Text>(find.text('Bis morgen')).style;
+
+    expect(offenTitel?.fontWeight, FontWeight.w700);
+    expect(offenTitel?.fontWeight, isNot(gelesenTitel?.fontWeight));
+    expect(offenVorschau?.color?.a, 1.0);
+    expect(gelesenVorschau?.color?.a, lessThan(1.0));
+  });
+
   testWidgets('Zeit erscheint nur, wenn der Host eine baut', (tester) async {
     Future<void> zeige(String? Function(ChatConversation)? bauer) =>
         tester.pumpWidget(MaterialApp(

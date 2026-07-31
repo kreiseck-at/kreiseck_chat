@@ -63,6 +63,9 @@
   to be an inline literal with no way to override it. For Turkish this is
   deliberately a single space rather than a word (see
   `ChatStrings.tr().lastSeenAtJoiner`).
+* `ConversationListView` now emphasizes an unread row: bold title, preview
+  at full opacity instead of 60%. Rows with `unread == 0` are unchanged, so
+  a host that never sets `unread` sees no difference.
 * New `ConversationListView.timeLabelBuilder` and `unreadStyle`. The row can
   now end with a time — the host formats it, since date formatting is its
   business and this package brings no date library — and an unread
