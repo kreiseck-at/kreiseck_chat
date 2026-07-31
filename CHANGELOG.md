@@ -4,38 +4,57 @@
 
 * Every word the widgets put on screen — reply/copy/original, retry,
   today/yesterday, the composer's placeholder and attachment-source labels,
-  the typing indicator, and the mail widgets' subject/to/spam/"possible
-  spam" labels — used to be hard-coded German text. It now comes from the
-  new `ChatStrings`, resolved from the ambient `Locale`
+  the typing indicator, presence/last-seen wording, and the mail widgets'
+  subject/to/spam/"possible spam"/"no mail yet" labels — used to be
+  hard-coded German (or, for "No mail yet", English) text. It now comes from
+  the new `ChatStrings`, resolved from the ambient `Locale`
   (`Localizations.maybeLocaleOf(context)`) via each widget's new optional
   `strings` parameter — a host that already sets its app `locale` needs to
   pass nothing. **A host that never set an app locale before will now see
   English instead of German**: English, not German, is `ChatStrings`'
   fallback for an unset or unsupported locale.
-* **`ChatStrings`'s main constructor is not backward compatible.** It takes
-  all sixteen fields as `required`, so a call site that builds
-  `ChatStrings(...)` by hand needs to add the new `possibleSpam` field (see
-  below) to keep compiling. This does not affect the five language presets
-  (`ChatStrings.en()` … `ChatStrings.uk()`), which remain unchanged and are
-  the recommended way to get a full set.
+* `ChatStrings` is new in this release, so there is no prior public API to
+  stay compatible with. Its main constructor takes all twenty-two fields as
+  `required` — build one by hand only if you need a mix no language preset
+  offers; the five presets (`ChatStrings.en()` … `ChatStrings.uk()`) are the
+  recommended way to get a full set and need nothing added at a call site.
 * `ChatHeader.typingLabel` and `ConversationListView.typingLabel` (the
   per-instance override, not the private per-row field) changed from
   `String` to `String?` so leaving it unset falls through to
   `ChatStrings.typing` instead of forcing a value. This is the one
   signature change in this release that isn't purely additive; every
   existing call site that passed a `String` still compiles unchanged.
+* `PresenceLabels`' German defaults are unchanged, so existing direct calls
+  to `formatPresenceLabel` keep behaving exactly as before. What changed is
+  `ChatHeader`: its presence subtitle used to call `formatPresenceLabel`
+  with the German defaults regardless of locale; it now builds its
+  `PresenceLabels` from the same resolved `ChatStrings` as everything else
+  it renders, via the new `PresenceLabels.fromStrings`.
 
-* New `ChatStrings` — sixteen strings (`reply`, `copy`, `original`, `retry`,
-  `today`, `yesterday`, `messageHint`, `send`, `camera`, `gallery`, `file`,
-  `typing`, `spam`, `subject`, `to`, `possibleSpam`) in five languages
-  (`.en()`, `.de()`, `.hr()`, `.tr()`, `.uk()`), matched to the ambient
-  locale via `ChatStrings.forLocale`/`ChatStrings.of`. `possibleSpam` is the
-  sentence shown in an opened mail's header ("Possible spam"), distinct
-  from the short `spam` tag shown in a mail list row. `DateSeparator`,
-  `MessageBubble`, `Composer`, `ChatHeader`, `ConversationListView`,
-  `MailListView`, `MailDetailView`, and `MailComposer` each gained an
+* New `ChatStrings` — twenty-two strings (`reply`, `copy`, `original`,
+  `retry`, `today`, `yesterday`, `messageHint`, `send`, `camera`, `gallery`,
+  `file`, `typing`, `spam`, `subject`, `to`, `possibleSpam`, `online`,
+  `lastSeenTodayPrefix`, `lastSeenYesterdayPrefix`, `lastSeenDatePrefix`,
+  `lastSeenAtJoiner`, `noMailYet`) in five languages (`.en()`, `.de()`,
+  `.hr()`, `.tr()`, `.uk()`), matched to the ambient locale via
+  `ChatStrings.forLocale`/`ChatStrings.of`. `possibleSpam` is the sentence
+  shown in an opened mail's header ("Possible spam"), distinct from the
+  short `spam` tag shown in a mail list row; `online`/`lastSeen*` are the
+  presence wording also used by `PresenceLabels.fromStrings` (see below);
+  `noMailYet` is the empty-state text in `MailListView`. `ChatThreadView`,
+  `DateSeparator`, `MessageBubble`, `Composer`, `ChatHeader`,
+  `ConversationListView`, `MailListView`, `MailDetailView`, and
+  `MailComposer` each gained (or, for `ChatThreadView`, newly gained) an
   optional `strings: ChatStrings?` parameter to override individual words
-  without touching the ambient locale.
+  without touching the ambient locale; `ChatThreadView` forwards its
+  `strings` to the `MessageBubble`, `DateSeparator`, and `Composer` it
+  renders.
+* New `PresenceLabels.fromStrings(ChatStrings)` builds a `PresenceLabels`
+  from a `ChatStrings`' five presence fields. New `PresenceLabels`
+  field `lastSeenAtJoiner` (default `' um '`, matching the previous
+  hard-coded joiner) — the word(s) between an older last-seen date and its
+  time, e.g. `' um '` in `'zuletzt gesehen am 3.2.2026 um 14:30'`; it used
+  to be an inline literal with no way to override it.
 * `copyWith` on `ChatMessage`, `ChatMessageRef`, `ChatConversation`,
   `ChatPresence`, `ChatParticipant`, `ChatAttachment`, and `MailMessage`
   gained a `clearX` switch (e.g. `clearAvatarUrl: true`) for every nullable

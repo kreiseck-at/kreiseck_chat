@@ -97,15 +97,29 @@ and `ChatConversation` and handling the `onSend`/`onOpen` callbacks.
   `channelLabel` text).
 * **`ChatStrings`** — every word the widgets put on screen (reply/copy/retry,
   today/yesterday, the composer's hint and attachment labels, the typing
-  indicator, and the mail widgets' subject/to/spam labels) lives in one
-  immutable class, resolved from the ambient `Locale` — a host that already
-  sets its app locale needs to pass nothing:
+  indicator, presence/last-seen wording, and the mail widgets' subject/to/
+  spam labels) lives in one immutable class, resolved from the ambient
+  `Locale`. A host that already sets its app locale needs to pass nothing —
+  but a plain `MaterialApp.locale` isn't quite enough on its own, since
+  `TextField`s (like the composer's) also need `MaterialLocalizations`,
+  which Flutter only ships pre-built for English:
+
+  ```yaml
+  # pubspec.yaml of the app (not this package — it adds none of its own
+  # dependencies), so MaterialLocalizations has real resources to load for
+  # 'uk' instead of just falling through to English.
+  dependencies:
+    flutter_localizations:
+      sdk: flutter
+  ```
 
   ```dart
-  // Nothing to pass: the widgets follow the app's locale.
+  import 'package:flutter_localizations/flutter_localizations.dart';
+
   MaterialApp(
     locale: const Locale('uk'),
     supportedLocales: const [Locale('uk'), Locale('en')],
+    localizationsDelegates: GlobalMaterialLocalizations.delegates,
     home: ChatThreadView(messages: messages, onSend: send),
   );
 
@@ -116,6 +130,11 @@ and `ChatConversation` and handling the `onSend`/`onOpen` callbacks.
     strings: const ChatStrings.de().copyWith(retry: 'Nochmal versuchen'),
   );
   ```
+
+  Not keen on the extra dependency? `example/lib/main.dart` shows the
+  delegate pair this package's own tests use to preview every locale
+  without depending on `flutter_localizations` — it hands the framework's
+  English-only resources back for any locale, unconditionally.
 
   Built-in presets cover English, German, Croatian, Turkish, and Ukrainian
   (`ChatStrings.en()` … `.uk()`); any other locale falls back to English.
