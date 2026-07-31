@@ -63,6 +63,11 @@
   to be an inline literal with no way to override it. For Turkish this is
   deliberately a single space rather than a word (see
   `ChatStrings.tr().lastSeenAtJoiner`).
+* `MessageBubble` now renders a message's attachments regardless of
+  `ChatCapabilities.media`, which from now on only governs the composer's
+  attach affordances. A thread that mixes channels (a photo received over
+  WhatsApp while the composer is set to SMS) used to hide the photo
+  outright.
 * `ChatThreadView` now draws its list reversed (`reverse: true`), so the
   newest message sits at scroll offset 0. This replaces every scroll
   correction the view used to run — the multi-frame settle on open, the

@@ -468,6 +468,21 @@ void main() {
     expect(find.text('Original'), findsOneWidget);
   });
 
+  testWidgets('empfangenes Bild erscheint auch ohne media-Fähigkeit',
+      (tester) async {
+    // Der Kanal darf nichts anhängen (SMS) — ein Bild, das trotzdem ankam,
+    // z.B. aus einem anderen Kanal desselben Verlaufs, muss sichtbar bleiben.
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: MessageBubble(
+          message: _withImages(1),
+          capabilities: const ChatCapabilities.twilioSms(),
+        ),
+      ),
+    ));
+    expect(find.byType(Image), findsWidgets);
+  });
+
   testWidgets('Haarlinie um die Blase nur, wenn der Host eine setzt',
       (tester) async {
     Border? rahmenVon(WidgetTester t) {

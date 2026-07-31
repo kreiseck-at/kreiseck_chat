@@ -66,7 +66,9 @@ class ChatCapabilities {
   /// Whether swipe-to-reply and quoted-reply blocks are shown.
   final bool replies;
 
-  /// Whether image bubbles and the composer attach button are shown.
+  /// Whether the composer offers attaching media. Received attachments are
+  /// rendered regardless — a message that carries an image proves the channel
+  /// delivered one, and hiding it would lose content.
   final bool media;
 
   /// Whether the typing indicator (bubble + list preview) is shown.

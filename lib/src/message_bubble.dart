@@ -235,7 +235,10 @@ class _MessageBubbleState extends State<MessageBubble> {
     final textColor = _isOutgoing ? colors.outgoingText : colors.incomingText;
     final ink = colors.inkFor(bubbleColor, isOutgoing: _isOutgoing);
 
-    final hasMedia = capabilities.media && message.attachments.isNotEmpty;
+    // Angehängte Bilder werden IMMER gezeigt. Dass eine Nachricht welche hat,
+    // beweist, dass der Kanal sie befördert hat -- `capabilities.media` regelt
+    // nur, ob man selbst welche anhängen darf (siehe Composer).
+    final hasMedia = message.attachments.isNotEmpty;
     final maxBubbleWidth = MediaQuery.of(context).size.width * 0.75;
 
     Widget bubble = Container(
