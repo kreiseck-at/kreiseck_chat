@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'chat_strings.dart';
 import 'chat_theme.dart';
 
 /// A centered day-boundary pill ("Heute" / "Gestern" / date).
@@ -11,6 +12,7 @@ class DateSeparator extends StatelessWidget {
     required this.theme,
     this.now,
     this.labelBuilder,
+    this.strings,
   });
 
   /// The day this separator introduces (date-only).
@@ -25,20 +27,25 @@ class DateSeparator extends StatelessWidget {
   /// Optional custom label builder `(date, now) -> String`.
   final String Function(DateTime date, DateTime? now)? labelBuilder;
 
-  String _defaultLabel(DateTime d, DateTime ref) {
+  /// Overrides the words used by this separator. Left null, they follow the
+  /// ambient locale (see [ChatStrings.of]).
+  final ChatStrings? strings;
+
+  String _defaultLabel(DateTime d, DateTime ref, ChatStrings strings) {
     final today = DateTime(ref.year, ref.month, ref.day);
     final that = DateTime(d.year, d.month, d.day);
     final diff = today.difference(that).inDays;
-    if (diff == 0) return 'Heute';
-    if (diff == 1) return 'Gestern';
+    if (diff == 0) return strings.today;
+    if (diff == 1) return strings.yesterday;
     return '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year}';
   }
 
   @override
   Widget build(BuildContext context) {
     final ref = now ?? DateTime.now();
+    final resolved = ChatStrings.of(context, override: strings);
     final label =
-        labelBuilder?.call(date, now) ?? _defaultLabel(date, ref);
+        labelBuilder?.call(date, now) ?? _defaultLabel(date, ref, resolved);
     return Center(
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 10),
