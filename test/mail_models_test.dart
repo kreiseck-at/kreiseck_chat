@@ -14,7 +14,7 @@ void main() {
     expect(m.seen, false);
   });
   test('MailMessage.copyWith überschreibt seen', () {
-    final m = MailMessage(id: 'm1', direction: MailDirection.outgoing, from: 'a', to: 'b',
+    final m = MailMessage(id: 'm1', direction: MailDirection.outgoing, from: const MailAddress(email: 'a'), to: const [MailAddress(email: 'b')],
       subject: 's', bodyText: 't', date: DateTime.utc(2026), seen: false, attachments: const []);
     expect(m.copyWith(seen: true).seen, true);
   });
@@ -28,7 +28,7 @@ void main() {
     expect(MailMessage.fromJson(base()).spam, false);
   });
   test('MailMessage.copyWith und Gleichheit berücksichtigen spam', () {
-    final m = MailMessage(id: 'm1', direction: MailDirection.outgoing, from: 'a', to: 'b',
+    final m = MailMessage(id: 'm1', direction: MailDirection.outgoing, from: const MailAddress(email: 'a'), to: const [MailAddress(email: 'b')],
       subject: 's', bodyText: 't', date: DateTime.utc(2026), attachments: const []);
     expect(m.spam, false);
     final spamMsg = m.copyWith(spam: true);
@@ -41,8 +41,8 @@ void main() {
     final voll = MailMessage(
       id: 'm1',
       direction: MailDirection.incoming,
-      from: 'ada@example.invalid',
-      to: 'ich@example.invalid',
+      from: const MailAddress(email: 'ada@example.invalid'),
+      to: const [MailAddress(email: 'ich@example.invalid')],
       subject: 'Angebot',
       bodyText: 'Text',
       date: DateTime(2026, 7, 31, 10),
@@ -57,8 +57,8 @@ void main() {
     final voll = MailMessage(
       id: 'm1',
       direction: MailDirection.incoming,
-      from: 'ada@example.invalid',
-      to: 'ich@example.invalid',
+      from: const MailAddress(email: 'ada@example.invalid'),
+      to: const [MailAddress(email: 'ich@example.invalid')],
       subject: 'Angebot',
       bodyText: 'Text',
       date: DateTime(2026, 7, 31, 10),
@@ -75,8 +75,8 @@ void main() {
     final voll = MailMessage(
       id: 'm1',
       direction: MailDirection.incoming,
-      from: 'ada@example.invalid',
-      to: 'ich@example.invalid',
+      from: const MailAddress(email: 'ada@example.invalid'),
+      to: const [MailAddress(email: 'ich@example.invalid')],
       subject: 'Angebot',
       bodyText: 'Text',
       date: DateTime(2026, 7, 31, 10),

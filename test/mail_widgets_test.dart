@@ -8,8 +8,8 @@ MailMessage _m(String id, String subject, {bool seen = false, bool spam = false}
     MailMessage(
       id: id,
       direction: MailDirection.incoming,
-      from: 'a@x.at',
-      to: 'b@y.at',
+      from: const MailAddress(email: 'a@x.at'),
+      to: const [MailAddress(email: 'b@y.at')],
       subject: subject,
       bodyText: 'Body $id',
       date: DateTime.utc(2026),
@@ -91,8 +91,8 @@ void main() {
           MailMessage(
             id: 'm1',
             direction: MailDirection.incoming,
-            from: 'ada@example.invalid',
-            to: 'ich@example.invalid',
+            from: const MailAddress(email: 'ada@example.invalid'),
+            to: const [MailAddress(email: 'ich@example.invalid')],
             subject: 'Angebot',
             bodyText: 'Text',
             date: DateTime(2026, 7, 31, 10),
@@ -112,8 +112,8 @@ void main() {
         message: MailMessage(
           id: 'm1',
           direction: MailDirection.incoming,
-          from: 'ada@example.invalid',
-          to: 'ich@example.invalid',
+          from: const MailAddress(email: 'ada@example.invalid'),
+          to: const [MailAddress(email: 'ich@example.invalid')],
           subject: 'Angebot',
           bodyText: 'Text',
           date: DateTime(2026, 7, 31, 10),

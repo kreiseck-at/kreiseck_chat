@@ -73,8 +73,11 @@ class MailDetailView extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
+            // Immer die echte Adresse, nicht nur den Anzeigenamen: der Name
+            // ist der eine Teil einer Mail, in den der Absender schreiben
+            // kann, was er will.
             Text(
-              message.from,
+              message.from.display,
               style: TextStyle(color: mutedColor),
             ),
             const SizedBox(height: 2),

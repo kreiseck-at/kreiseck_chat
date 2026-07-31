@@ -90,7 +90,7 @@ class _MailTile extends StatelessWidget {
   final VoidCallback onTap;
 
   String get _initial {
-    final s = message.from.trim();
+    final s = (message.from.name ?? message.from.email).trim();
     return s.isEmpty ? '?' : s.characters.first.toUpperCase();
   }
 
@@ -135,7 +135,7 @@ class _MailTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    message.from,
+                    message.from.display,
                     style: TextStyle(color: mutedColor, fontSize: 12),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
