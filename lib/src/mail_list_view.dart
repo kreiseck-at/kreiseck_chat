@@ -44,7 +44,7 @@ class MailListView extends StatelessWidget {
         color: theme.background,
         child: Center(
           child: Text(
-            'No mail yet',
+            strings.noMailYet,
             style: TextStyle(color: theme.textColor.withValues(alpha: 0.5)),
           ),
         ),
