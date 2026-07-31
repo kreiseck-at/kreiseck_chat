@@ -35,9 +35,11 @@ void main() {
 
   testWidgets('with onRetry a retry action appears and calls back', (tester) async {
     var retried = 0;
-    // ChatThreadView has no strings override yet -- pin the ambient locale
-    // instead, so the button keeps reading the expected German text
-    // regardless of the test host's default locale.
+    // Pins the ambient locale (rather than passing ChatThreadView's own
+    // strings override) so the button keeps reading the expected German
+    // text regardless of the test host's default locale -- this also
+    // supplies the MaterialLocalizations the composer's TextField needs,
+    // which a bare strings override wouldn't.
     await tester.pumpWidget(_germanLocaleHost(
       ChatThreadView(
         messages: [_failed()],

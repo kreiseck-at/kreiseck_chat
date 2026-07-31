@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import 'chat_attachment.dart';
 import 'chat_capabilities.dart';
+import 'chat_strings.dart';
 import 'chat_system_card.dart';
 import 'chat_theme.dart';
 import 'composer.dart';
@@ -42,6 +43,7 @@ class ChatThreadView extends StatefulWidget {
     this.composerBanner,
     this.composerLeading,
     this.readOnly = false,
+    this.strings,
   });
 
   /// Messages, oldest first.
@@ -124,6 +126,11 @@ class ChatThreadView extends StatefulWidget {
 
   /// Hides the composer field — for archive or supervisory views.
   final bool readOnly;
+
+  /// Overrides the words used by this view and the sub-widgets it renders
+  /// (`MessageBubble`, `DateSeparator`, `Composer`). Left null, they follow
+  /// the ambient locale (see [ChatStrings.of]).
+  final ChatStrings? strings;
 
   @override
   State<ChatThreadView> createState() => _ChatThreadViewState();
@@ -244,6 +251,7 @@ class _ChatThreadViewState extends State<ChatThreadView> {
                     date: item.date,
                     theme: widget.theme,
                     now: widget.now,
+                    strings: widget.strings,
                   );
                 }
                 final mi = item as MessageItem;
@@ -280,6 +288,7 @@ class _ChatThreadViewState extends State<ChatThreadView> {
                   onRetry: widget.onRetry == null
                       ? null
                       : () => widget.onRetry!(mi.message),
+                  strings: widget.strings,
                 );
               },
               ),
@@ -298,6 +307,7 @@ class _ChatThreadViewState extends State<ChatThreadView> {
               onRemoveAttachmentAt: widget.onRemoveAttachmentAt,
               onAddAttachment: widget.onAddAttachment,
               leading: widget.composerLeading,
+              strings: widget.strings,
             ),
         ],
       ),

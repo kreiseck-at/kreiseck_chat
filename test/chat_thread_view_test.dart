@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kreiseck_chat/kreiseck_chat.dart';
 
+import 'locale_host.dart';
+
 List<ChatMessage> _seed() => [
       ChatMessage(
           id: '1',
@@ -215,6 +217,42 @@ void main() {
       ),
     ));
     expect(find.byType(Composer), findsNothing);
+  });
+
+  testWidgets(
+      'strings-Override setzt sich gegen einen ukrainischen Kontext durch',
+      (tester) async {
+    final failed = ChatMessage(
+      id: 'm2',
+      direction: MessageDirection.outgoing,
+      text: 'x',
+      at: DateTime(2026, 7, 30, 10),
+      errorText: 'Fehlgeschlagen',
+    );
+    await tester.pumpWidget(localeHost(
+      ChatThreadView(
+        messages: [nachricht('m1', ChatMessageKind.normal), failed],
+        onSend: (_) {},
+        onRetry: (_) {},
+        now: DateTime(2026, 7, 30, 10),
+        strings: const ChatStrings.de(),
+      ),
+      locale: const Locale('uk'),
+    ));
+    // Die Blase spielt eine Eintritts-Animation; erst danach ist der
+    // Retry-Text sicher im Baum.
+    await tester.pumpAndSettle();
+
+    // DateSeparator: deutsches "Heute" statt ukrainischem "Сьогодні".
+    expect(find.text('Heute'), findsOneWidget);
+    expect(find.text('Сьогодні'), findsNothing);
+
+    // MessageBubble: deutscher Retry-Text statt ukrainischem.
+    expect(find.text('Erneut senden'), findsOneWidget);
+
+    // Composer: deutscher Platzhaltertext statt ukrainischem.
+    final field = tester.widget<TextField>(find.byType(TextField));
+    expect(field.decoration?.hintText, 'Nachricht');
   });
 
   testWidgets('composerBanner bleibt bei readOnly sichtbar, Eingabefeld nicht',
