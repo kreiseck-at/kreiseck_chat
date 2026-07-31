@@ -1462,3 +1462,71 @@ In der Beispiel-App (`cd example && flutter run`):
   `piše…`/`yazıyor…`/`пише…` und die Länge von „Надіслати ще раз" auf einem
   Textknopf.
 - **Veröffentlichen** (`flutter pub publish`) nach deiner Abnahme.
+
+---
+
+## Ergebnis (2026-07-31)
+
+Paket steht auf **0.15.0**, Branch `feat/0.15.0`, **256 Tests grün** (Ausgangspunkt
+0.14.0: 208). `flutter analyze` befundfrei für Paket und Beispiel,
+`flutter pub publish --dry-run` ohne Warnungen.
+
+Aus geplanten 15 Sprachfeldern wurden **23**, aus 9 Aufgaben wurden 10.
+
+### Drei Lücken, die der Plan übersehen hatte
+
+Alle drei fielen erst durch Prüfungen auf, nicht beim Schreiben des Plans:
+
+1. **`mail_detail_view.dart`** (`'Antworten'`, `'Möglicher Spam'`) — die
+   Bestandsaufnahme hatte jede Zeichenkette *einer* Datei zugeordnet, ohne zu
+   prüfen, ob sie mehrfach vorkommt. Gefunden, weil die Prüfung von Aufgabe 6
+   den Auftrag hatte, übergreifend gegenzuprüfen. Nachgezogen als Aufgabe 6b.
+2. **`presence_label.dart`** — blieb komplett deutsch und war über `ChatHeader`
+   nicht einmal überschreibbar; ein ukrainischer Host hätte „пише…" und
+   „zuletzt gesehen um 14:30" in derselben Zeile gesehen. Von der
+   Abschlussprüfung gefunden.
+3. **`mail_composer.dart`** (`labelText: 'Text'`) — unauffällig, weil „Text" auf
+   Englisch gleich heißt; für hr/tr/uk falsch.
+
+### Ein kritischer Fehler in der Doku
+
+Die README dokumentierte `ChatThreadView(strings: …)` — einen Parameter, den es
+nicht gab. Ausgerechnet der Migrationsweg für Hosts, die Deutsch behalten
+wollen, und auf pub.dev die Startseite des Pakets. Die Abschlussprüfung hat es
+belegt, indem sie ein Wegwerf-Paket gegen den Pfad kompilierte. Behoben, indem
+`strings` in `ChatThreadView` nachgerüstet und an `MessageBubble`,
+`DateSeparator` und `Composer` durchgereicht wurde.
+
+Ebenso stürzte der „nichts übergeben nötig"-Schnipsel zur Laufzeit ab: Flutters
+`Default*Localizations` melden sich nur für `en` als zuständig, ein `TextField`
+wirft dann „No MaterialLocalizations found". Die README nennt jetzt
+`flutter_localizations` als Anforderung **der App**.
+
+### Zwei Zusagen, die geprüft und bestätigt wurden
+
+- **Rein additiv:** Jede der 82 in `lib/` entfernten Zeilen wurde einzeln
+  durchgesehen. Außer `typingLabel: String → String?` und dem Englisch-Rückfall
+  gibt es keinen Bruch.
+- **„Für deutsche Hosts ändert sich nichts":** Alle deutschen Werte stimmen
+  zeichengenau mit den entfernten Literalen überein.
+
+### Bewusst offen
+
+- **Kanal-Vorlagen** (`ChatChannel.voice({label = 'Anruf'})`) bleiben deutsch —
+  `const`-Konstruktoren können keinen Kontext lesen; der Weg ist `label:`.
+  In README und CHANGELOG ausdrücklich abgegrenzt.
+- **Datums- und Zeitformate** bleiben `DD.MM.YYYY` / `HH:MM` in allen Sprachen.
+  Ein englischer Host liest „Today" über „31.07.2026". Eigenes Vorhaben, würde
+  `intl` brauchen.
+- **`PresenceLabels`-Standardwerte bleiben deutsch** — sonst bräche jeder
+  bestehende direkte Aufruf von `formatPresenceLabel`. Über `ChatHeader` kommen
+  die Texte jetzt aus `ChatStrings`.
+
+### Offen für den Autor
+
+1. **Muttersprachliche Durchsicht** von Kroatisch, Türkisch und Ukrainisch —
+   jetzt 23 Felder je Sprache. Diskutabel: `Neželjeno` für Spam, die Länge von
+   `Надіслати ще раз` auf einem Textknopf, und der türkische
+   `lastSeenAtJoiner`, der absichtlich nur ein Leerzeichen ist.
+2. **Veröffentlichen** (`flutter pub publish`) — bewusst nicht ausgeführt.
+3. **Kein Remote am Repo** — drei Versionen Arbeit liegen nur auf dieser Platte.
