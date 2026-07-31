@@ -98,11 +98,15 @@ and `ChatConversation` and handling the `onSend`/`onOpen` callbacks.
 * **`ChatStrings`** — every word the widgets put on screen (reply/copy/retry,
   today/yesterday, the composer's hint and attachment labels, the typing
   indicator, presence/last-seen wording, and the mail widgets' subject/to/
-  spam labels) lives in one immutable class, resolved from the ambient
+  body/spam labels) lives in one immutable class, resolved from the ambient
   `Locale`. A host that already sets its app locale needs to pass nothing —
   but a plain `MaterialApp.locale` isn't quite enough on its own, since
   `TextField`s (like the composer's) also need `MaterialLocalizations`,
-  which Flutter only ships pre-built for English:
+  which Flutter only ships pre-built for English. One thing this doesn't
+  cover: `ChatChannel`'s templates (`.whatsApp()`, `.sms()`, ...) carry
+  their own `label` (e.g. `.voice()`'s default is the German "Anruf") —
+  channel names are data on a `const` value object rather than `ChatStrings`
+  wording, so translate them by passing your own `label` per instance.
 
   ```yaml
   # pubspec.yaml of the app (not this package — it adds none of its own
