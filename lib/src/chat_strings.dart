@@ -25,6 +25,7 @@ class ChatStrings {
     required this.spam,
     required this.subject,
     required this.to,
+    required this.possibleSpam,
   });
 
   /// Context-menu entry that quotes a message.
@@ -72,6 +73,9 @@ class ChatStrings {
   /// Mail field: recipient.
   final String to;
 
+  /// Notice shown on a message flagged as possible junk.
+  final String possibleSpam;
+
   /// English — also the fallback for every unsupported language.
   const ChatStrings.en()
       : reply = 'Reply',
@@ -88,7 +92,8 @@ class ChatStrings {
         typing = 'typing…',
         spam = 'Spam',
         subject = 'Subject',
-        to = 'To';
+        to = 'To',
+        possibleSpam = 'Possible spam';
 
   /// German.
   const ChatStrings.de()
@@ -106,7 +111,8 @@ class ChatStrings {
         typing = 'tippt…',
         spam = 'Spam',
         subject = 'Betreff',
-        to = 'An';
+        to = 'An',
+        possibleSpam = 'Möglicher Spam';
 
   /// Croatian.
   const ChatStrings.hr()
@@ -124,7 +130,8 @@ class ChatStrings {
         typing = 'piše…',
         spam = 'Neželjeno',
         subject = 'Predmet',
-        to = 'Za';
+        to = 'Za',
+        possibleSpam = 'Moguće neželjeno';
 
   /// Turkish.
   const ChatStrings.tr()
@@ -142,7 +149,8 @@ class ChatStrings {
         typing = 'yazıyor…',
         spam = 'Spam',
         subject = 'Konu',
-        to = 'Kime';
+        to = 'Kime',
+        possibleSpam = 'Olası spam';
 
   /// Ukrainian.
   const ChatStrings.uk()
@@ -160,7 +168,8 @@ class ChatStrings {
         typing = 'пише…',
         spam = 'Спам',
         subject = 'Тема',
-        to = 'Кому';
+        to = 'Кому',
+        possibleSpam = 'Можливий спам';
 
   /// The preset for [locale]'s language, or English when there is none.
   ///
@@ -203,6 +212,7 @@ class ChatStrings {
     String? spam,
     String? subject,
     String? to,
+    String? possibleSpam,
   }) {
     return ChatStrings(
       reply: reply ?? this.reply,
@@ -220,6 +230,7 @@ class ChatStrings {
       spam: spam ?? this.spam,
       subject: subject ?? this.subject,
       to: to ?? this.to,
+      possibleSpam: possibleSpam ?? this.possibleSpam,
     );
   }
 
@@ -241,12 +252,13 @@ class ChatStrings {
         other.typing == typing &&
         other.spam == spam &&
         other.subject == subject &&
-        other.to == to;
+        other.to == to &&
+        other.possibleSpam == possibleSpam;
   }
 
   @override
   int get hashCode => Object.hash(
         reply, copy, original, retry, today, yesterday, messageHint, send,
-        camera, gallery, file, typing, spam, subject, to,
+        camera, gallery, file, typing, spam, subject, to, possibleSpam,
       );
 }

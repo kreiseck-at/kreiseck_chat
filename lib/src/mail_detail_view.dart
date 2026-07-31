@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'chat_strings.dart';
 import 'mail_models.dart';
 import 'mail_theme.dart';
 
@@ -12,6 +13,7 @@ class MailDetailView extends StatelessWidget {
     required this.message,
     this.onReply,
     this.theme = const MailTheme.light(),
+    this.strings,
   });
 
   /// Message to display.
@@ -24,8 +26,13 @@ class MailDetailView extends StatelessWidget {
   /// Visual configuration; defaults to [MailTheme.light].
   final MailTheme theme;
 
+  /// Overrides the words used by this view. Left null, they follow the
+  /// ambient locale (see [ChatStrings.of]).
+  final ChatStrings? strings;
+
   @override
   Widget build(BuildContext context) {
+    final strings = ChatStrings.of(context, override: this.strings);
     final mutedColor = theme.textColor.withValues(alpha: 0.6);
 
     return Material(
@@ -47,7 +54,7 @@ class MailDetailView extends StatelessWidget {
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
-                  'Möglicher Spam',
+                  strings.possibleSpam,
                   style: TextStyle(
                     color: theme.accentColor,
                     fontWeight: FontWeight.w600,
@@ -104,7 +111,7 @@ class MailDetailView extends StatelessWidget {
                   backgroundColor: theme.accentColor,
                   foregroundColor: Colors.white,
                 ),
-                child: const Text('Antworten'),
+                child: Text(strings.reply),
               ),
             ],
           ],

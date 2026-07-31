@@ -105,4 +105,25 @@ void main() {
     ));
     expect(find.text('Спам'), findsOneWidget);
   });
+
+  testWidgets('MailDetailView folgt der App-Sprache', (tester) async {
+    await tester.pumpWidget(localeHost(
+      MailDetailView(
+        message: MailMessage(
+          id: 'm1',
+          direction: MailDirection.incoming,
+          from: 'ada@example.invalid',
+          to: 'ich@example.invalid',
+          subject: 'Angebot',
+          bodyText: 'Text',
+          date: DateTime(2026, 7, 31, 10),
+          spam: true,
+        ),
+        onReply: () {},
+      ),
+      locale: const Locale('uk'),
+    ));
+    expect(find.text('Відповісти'), findsOneWidget);
+    expect(find.text('Можливий спам'), findsOneWidget);
+  });
 }

@@ -6,7 +6,7 @@ import 'package:kreiseck_chat/kreiseck_chat.dart';
 List<String> _all(ChatStrings s) => [
       s.reply, s.copy, s.original, s.retry, s.today, s.yesterday,
       s.messageHint, s.send, s.camera, s.gallery, s.file, s.typing,
-      s.spam, s.subject, s.to,
+      s.spam, s.subject, s.to, s.possibleSpam,
     ];
 
 void main() {
@@ -18,10 +18,10 @@ void main() {
     'uk': ChatStrings.uk(),
   };
 
-  test('jede Sprache füllt alle fünfzehn Felder', () {
+  test('jede Sprache füllt alle sechzehn Felder', () {
     for (final entry in presets.entries) {
       final werte = _all(entry.value);
-      expect(werte.length, 15, reason: entry.key);
+      expect(werte.length, 16, reason: entry.key);
       expect(
         werte.where((w) => w.trim().isEmpty),
         isEmpty,
