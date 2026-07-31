@@ -32,7 +32,10 @@ and `ChatConversation` and handling the `onSend`/`onOpen` callbacks.
   `ChatCapabilities.custom(...)` for anything in between.
 * **`ChatTheme`** — a layered visual configuration composed of `ChatColors`,
   `ChatTypography`, `ChatIcons`, and `ChatMotion`, plus a `BubbleStyle`
-  (`whatsApp`, `iMessage`, `minimal`), `bubbleRadius`, and `showBubbleTail`.
+  (`whatsApp`, `iMessage`, `minimal`), `bubbleRadius`, `showBubbleTail`, and
+  `imageProvider` — how a remote image URL becomes an `ImageProvider`,
+  defaulting to the disk-caching `cachedChatImage` so photos are fetched
+  once; swap in `plainChatImage` or your own to change that.
   Ready-made presets: `ChatTheme.light()`, `ChatTheme.dark()`,
   `ChatTheme.whatsApp()`, and `ChatTheme.iMessage()` (the latter two take a
   `brightness`). Override just the sub-config you need; the pre-0.3 flat

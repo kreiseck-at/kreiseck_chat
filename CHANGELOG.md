@@ -63,6 +63,13 @@
   to be an inline literal with no way to override it. For Turkish this is
   deliberately a single space rather than a word (see
   `ChatStrings.tr().lastSeenAtJoiner`).
+* Remote images (bubble attachments and avatars) are now fetched through
+  `ChatTheme.imageProvider`, which defaults to `cachedChatImage` — a
+  disk-backed provider, so opening a thread twice no longer re-downloads its
+  photos and they survive an app restart. Pass `plainChatImage` for the
+  previous `NetworkImage` behavior, or your own function to plug in a
+  different cache or add auth headers. **This adds the package's first
+  runtime dependency, `cached_network_image`.**
 * A widget returned by `ChatThreadView.customMessageBuilder` is now inset
   like a bubble (12 to each side, a little air above and below) instead of
   being laid out flush against the viewport edge.

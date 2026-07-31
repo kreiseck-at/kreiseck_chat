@@ -15,6 +15,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  # Bilder landen auf der Platte, statt bei jedem Öffnen neu geladen zu werden.
+  # Austauschbar über ChatTheme.imageProvider.
+  cached_network_image: ^3.4.1
 
 dev_dependencies:
   flutter_test:

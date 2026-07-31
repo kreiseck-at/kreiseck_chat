@@ -47,7 +47,7 @@ class ChatAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider =
-        image ?? (avatarUrl != null ? NetworkImage(avatarUrl!) : null);
+        image ?? (avatarUrl != null ? theme.imageProvider(avatarUrl!) : null);
     Widget? child;
     if (provider == null) {
       if (isPhoneNumberLike(name)) {

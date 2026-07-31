@@ -599,8 +599,8 @@ class _Album extends StatelessWidget {
   ImageProvider? _providerFor(ChatAttachment a) =>
       a.thumbnail ??
       (a.thumbnailUrl != null
-          ? NetworkImage(a.thumbnailUrl!)
-          : (a.url != null ? NetworkImage(a.url!) : null));
+          ? theme.imageProvider(a.thumbnailUrl!)
+          : (a.url != null ? theme.imageProvider(a.url!) : null));
 
   @override
   Widget build(BuildContext context) {

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'bubble_style.dart';
 import 'chat_colors.dart';
 import 'chat_icons.dart';
+import 'chat_images.dart';
 import 'chat_motion.dart';
 import 'chat_typography.dart';
 
@@ -19,6 +20,7 @@ class ChatTheme {
     this.bubbleStyle = BubbleStyle.minimal,
     this.bubbleRadius = 16,
     this.showBubbleTail = false,
+    this.imageProvider = cachedChatImage,
   });
 
   /// Color set.
@@ -39,6 +41,13 @@ class ChatTheme {
   /// Base corner radius for bubbles.
   final double bubbleRadius;
 
+  /// How a remote image URL becomes an [ImageProvider] — for attachments and
+  /// avatars alike. Defaults to [cachedChatImage], which keeps images on disk
+  /// so a thread opened twice doesn't fetch its photos twice. Pass
+  /// [plainChatImage] for Flutter's in-memory-only [NetworkImage], or your
+  /// own function to plug in a different cache or add auth headers.
+  final ChatImageProvider imageProvider;
+
   /// Whether to paint a speech-bubble tail on the last bubble in a group.
   ///
   /// Off by default in every preset, including [ChatTheme.whatsApp] and
@@ -58,7 +67,8 @@ class ChatTheme {
         motion = const ChatMotion(),
         bubbleStyle = BubbleStyle.minimal,
         bubbleRadius = 16,
-        showBubbleTail = false;
+        showBubbleTail = false,
+        imageProvider = cachedChatImage;
 
   const ChatTheme._dark()
       : colors = const ChatColors.dark(),
@@ -67,7 +77,8 @@ class ChatTheme {
         motion = const ChatMotion(),
         bubbleStyle = BubbleStyle.minimal,
         bubbleRadius = 16,
-        showBubbleTail = false;
+        showBubbleTail = false,
+        imageProvider = cachedChatImage;
 
   /// WhatsApp-flavored preset.
   factory ChatTheme.whatsApp({Brightness brightness = Brightness.light}) {
