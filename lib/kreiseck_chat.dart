@@ -16,6 +16,7 @@ export 'src/chat_icons.dart';
 export 'src/chat_motion.dart';
 export 'src/chat_participant.dart';
 export 'src/chat_reaction.dart';
+export 'src/chat_strings.dart';
 export 'src/chat_system_card.dart';
 export 'src/chat_theme.dart';
 export 'src/chat_thread_view.dart';
