@@ -1,6 +1,11 @@
 import 'chat_participant.dart';
+import 'chat_strings.dart';
 
-/// Customizable label strings for presence formatting (German defaults).
+/// Customizable label strings for presence formatting (German defaults, kept
+/// unchanged for backward compatibility with existing direct callers of
+/// [formatPresenceLabel] — a host that wants these to follow the ambient
+/// locale should build this via [PresenceLabels.fromStrings] instead, as
+/// [ChatHeader] does).
 class PresenceLabels {
   /// Creates label strings.
   const PresenceLabels({
@@ -8,7 +13,19 @@ class PresenceLabels {
     this.lastSeenTodayPrefix = 'zuletzt gesehen um ',
     this.lastSeenYesterdayPrefix = 'zuletzt gesehen gestern um ',
     this.lastSeenDatePrefix = 'zuletzt gesehen am ',
+    this.lastSeenAtJoiner = ' um ',
   });
+
+  /// Builds label strings from a [ChatStrings]' presence fields, so a host
+  /// that already resolves [ChatStrings] (see [ChatStrings.of]) gets a
+  /// matching [PresenceLabels] instead of maintaining a separate translation.
+  factory PresenceLabels.fromStrings(ChatStrings strings) => PresenceLabels(
+        online: strings.online,
+        lastSeenTodayPrefix: strings.lastSeenTodayPrefix,
+        lastSeenYesterdayPrefix: strings.lastSeenYesterdayPrefix,
+        lastSeenDatePrefix: strings.lastSeenDatePrefix,
+        lastSeenAtJoiner: strings.lastSeenAtJoiner,
+      );
 
   /// Shown when online.
   final String online;
@@ -19,8 +36,13 @@ class PresenceLabels {
   /// Prefix before a HH:MM time for a yesterday last-seen.
   final String lastSeenYesterdayPrefix;
 
-  /// Prefix before a `DD.MM.YYYY um HH:MM` for older last-seen.
+  /// Prefix before a `DD.MM.YYYY` for an older last-seen, followed by
+  /// [lastSeenAtJoiner] and the HH:MM time.
   final String lastSeenDatePrefix;
+
+  /// Joiner between the date and the HH:MM time for an older last-seen,
+  /// e.g. `' um '` in `'zuletzt gesehen am 3.2.2026 um 14:30'`.
+  final String lastSeenAtJoiner;
 }
 
 String _hhmm(DateTime t) =>
@@ -49,5 +71,6 @@ String? formatPresenceLabel(
 
   if (daysAgo == 0) return '${labels.lastSeenTodayPrefix}${_hhmm(seen)}';
   if (daysAgo == 1) return '${labels.lastSeenYesterdayPrefix}${_hhmm(seen)}';
-  return '${labels.lastSeenDatePrefix}${_ddmmyyyy(seen)} um ${_hhmm(seen)}';
+  return '${labels.lastSeenDatePrefix}${_ddmmyyyy(seen)}'
+      '${labels.lastSeenAtJoiner}${_hhmm(seen)}';
 }

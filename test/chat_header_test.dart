@@ -58,6 +58,20 @@ void main() {
     expect(find.text('пише…'), findsOneWidget);
   });
 
+  testWidgets('Präsenz-Text folgt der App-Sprache', (tester) async {
+    await tester.pumpWidget(localeHost(
+      ChatHeader(
+        title: 'Ada',
+        presence: const ChatPresence.online(),
+        theme: const ChatTheme.light(),
+        now: DateTime(2026, 7, 21, 15),
+      ),
+      locale: const Locale('uk'),
+    ));
+    expect(find.text('У мережі'), findsOneWidget);
+    expect(find.text('Online'), findsNothing);
+  });
+
   testWidgets('typingLabel gewinnt weiterhin', (tester) async {
     await tester.pumpWidget(localeHost(
       const ChatHeader(

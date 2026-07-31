@@ -69,7 +69,11 @@ class ChatHeader extends StatelessWidget {
       return typingLabel ?? resolved.typing;
     }
     if (capabilities.presence) {
-      return formatPresenceLabel(presence, now: now ?? DateTime.now());
+      return formatPresenceLabel(
+        presence,
+        now: now ?? DateTime.now(),
+        labels: PresenceLabels.fromStrings(resolved),
+      );
     }
     return null;
   }
