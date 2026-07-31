@@ -63,6 +63,13 @@
   to be an inline literal with no way to override it. For Turkish this is
   deliberately a single space rather than a word (see
   `ChatStrings.tr().lastSeenAtJoiner`).
+* New `ConversationListView.timeLabelBuilder` and `unreadStyle`. The row can
+  now end with a time — the host formats it, since date formatting is its
+  business and this package brings no date library — and an unread
+  conversation can be marked with a plain dot (`UnreadStyle.dot`) instead of
+  a count, for hosts whose unread state is a yes/no and whose badge would
+  therefore only ever read "1". Defaults are unchanged: no time, count
+  badge.
 * New `ChatColors.incomingBubbleBorder` / `outgoingBubbleBorder` (both
   `null` in the presets, so bubbles stay borderless as before): a hairline
   around the bubble. For palettes whose bubble fill sits close to the

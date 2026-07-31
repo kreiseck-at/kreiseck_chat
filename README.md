@@ -98,7 +98,9 @@ and `ChatConversation` and handling the `onSend`/`onOpen` callbacks.
   the title (e.g. a spam marker); each row shows a compact strip of channel
   badges built from `ChatConversation.channels` in the subtitle line
   (`channelBadge` still wins when supplied, then `channels`, then the plain
-  `channelLabel` text).
+  `channelLabel` text). `timeLabelBuilder` puts a time at the end of the row
+  (you format it), and `unreadStyle: UnreadStyle.dot` marks unread rows with
+  a dot instead of a count.
 * **`ChatStrings`** — every word the widgets put on screen (reply/copy/retry,
   today/yesterday, the composer's hint and attachment labels, the typing
   indicator, presence/last-seen wording, and the mail widgets' subject/to/

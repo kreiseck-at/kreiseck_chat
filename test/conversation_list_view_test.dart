@@ -23,6 +23,52 @@ void main() {
     expect(opened?.id, 'c1');
   });
 
+  testWidgets('Zeit erscheint nur, wenn der Host eine baut', (tester) async {
+    Future<void> zeige(String? Function(ChatConversation)? bauer) =>
+        tester.pumpWidget(MaterialApp(
+          home: Scaffold(
+            body: ConversationListView(
+              conversations: [
+                ChatConversation(
+                  id: 'c1',
+                  title: 'Ada',
+                  lastAt: DateTime(2026, 7, 31, 14, 30),
+                ),
+              ],
+              onOpen: (_) {},
+              timeLabelBuilder: bauer,
+            ),
+          ),
+        ));
+
+    await zeige(null);
+    expect(find.text('14:30'), findsNothing);
+
+    await zeige((c) => '14:30');
+    expect(find.text('14:30'), findsOneWidget);
+  });
+
+  testWidgets('ungelesen: Punkt statt Zahl, wenn der Host es so will',
+      (tester) async {
+    Future<void> zeige(UnreadStyle stil) => tester.pumpWidget(MaterialApp(
+          home: Scaffold(
+            body: ConversationListView(
+              conversations: const [
+                ChatConversation(id: 'c1', title: 'Ada', unread: 1),
+              ],
+              onOpen: _egal,
+              unreadStyle: stil,
+            ),
+          ),
+        ));
+
+    await zeige(UnreadStyle.count);
+    expect(find.text('1'), findsOneWidget);
+
+    await zeige(UnreadStyle.dot);
+    expect(find.text('1'), findsNothing);
+  });
+
   testWidgets('typing preview overrides last text when enabled', (tester) async {
     await tester.pumpWidget(localeHost(
       ConversationListView(
@@ -380,3 +426,5 @@ void main() {
 }
 
 void _nichts(ChatConversation c) {}
+
+void _egal(ChatConversation c) {}

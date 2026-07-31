@@ -8,6 +8,16 @@ import 'chat_strings.dart';
 import 'chat_theme.dart';
 import 'models.dart';
 
+/// How an unread conversation is marked in the list.
+enum UnreadStyle {
+  /// A circle with the number of unread messages.
+  count,
+
+  /// A small dot — for hosts whose unread state is a yes/no, where a "1"
+  /// would only ever be a "1".
+  dot,
+}
+
 /// A conversation inbox list with avatars, presence dots, unread badges, and
 /// typing previews.
 class ConversationListView extends StatelessWidget {
@@ -23,6 +33,8 @@ class ConversationListView extends StatelessWidget {
     this.onLongPress,
     this.titleBadgeBuilder,
     this.strings,
+    this.timeLabelBuilder,
+    this.unreadStyle = UnreadStyle.count,
   });
 
   /// Conversations to display.
@@ -60,6 +72,14 @@ class ConversationListView extends StatelessWidget {
   /// ambient locale (see [ChatStrings.of]).
   final ChatStrings? strings;
 
+  /// Builds the time shown at the end of a row, e.g. `'14:30'` or
+  /// `'3. Feb'`. Left null, no time is shown — date formatting is the host's
+  /// business, and this package brings no date library of its own.
+  final String? Function(ChatConversation conversation)? timeLabelBuilder;
+
+  /// Whether an unread conversation shows a count or a plain dot.
+  final UnreadStyle unreadStyle;
+
   @override
   Widget build(BuildContext context) {
     final resolved = ChatStrings.of(context, override: strings);
@@ -76,6 +96,8 @@ class ConversationListView extends StatelessWidget {
             typingLabel: typingLabel ?? resolved.typing,
             badge: channelBadge?.call(c),
             titleBadge: titleBadgeBuilder?.call(c),
+            timeLabel: timeLabelBuilder?.call(c),
+            unreadStyle: unreadStyle,
             onTap: () => onOpen(c),
             onLongPress:
                 onLongPress == null ? null : () => onLongPress!(c),
@@ -94,6 +116,8 @@ class _ConversationTile extends StatelessWidget {
     required this.typingLabel,
     required this.badge,
     required this.titleBadge,
+    required this.timeLabel,
+    required this.unreadStyle,
     required this.onTap,
     required this.onLongPress,
   });
@@ -104,6 +128,8 @@ class _ConversationTile extends StatelessWidget {
   final String typingLabel;
   final Widget? badge;
   final Widget? titleBadge;
+  final String? timeLabel;
+  final UnreadStyle unreadStyle;
   final VoidCallback onTap;
   final VoidCallback? onLongPress;
 
@@ -113,6 +139,47 @@ class _ConversationTile extends StatelessWidget {
 
   bool get _typing =>
       capabilities.typingIndicator && conversation.typing;
+
+  /// Time and unread marker at the end of the row. Null when there is
+  /// neither — the row then ends after the preview, as before.
+  Widget? _trailing() {
+    final ungelesen = conversation.unread > 0;
+    if (timeLabel == null && !ungelesen) return null;
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (timeLabel != null)
+          Text(timeLabel!,
+              style: theme.typography.timestamp
+                  .copyWith(color: theme.colors.dateSeparatorText)),
+        if (ungelesen) ...[
+          if (timeLabel != null) const SizedBox(height: 4),
+          if (unreadStyle == UnreadStyle.dot)
+            Container(
+              width: 9,
+              height: 9,
+              decoration: BoxDecoration(
+                  color: theme.colors.accent, shape: BoxShape.circle),
+            )
+          else
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: theme.colors.accent,
+                shape: BoxShape.circle,
+              ),
+              child: Text(
+                '${conversation.unread}',
+                style:
+                    TextStyle(color: theme.colors.outgoingText, fontSize: 11),
+              ),
+            ),
+        ],
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -218,26 +285,7 @@ class _ConversationTile extends StatelessWidget {
           ),
         ],
       ),
-      trailing: conversation.unread > 0
-          ? SizedBox(
-              width: 34,
-              height: 34,
-              child: Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: theme.colors.accent,
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Text(
-                    '${conversation.unread}',
-                    style:
-                        TextStyle(color: theme.colors.outgoingText, fontSize: 11),
-                  ),
-                ),
-              ),
-            )
-          : null,
+      trailing: _trailing(),
     );
   }
 }
