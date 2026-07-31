@@ -8,7 +8,22 @@ List<String> _all(ChatStrings s) => [
       s.messageHint, s.send, s.camera, s.gallery, s.file, s.typing,
       s.spam, s.subject, s.to, s.possibleSpam,
       s.online, s.lastSeenTodayPrefix, s.lastSeenYesterdayPrefix,
-      s.lastSeenDatePrefix, s.lastSeenAtJoiner, s.noMailYet,
+      s.lastSeenDatePrefix, s.lastSeenAtJoiner, s.noMailYet, s.body,
+    ];
+
+/// Every field of [s] except [ChatStrings.lastSeenAtJoiner], for the
+/// trim-based emptiness check below. [lastSeenAtJoiner] is excluded on
+/// purpose: for Turkish it is deliberately a single space (Turkish uses no
+/// connecting word between an older last-seen date and its time --
+/// "son görülme 31.07.2026 14:30" reads correctly on its own), so
+/// `.trim().isEmpty` would misreport that intentional value as a forgotten
+/// translation. It gets its own, less strict check instead.
+List<String> _allExceptJoiner(ChatStrings s) => [
+      s.reply, s.copy, s.original, s.retry, s.today, s.yesterday,
+      s.messageHint, s.send, s.camera, s.gallery, s.file, s.typing,
+      s.spam, s.subject, s.to, s.possibleSpam,
+      s.online, s.lastSeenTodayPrefix, s.lastSeenYesterdayPrefix,
+      s.lastSeenDatePrefix, s.noMailYet, s.body,
     ];
 
 void main() {
@@ -20,15 +35,20 @@ void main() {
     'uk': ChatStrings.uk(),
   };
 
-  test('jede Sprache füllt alle zweiundzwanzig Felder', () {
+  test('jede Sprache füllt alle dreiundzwanzig Felder', () {
     for (final entry in presets.entries) {
       final werte = _all(entry.value);
-      expect(werte.length, 22, reason: entry.key);
+      expect(werte.length, 23, reason: entry.key);
       expect(
-        werte.where((w) => w.trim().isEmpty),
+        _allExceptJoiner(entry.value).where((w) => w.trim().isEmpty),
         isEmpty,
         reason: '${entry.key} hat leere Felder',
       );
+      // lastSeenAtJoiner darf gezielt aus Leerraum bestehen (siehe
+      // _allExceptJoiner) -- geprüft wird hier nur, dass es überhaupt
+      // gesetzt ist, nicht dass es nicht-Leerraum enthält.
+      expect(entry.value.lastSeenAtJoiner, isNotNull, reason: entry.key);
+      expect(entry.value.lastSeenAtJoiner, isNotEmpty, reason: entry.key);
     }
   });
 

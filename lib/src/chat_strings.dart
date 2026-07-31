@@ -32,6 +32,7 @@ class ChatStrings {
     required this.lastSeenDatePrefix,
     required this.lastSeenAtJoiner,
     required this.noMailYet,
+    required this.body,
   });
 
   /// Context-menu entry that quotes a message.
@@ -103,6 +104,9 @@ class ChatStrings {
   /// Shown in [MailListView] when there are no messages to list.
   final String noMailYet;
 
+  /// Mail field: the body text input's label in [MailComposer].
+  final String body;
+
   /// English — also the fallback for every unsupported language.
   const ChatStrings.en()
       : reply = 'Reply',
@@ -126,7 +130,8 @@ class ChatStrings {
         lastSeenYesterdayPrefix = 'last seen yesterday at ',
         lastSeenDatePrefix = 'last seen on ',
         lastSeenAtJoiner = ' at ',
-        noMailYet = 'No mail yet';
+        noMailYet = 'No mail yet',
+        body = 'Text';
 
   /// German.
   const ChatStrings.de()
@@ -151,7 +156,8 @@ class ChatStrings {
         lastSeenYesterdayPrefix = 'zuletzt gesehen gestern um ',
         lastSeenDatePrefix = 'zuletzt gesehen am ',
         lastSeenAtJoiner = ' um ',
-        noMailYet = 'Noch keine Mails';
+        noMailYet = 'Noch keine Mails',
+        body = 'Text';
 
   /// Croatian.
   const ChatStrings.hr()
@@ -176,7 +182,8 @@ class ChatStrings {
         lastSeenYesterdayPrefix = 'posljednji put viđen jučer u ',
         lastSeenDatePrefix = 'posljednji put viđen ',
         lastSeenAtJoiner = ' u ',
-        noMailYet = 'Još nema pošte';
+        noMailYet = 'Još nema pošte',
+        body = 'Tekst';
 
   /// Turkish.
   const ChatStrings.tr()
@@ -200,8 +207,14 @@ class ChatStrings {
         lastSeenTodayPrefix = 'son görülme ',
         lastSeenYesterdayPrefix = 'dün son görülme ',
         lastSeenDatePrefix = 'son görülme ',
+        // Deliberately just a space: Turkish uses no connecting word here --
+        // "son görülme 31.07.2026 14:30" reads correctly on its own. Not a
+        // missing translation; see chat_strings_test.dart for the dedicated
+        // (non-trim) emptiness check this value needs instead of the
+        // standard one.
         lastSeenAtJoiner = ' ',
-        noMailYet = 'Henüz posta yok';
+        noMailYet = 'Henüz posta yok',
+        body = 'Metin';
 
   /// Ukrainian.
   const ChatStrings.uk()
@@ -226,7 +239,8 @@ class ChatStrings {
         lastSeenYesterdayPrefix = 'востаннє в мережі вчора о ',
         lastSeenDatePrefix = 'востаннє в мережі ',
         lastSeenAtJoiner = ' о ',
-        noMailYet = 'Ще немає листів';
+        noMailYet = 'Ще немає листів',
+        body = 'Текст';
 
   /// The preset for [locale]'s language, or English when there is none.
   ///
@@ -276,6 +290,7 @@ class ChatStrings {
     String? lastSeenDatePrefix,
     String? lastSeenAtJoiner,
     String? noMailYet,
+    String? body,
   }) {
     return ChatStrings(
       reply: reply ?? this.reply,
@@ -301,6 +316,7 @@ class ChatStrings {
       lastSeenDatePrefix: lastSeenDatePrefix ?? this.lastSeenDatePrefix,
       lastSeenAtJoiner: lastSeenAtJoiner ?? this.lastSeenAtJoiner,
       noMailYet: noMailYet ?? this.noMailYet,
+      body: body ?? this.body,
     );
   }
 
@@ -329,16 +345,17 @@ class ChatStrings {
         other.lastSeenYesterdayPrefix == lastSeenYesterdayPrefix &&
         other.lastSeenDatePrefix == lastSeenDatePrefix &&
         other.lastSeenAtJoiner == lastSeenAtJoiner &&
-        other.noMailYet == noMailYet;
+        other.noMailYet == noMailYet &&
+        other.body == body;
   }
 
   // Object.hash tops out at 20 positional arguments -- this class carries
-  // 22 fields, so hashAll over the full list is used instead.
+  // 23 fields, so hashAll over the full list is used instead.
   @override
   int get hashCode => Object.hashAll([
         reply, copy, original, retry, today, yesterday, messageHint, send,
         camera, gallery, file, typing, spam, subject, to, possibleSpam,
         online, lastSeenTodayPrefix, lastSeenYesterdayPrefix,
-        lastSeenDatePrefix, lastSeenAtJoiner, noMailYet,
+        lastSeenDatePrefix, lastSeenAtJoiner, noMailYet, body,
       ]);
 }

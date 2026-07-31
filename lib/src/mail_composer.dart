@@ -112,7 +112,7 @@ class _MailComposerState extends State<MailComposer> {
               key: const ValueKey('mail-body'),
               minLines: 3,
               maxLines: 10,
-              decoration: const InputDecoration(labelText: 'Text'),
+              decoration: InputDecoration(labelText: strings.body),
             ),
             const SizedBox(height: 16),
             ElevatedButton(
