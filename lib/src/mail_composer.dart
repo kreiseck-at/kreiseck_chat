@@ -69,6 +69,10 @@ class _MailComposerState extends State<MailComposer> {
   /// never use them.
   bool _kopieOffen = false;
 
+  /// Das Zitat ist zugeklappt: Man antwortet auf eine Mail, man liest sie
+  /// nicht noch einmal im Eingabefeld.
+  bool _zitatOffen = false;
+
   @override
   void initState() {
     super.initState();
@@ -176,6 +180,16 @@ class _MailComposerState extends State<MailComposer> {
               maxLines: 10,
               decoration: InputDecoration(labelText: strings.body),
             ),
+            if (widget.draft.quotedBody.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              _Zitat(
+                text: widget.draft.quotedBody,
+                theme: theme,
+                strings: strings,
+                offen: _zitatOffen,
+                onToggle: () => setState(() => _zitatOffen = !_zitatOffen),
+              ),
+            ],
             if (widget.draft.attachments.isNotEmpty) ...[
               const SizedBox(height: 12),
               Wrap(
@@ -239,6 +253,81 @@ class _MailComposerState extends State<MailComposer> {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Das zitierte Original: zugeklappt eine Zeile, aufgeklappt der Text —
+/// beides außerhalb des Eingabefelds, damit niemand daran vorbeitippen muss.
+class _Zitat extends StatelessWidget {
+  const _Zitat({
+    required this.text,
+    required this.theme,
+    required this.strings,
+    required this.offen,
+    required this.onToggle,
+  });
+
+  final String text;
+  final MailTheme theme;
+  final ChatStrings strings;
+  final bool offen;
+  final VoidCallback onToggle;
+
+  /// Die ">"-Zeichen sind Netz-Konvention, keine Typografie — auf dem Schirm
+  /// macht das die Linie am Rand.
+  String get _ohneMarker =>
+      text.split('\n').map((z) => z.replaceFirst(RegExp(r'^>\s?'), '')).join('\n');
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        InkWell(
+          key: const ValueKey('mail-quote-toggle'),
+          onTap: onToggle,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(offen ? Icons.expand_less : Icons.expand_more,
+                    size: 18, color: theme.textColor.withValues(alpha: 0.6)),
+                const SizedBox(width: 4),
+                Text(
+                  offen ? strings.quotedMessage : strings.showQuoted,
+                  style: TextStyle(
+                    color: theme.textColor.withValues(alpha: 0.6),
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        if (offen)
+          Container(
+            key: const ValueKey('mail-quote'),
+            width: double.infinity,
+            padding: const EdgeInsets.only(left: 10, top: 2, bottom: 2),
+            decoration: BoxDecoration(
+              border: Border(
+                left: BorderSide(
+                    color: theme.accentColor.withValues(alpha: 0.5), width: 2),
+              ),
+            ),
+            child: Text(
+              _ohneMarker,
+              style: TextStyle(
+                color: theme.textColor.withValues(alpha: 0.7),
+                fontSize: 12,
+                height: 1.4,
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

@@ -30,6 +30,7 @@ class MailDraft {
     this.bcc = const [],
     this.subject = '',
     this.body = '',
+    this.quotedBody = '',
     this.attachments = const [],
     this.inReplyTo,
     this.references = const [],
@@ -48,8 +49,18 @@ class MailDraft {
   /// Subject line.
   final String subject;
 
-  /// Body text, including the quoted original when there is one.
+  /// What the writer types. The quoted original is NOT in here — a reply
+  /// starts on an empty line, not in the middle of somebody else's text.
   final String body;
+
+  /// The quoted original, kept apart so the composer can fold it away and
+  /// the writer never has to scroll past it. Appended below [body] when the
+  /// mail is sent (see [composedBody]).
+  final String quotedBody;
+
+  /// What actually goes out: what was typed, then the quoted original.
+  String get composedBody =>
+      quotedBody.isEmpty ? body : '$body\n\n$quotedBody';
 
   /// Files to send along.
   final List<MailAttachment> attachments;
@@ -76,7 +87,7 @@ class MailDraft {
   factory MailDraft.reply(MailMessage source) => MailDraft(
         to: [source.replyTo ?? source.from],
         subject: _prefixed(source.subject, 're', 'Re: '),
-        body: _quote(source),
+        quotedBody: _quote(source),
         inReplyTo: source.messageId,
         references: _chain(source),
         mode: MailComposeMode.reply,
@@ -98,7 +109,7 @@ class MailDraft {
       to: [antwortAn],
       cc: kopie,
       subject: _prefixed(source.subject, 're', 'Re: '),
-      body: _quote(source),
+      quotedBody: _quote(source),
       inReplyTo: source.messageId,
       references: _chain(source),
       mode: MailComposeMode.replyAll,
@@ -108,7 +119,7 @@ class MailDraft {
   /// [source] passed on: no recipients yet, the original quoted in full.
   factory MailDraft.forward(MailMessage source) => MailDraft(
         subject: _prefixed(source.subject, 'fwd', 'Fwd: '),
-        body: _quote(source, withHeader: true),
+        quotedBody: _quote(source, withHeader: true),
         mode: MailComposeMode.forward,
       );
 
@@ -119,6 +130,7 @@ class MailDraft {
     List<MailAddress>? bcc,
     String? subject,
     String? body,
+    String? quotedBody,
     List<MailAttachment>? attachments,
     String? inReplyTo,
     bool clearInReplyTo = false,
@@ -133,6 +145,7 @@ class MailDraft {
       bcc: bcc ?? this.bcc,
       subject: subject ?? this.subject,
       body: body ?? this.body,
+      quotedBody: quotedBody ?? this.quotedBody,
       attachments: attachments ?? this.attachments,
       inReplyTo: clearInReplyTo ? null : (inReplyTo ?? this.inReplyTo),
       references: references ?? this.references,
@@ -153,13 +166,16 @@ String _prefixed(String subject, String marker, String prefix) {
 /// Das Original als zitierter Block. [withHeader] stellt die Kopfdaten voran,
 /// wie es beim Weiterleiten üblich ist.
 String _quote(MailMessage source, {bool withHeader = false}) {
+  // Das ">"-Zeichen ist die Fassung fürs Netz — beim Versand kennt jeder
+  // Mail-Client es. Auf dem Schirm zeigt der Composer den Block stattdessen
+  // eingeklappt, siehe MailComposer.
   final zeilen = source.bodyText.split('\n').map((z) => '> $z').join('\n');
   final kopf = withHeader
       ? '--- Weitergeleitete Nachricht ---\n'
           'Von: ${source.from.display}\n'
           'Betreff: ${source.subject}\n\n'
       : '${source.from.display} schrieb:\n';
-  return '\n\n$kopf$zeilen\n';
+  return '$kopf$zeilen';
 }
 
 List<String> _chain(MailMessage source) => [

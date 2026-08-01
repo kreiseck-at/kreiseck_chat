@@ -6,6 +6,7 @@ import 'package:kreiseck_chat/kreiseck_chat.dart';
 
 MailMessage mail({
   String? bodyHtml,
+  List<MailAddress> cc = const [],
   List<MailAttachment> attachments = const [],
   bool? senderVerified,
   MailAddress? from,
@@ -15,6 +16,7 @@ MailMessage mail({
       direction: MailDirection.incoming,
       from: from ?? const MailAddress(email: 'anna@example.at', name: 'Anna'),
       to: const [MailAddress(email: 'studio@example.at')],
+      cc: cc,
       subject: 'Termin',
       bodyText: 'Passt Freitag?',
       bodyHtml: bodyHtml,
@@ -26,6 +28,7 @@ MailMessage mail({
 Widget host(Widget kind) => MaterialApp(home: Scaffold(body: kind));
 
 void main() {
+  _ansicht();
   testWidgets('ohne bodyBuilder wird nur der Text gezeichnet', (tester) async {
     await tester.pumpWidget(host(MailDetailView(message: mail())));
     expect(find.text('Passt Freitag?'), findsOneWidget);
@@ -201,5 +204,36 @@ void main() {
       // Die echte Adresse steht da, nicht nur der Name.
       expect(find.textContaining('boese@evil.tld'), findsOneWidget);
     });
+  });
+}
+
+// Nachgereicht: Ansichts-Feinheiten aus dem Gerätetest.
+void _ansicht() {
+  testWidgets('Betreff lässt sich abschalten, wo der Bildschirm ihn schon hat',
+      (tester) async {
+    await tester.pumpWidget(host(MailDetailView(message: mail())));
+    expect(find.text('Termin'), findsOneWidget);
+
+    await tester.pumpWidget(
+        host(MailDetailView(message: mail(), showSubject: false)));
+    expect(find.text('Termin'), findsNothing);
+  });
+
+  testWidgets('„Allen antworten" nur, wenn es jemanden gibt', (tester) async {
+    await tester.pumpWidget(host(MailDetailView(
+      message: mail(),
+      strings: const ChatStrings.de(),
+      onReply: () {},
+      onReplyAll: () {},
+    )));
+    expect(find.text('Allen antworten'), findsNothing);
+
+    await tester.pumpWidget(host(MailDetailView(
+      message: mail(cc: const [MailAddress(email: 'chefin@example.at')]),
+      strings: const ChatStrings.de(),
+      onReply: () {},
+      onReplyAll: () {},
+    )));
+    expect(find.text('Allen antworten'), findsOneWidget);
   });
 }

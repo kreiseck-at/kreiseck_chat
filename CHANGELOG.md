@@ -1,3 +1,35 @@
+## 0.17.0
+
+Fallout from using 0.16.0 on a real mailbox.
+
+* New `showMailLinkSheet` — asks before a link from a mail is followed and
+  shows what the link *is* rather than what it says: the registrable domain
+  large and bold, the full address small underneath, selectable. Reading the
+  target before following it is the one habit that defeats most phishing, and
+  it only works if the target is legible.
+* New `linkLooksDisguised(linkText, uri)` and `registrableDomain(host)`: when
+  a link's visible text names one domain and the link goes to another, the
+  sheet says so in red and demotes "open" to the quiet button. The naive
+  handling of multi-part suffixes (`co.uk`) errs toward "these differ", which
+  produces a warning, never a silent pass.
+* `MailDraft.quotedBody` is now separate from `body`, and `MailComposer`
+  shows it as a collapsed block with a quote bar instead of `>`-prefixed
+  lines inside the text field. A reply starts on an empty line; the quote is
+  appended on send (`MailDraft.composedBody`), still `>`-prefixed for other
+  mail clients.
+* `MailDetailView` gained `showSubject` (a subject printed twice is a subject
+  nobody reads), `padding` and `bodyPadding` — the body now spans the full
+  width by default, because mails bring their own margins and a second set
+  squeezes tables and images.
+* "Reply all" is only offered when someone besides the sender would receive
+  it (`MailMessage.hasOtherRecipients`); otherwise it is just a second
+  "Reply".
+* `MailThreadView` dismisses the keyboard when the thread is tapped — with a
+  composer open there was no way back — and forwards `showSubjectOnFirst` and
+  `bodyPadding`.
+* `ChatStrings` gained `openLink`, `linkGoesTo`, `linkDisguised`, `cancel`
+  and `quotedMessage` in all five languages.
+
 ## 0.16.0
 
 **The mail widgets were a skeleton and are now a mail client.** Everything

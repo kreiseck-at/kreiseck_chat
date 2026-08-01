@@ -146,11 +146,17 @@ void main() {
           ?.text,
       'Re: Termin',
     );
+    // Das Eingabefeld ist leer — das Zitat steht eingeklappt darunter.
     expect(
       t.widget<TextField>(find.byKey(const ValueKey('mail-body')))
           .controller
           ?.text,
-      contains('> Passt Freitag?'),
+      isEmpty,
     );
+    expect(find.byKey(const ValueKey('mail-quote-toggle')), findsOneWidget);
+    expect(find.byKey(const ValueKey('mail-quote')), findsNothing);
+    await t.tap(find.byKey(const ValueKey('mail-quote-toggle')));
+    await t.pump();
+    expect(find.textContaining('Passt Freitag?'), findsOneWidget);
   });
 }

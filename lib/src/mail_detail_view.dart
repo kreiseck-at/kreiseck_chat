@@ -22,6 +22,9 @@ class MailDetailView extends StatelessWidget {
     this.onAllowRemoteContent,
     this.onOpenLink,
     this.onOpenAttachment,
+    this.showSubject = true,
+    this.padding = const EdgeInsets.all(16),
+    this.bodyPadding = EdgeInsets.zero,
   });
 
   /// Message to display.
@@ -62,6 +65,18 @@ class MailDetailView extends StatelessWidget {
   /// for attachments that may be opened (see [MailAttachment.canOpen]).
   final void Function(MailAttachment)? onOpenAttachment;
 
+  /// Whether the subject is shown. Turn it off where the surrounding screen
+  /// already carries it — a subject printed twice is a subject nobody reads.
+  final bool showSubject;
+
+  /// Space around the whole mail.
+  final EdgeInsets padding;
+
+  /// Extra space around the body only. Zero by default so an HTML mail can
+  /// use the full width — mails bring their own margins, and a second set
+  /// squeezes tables and images.
+  final EdgeInsets bodyPadding;
+
   /// Visual configuration; defaults to [MailTheme.light].
   final MailTheme theme;
 
@@ -87,7 +102,7 @@ class MailDetailView extends StatelessWidget {
     return Material(
       color: theme.background,
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: padding,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -113,22 +128,20 @@ class MailDetailView extends StatelessWidget {
               ),
               const SizedBox(height: 12),
             ],
-            Text(
-              message.subject,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: theme.textColor,
+            if (showSubject)
+              Text(
+                message.subject,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: theme.textColor,
+                ),
               ),
-            ),
             const SizedBox(height: 8),
             // Immer die echte Adresse, nicht nur den Anzeigenamen: der Name
             // ist der eine Teil einer Mail, in den der Absender schreiben
             // kann, was er will.
-            Text(
-              message.from.display,
-              style: TextStyle(color: mutedColor),
-            ),
+            Text(message.from.display, style: TextStyle(color: mutedColor)),
             const SizedBox(height: 2),
             Text(
               _formatDate(message.date),
@@ -164,18 +177,22 @@ class MailDetailView extends StatelessWidget {
               ),
             ],
             const SizedBox(height: 16),
-            bodyBuilder?.call(
-                  context,
-                  MailBodyRequest(
-                    message: message,
-                    remoteContentAllowed: remoteContentAllowed,
-                    openLink: _openLink,
+            Padding(
+              padding: bodyPadding,
+              child:
+                  bodyBuilder?.call(
+                    context,
+                    MailBodyRequest(
+                      message: message,
+                      remoteContentAllowed: remoteContentAllowed,
+                      openLink: _openLink,
+                    ),
+                  ) ??
+                  SelectableText(
+                    message.bodyText,
+                    style: TextStyle(color: theme.textColor),
                   ),
-                ) ??
-                SelectableText(
-                  message.bodyText,
-                  style: TextStyle(color: theme.textColor),
-                ),
+            ),
             if (message.attachments.isNotEmpty) ...[
               const SizedBox(height: 16),
               Wrap(
@@ -192,7 +209,7 @@ class MailDetailView extends StatelessWidget {
                 ],
               ),
             ],
-            if (onReply != null || onReplyAll != null || onForward != null) ...[
+            if (onReply != null || onForward != null) ...[
               const SizedBox(height: 24),
               Wrap(
                 spacing: 8,
@@ -207,12 +224,18 @@ class MailDetailView extends StatelessWidget {
                       ),
                       child: Text(strings.reply),
                     ),
-                  if (onReplyAll != null)
+                  // "Allen antworten" nur, wenn es überhaupt jemanden außer
+                  // dem Absender gibt — sonst ist es dasselbe wie Antworten.
+                  if (onReplyAll != null && message.hasOtherRecipients)
                     OutlinedButton(
-                        onPressed: onReplyAll, child: Text(strings.replyAll)),
+                      onPressed: onReplyAll,
+                      child: Text(strings.replyAll),
+                    ),
                   if (onForward != null)
                     OutlinedButton(
-                        onPressed: onForward, child: Text(strings.forward)),
+                      onPressed: onForward,
+                      child: Text(strings.forward),
+                    ),
                 ],
               ),
             ],
@@ -230,7 +253,6 @@ String _formatDate(DateTime date) {
   final minute = date.minute.toString().padLeft(2, '0');
   return '$day.$month.${date.year} $hour:$minute';
 }
-
 
 /// Warn- bzw. Hinweisleiste über dem Text.
 class _Hinweis extends StatelessWidget {
@@ -260,8 +282,10 @@ class _Hinweis extends StatelessWidget {
           Icon(icon, size: 16, color: theme.accentColor),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(text,
-                style: TextStyle(color: theme.textColor, fontSize: 12)),
+            child: Text(
+              text,
+              style: TextStyle(color: theme.textColor, fontSize: 12),
+            ),
           ),
           ?action,
         ],
@@ -292,8 +316,8 @@ class _AnhangChip extends StatelessWidget {
     final marke = gesperrt
         ? strings.attachmentBlocked
         : ungeprueft
-            ? strings.attachmentUnknown
-            : null;
+        ? strings.attachmentUnknown
+        : null;
     return Tooltip(
       message: attachment.blockedReason ?? '',
       child: ActionChip(

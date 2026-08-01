@@ -27,6 +27,8 @@ export 'src/conversation_list_view.dart';
 export 'src/date_separator.dart';
 export 'src/mail_composer.dart';
 export 'src/mail_detail_view.dart';
+export 'src/mail_link.dart';
+export 'src/mail_link_sheet.dart';
 export 'src/mail_list_view.dart';
 export 'src/mail_address.dart';
 export 'src/mail_body_request.dart';

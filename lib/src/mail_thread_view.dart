@@ -26,6 +26,8 @@ class MailThreadView extends StatefulWidget {
     this.onReply,
     this.onReplyAll,
     this.onForward,
+    this.showSubjectOnFirst = true,
+    this.bodyPadding = EdgeInsets.zero,
   });
 
   /// The mails of this conversation, oldest first.
@@ -61,6 +63,14 @@ class MailThreadView extends StatefulWidget {
   /// Called with the mail the reader wants to pass on.
   final void Function(MailMessage)? onForward;
 
+  /// Whether the subject is printed on the mails. Off where the surrounding
+  /// screen already shows it.
+  final bool showSubjectOnFirst;
+
+  /// Extra space around each mail's body; forwarded to
+  /// [MailDetailView.bodyPadding].
+  final EdgeInsets bodyPadding;
+
   @override
   State<MailThreadView> createState() => _MailThreadViewState();
 }
@@ -78,34 +88,44 @@ class _MailThreadViewState extends State<MailThreadView> {
     final strings = ChatStrings.of(context, override: widget.strings);
     return Material(
       color: widget.theme.background,
-      child: ListView.builder(
-        itemCount: widget.messages.length,
-        itemBuilder: (context, i) {
-          final m = widget.messages[i];
-          if (!_istOffen(i)) {
-            return _EingeklappteMail(
+      // Tippen in den Verlauf schließt die Tastatur — im Composer gibt es
+      // sonst keinen Weg zurück.
+      child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: ListView.builder(
+          itemCount: widget.messages.length,
+          itemBuilder: (context, i) {
+            final m = widget.messages[i];
+            if (!_istOffen(i)) {
+              return _EingeklappteMail(
+                message: m,
+                theme: widget.theme,
+                strings: strings,
+                onTap: () => setState(() => _offen.add(m.id)),
+              );
+            }
+            return MailDetailView(
               message: m,
               theme: widget.theme,
-              strings: strings,
-              onTap: () => setState(() => _offen.add(m.id)),
+              showSubject: widget.showSubjectOnFirst,
+              bodyPadding: widget.bodyPadding,
+              strings: widget.strings,
+              bodyBuilder: widget.bodyBuilder,
+              remoteContentAllowed: widget.remoteContentAllowed,
+              onAllowRemoteContent: widget.onAllowRemoteContent,
+              onOpenLink: widget.onOpenLink,
+              onOpenAttachment: widget.onOpenAttachment,
+              onReply: widget.onReply == null ? null : () => widget.onReply!(m),
+              onReplyAll: widget.onReplyAll == null
+                  ? null
+                  : () => widget.onReplyAll!(m),
+              onForward: widget.onForward == null
+                  ? null
+                  : () => widget.onForward!(m),
             );
-          }
-          return MailDetailView(
-            message: m,
-            theme: widget.theme,
-            strings: widget.strings,
-            bodyBuilder: widget.bodyBuilder,
-            remoteContentAllowed: widget.remoteContentAllowed,
-            onAllowRemoteContent: widget.onAllowRemoteContent,
-            onOpenLink: widget.onOpenLink,
-            onOpenAttachment: widget.onOpenAttachment,
-            onReply: widget.onReply == null ? null : () => widget.onReply!(m),
-            onReplyAll:
-                widget.onReplyAll == null ? null : () => widget.onReplyAll!(m),
-            onForward:
-                widget.onForward == null ? null : () => widget.onForward!(m),
-          );
-        },
+          },
+        ),
       ),
     );
   }

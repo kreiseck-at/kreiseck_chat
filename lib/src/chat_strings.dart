@@ -44,6 +44,11 @@ class ChatStrings {
     required this.openAnyway,
     required this.senderUnverified,
     required this.showQuoted,
+    required this.openLink,
+    required this.linkGoesTo,
+    required this.linkDisguised,
+    required this.cancel,
+    required this.quotedMessage,
   });
 
   /// Context-menu entry that quotes a message.
@@ -151,6 +156,21 @@ class ChatStrings {
   /// Expands the quoted earlier mail.
   final String showQuoted;
 
+  /// Title of the sheet shown before a link from a mail is opened.
+  final String openLink;
+
+  /// Label above the link's real target.
+  final String linkGoesTo;
+
+  /// Warning that the link text names a different domain than the link.
+  final String linkDisguised;
+
+  /// Dismisses a confirmation.
+  final String cancel;
+
+  /// Header of the quoted earlier mail in a reply.
+  final String quotedMessage;
+
   /// English — also the fallback for every unsupported language.
   const ChatStrings.en()
       : reply = 'Reply',
@@ -186,7 +206,12 @@ class ChatStrings {
         attachmentUnknown = 'Not checked',
         openAnyway = 'Open anyway',
         senderUnverified = 'Sender could not be verified.',
-        showQuoted = 'Show earlier mail';
+        showQuoted = 'Show earlier mail',
+        openLink = 'Open link?',
+        linkGoesTo = 'This link goes to',
+        linkDisguised = 'The text names a different address than the link. Be careful.',
+        cancel = 'Cancel',
+        quotedMessage = 'Quoted message';
 
   /// German.
   const ChatStrings.de()
@@ -223,7 +248,12 @@ class ChatStrings {
         attachmentUnknown = 'Ungeprüft',
         openAnyway = 'Trotzdem öffnen',
         senderUnverified = 'Absender konnte nicht bestätigt werden.',
-        showQuoted = 'Frühere Nachricht anzeigen';
+        showQuoted = 'Frühere Nachricht anzeigen',
+        openLink = 'Link öffnen?',
+        linkGoesTo = 'Dieser Link führt zu',
+        linkDisguised = 'Der Text nennt eine andere Adresse als der Link. Vorsicht.',
+        cancel = 'Abbrechen',
+        quotedMessage = 'Zitierte Nachricht';
 
   /// Croatian.
   const ChatStrings.hr()
@@ -260,7 +290,12 @@ class ChatStrings {
         attachmentUnknown = 'Neprovjereno',
         openAnyway = 'Ipak otvori',
         senderUnverified = 'Pošiljatelja nije bilo moguće potvrditi.',
-        showQuoted = 'Prikaži raniju poruku';
+        showQuoted = 'Prikaži raniju poruku',
+        openLink = 'Otvoriti poveznicu?',
+        linkGoesTo = 'Ova poveznica vodi na',
+        linkDisguised = 'Tekst navodi drugu adresu od poveznice. Oprez.',
+        cancel = 'Odustani',
+        quotedMessage = 'Citirana poruka';
 
   /// Turkish.
   const ChatStrings.tr()
@@ -302,7 +337,12 @@ class ChatStrings {
         attachmentUnknown = 'Denetlenmedi',
         openAnyway = 'Yine de aç',
         senderUnverified = 'Gönderen doğrulanamadı.',
-        showQuoted = 'Önceki iletiyi göster';
+        showQuoted = 'Önceki iletiyi göster',
+        openLink = 'Bağlantı açılsın mı?',
+        linkGoesTo = 'Bu bağlantı şuraya gidiyor',
+        linkDisguised = 'Metin, bağlantıdan farklı bir adres belirtiyor. Dikkat.',
+        cancel = 'Vazgeç',
+        quotedMessage = 'Alıntılanan ileti';
 
   /// Ukrainian.
   const ChatStrings.uk()
@@ -339,7 +379,12 @@ class ChatStrings {
         attachmentUnknown = 'Не перевірено',
         openAnyway = 'Усе одно відкрити',
         senderUnverified = 'Не вдалося підтвердити відправника.',
-        showQuoted = 'Показати попереднє повідомлення';
+        showQuoted = 'Показати попереднє повідомлення',
+        openLink = 'Відкрити посилання?',
+        linkGoesTo = 'Це посилання веде на',
+        linkDisguised = 'Текст називає іншу адресу, ніж саме посилання. Будьте уважні.',
+        cancel = 'Скасувати',
+        quotedMessage = 'Цитоване повідомлення';
 
   /// The preset for [locale]'s language, or English when there is none.
   ///
@@ -401,6 +446,11 @@ class ChatStrings {
     String? openAnyway,
     String? senderUnverified,
     String? showQuoted,
+    String? openLink,
+    String? linkGoesTo,
+    String? linkDisguised,
+    String? cancel,
+    String? quotedMessage,
   }) {
     return ChatStrings(
       reply: reply ?? this.reply,
@@ -438,6 +488,11 @@ class ChatStrings {
       openAnyway: openAnyway ?? this.openAnyway,
       senderUnverified: senderUnverified ?? this.senderUnverified,
       showQuoted: showQuoted ?? this.showQuoted,
+      openLink: openLink ?? this.openLink,
+      linkGoesTo: linkGoesTo ?? this.linkGoesTo,
+      linkDisguised: linkDisguised ?? this.linkDisguised,
+      cancel: cancel ?? this.cancel,
+      quotedMessage: quotedMessage ?? this.quotedMessage,
     );
   }
 

@@ -224,6 +224,10 @@ class MailMessage {
   /// Whether the mailbox flagged this message as possible spam.
   final bool spam;
 
+  /// Whether anyone besides the sender would receive a reply-all — the only
+  /// case in which offering that action is not just noise.
+  bool get hasOtherRecipients => cc.isNotEmpty || to.length > 1;
+
   /// The mail's own identifier, used to hang replies onto it.
   final String? messageId;
 

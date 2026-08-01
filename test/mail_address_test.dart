@@ -161,15 +161,20 @@ void main() {
       expect(d.mode, MailComposeMode.forward);
       expect(d.to, isEmpty);
       expect(d.subject, 'Fwd: Termin am Freitag');
-      // Das Original steht zitiert im Rumpf.
-      expect(d.body, contains('Passt Freitag um 10?'));
-      expect(d.body, contains('anna@example.at'));
+      // Das Original steht als Zitat daneben, nicht im Eingabetext — man
+      // antwortet auf eine Mail, man tippt nicht in sie hinein.
+      expect(d.body, isEmpty);
+      expect(d.quotedBody, contains('Passt Freitag um 10?'));
+      expect(d.quotedBody, contains('anna@example.at'));
+      // Beim Versand hängt es unten dran.
+      expect(d.composedBody, contains('Passt Freitag um 10?'));
     });
 
-    test('Antwort zitiert das Original mit >', () {
+    test('Antwort zitiert das Original mit > (für den Versand)', () {
       final d = MailDraft.reply(mail(bodyText: 'Zeile eins\nZeile zwei'));
-      expect(d.body, contains('> Zeile eins'));
-      expect(d.body, contains('> Zeile zwei'));
+      expect(d.quotedBody, contains('> Zeile eins'));
+      expect(d.quotedBody, contains('> Zeile zwei'));
+      expect(d.body, isEmpty);
     });
 
     test('Antwort hängt sich an die Kennung der Vorlage', () {
