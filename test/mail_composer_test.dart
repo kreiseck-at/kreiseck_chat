@@ -8,6 +8,7 @@ Widget host(Widget kind) => MaterialApp(home: Scaffold(body: kind));
 const _anhang = MailAttachment(name: 'foto.png', sizeBytes: 10);
 
 void main() {
+  _kopieVorschlaege();
   testWidgets('Kopie-Felder bleiben weg, bis man sie braucht', (t) async {
     await t.pumpWidget(host(MailComposer(
       onSend: (_) {},
@@ -158,5 +159,72 @@ void main() {
     await t.tap(find.byKey(const ValueKey('mail-quote-toggle')));
     await t.pump();
     expect(find.textContaining('Passt Freitag?'), findsOneWidget);
+  });
+}
+
+// Nachgereicht: ein Antworten-Knopf, die Mitleser wählt man an.
+void _kopieVorschlaege() {
+  final quelle = MailMessage(
+    id: 'm1',
+    direction: MailDirection.incoming,
+    from: const MailAddress(email: 'anna@example.at', name: 'Anna'),
+    to: const [
+      MailAddress(email: 'studio@example.at'),
+      MailAddress(email: 'kollegin@example.at'),
+    ],
+    cc: const [MailAddress(email: 'chefin@example.at')],
+    subject: 'Termin',
+    bodyText: 'Passt Freitag?',
+    date: DateTime(2026, 8, 1),
+  );
+  const ich = MailAddress(email: 'studio@example.at');
+
+  test('Antworten schlägt die anderen vor, nimmt sie aber nicht auf', () {
+    final d = MailDraft.reply(quelle, self: ich);
+    expect(d.to.single.email, 'anna@example.at');
+    expect(d.cc, isEmpty);
+    expect(d.suggestedCc.map((a) => a.email),
+        ['kollegin@example.at', 'chefin@example.at']);
+    // Die eigene Adresse taucht nicht auf.
+    expect(d.suggestedCc.map((a) => a.email), isNot(contains(ich.email)));
+  });
+
+  testWidgets('angehakte Vorschläge landen im CC, nicht angehakte nicht',
+      (t) async {
+    MailDraft? gesendet;
+    await t.pumpWidget(host(MailComposer(
+      onSend: (d) => gesendet = d,
+      draft: MailDraft.reply(quelle, self: ich),
+      strings: const ChatStrings.de(),
+    )));
+
+    expect(find.byKey(const ValueKey('mail-cc-kollegin@example.at')),
+        findsOneWidget);
+    await t.enterText(find.byKey(const ValueKey('mail-body')), 'Ja, passt.');
+    await t.pump();
+    await t.tap(find.byKey(const ValueKey('mail-cc-chefin@example.at')));
+    await t.pump();
+    await t.tap(find.byKey(const ValueKey('mail-send')));
+    await t.pump();
+
+    expect(gesendet?.cc.map((a) => a.email), ['chefin@example.at']);
+    expect(gesendet?.to.single.email, 'anna@example.at');
+  });
+
+  testWidgets('ohne Mitleser gibt es nichts anzuhaken', (t) async {
+    final allein = MailDraft.reply(
+      MailMessage(
+        id: 'm2',
+        direction: MailDirection.incoming,
+        from: const MailAddress(email: 'anna@example.at'),
+        to: const [ich],
+        subject: 'Termin',
+        bodyText: 'Text',
+        date: DateTime(2026, 8, 1),
+      ),
+      self: ich,
+    );
+    await t.pumpWidget(host(MailComposer(onSend: (_) {}, draft: allein)));
+    expect(find.byType(FilterChip), findsNothing);
   });
 }

@@ -21,9 +21,15 @@ Fallout from using 0.16.0 on a real mailbox.
   nobody reads), `padding` and `bodyPadding` — the body now spans the full
   width by default, because mails bring their own margins and a second set
   squeezes tables and images.
-* "Reply all" is only offered when someone besides the sender would receive
-  it (`MailMessage.hasOtherRecipients`); otherwise it is just a second
-  "Reply".
+* New `MailDraft.suggestedCc`, filled by `MailDraft.reply(source, self:)`
+  with everyone else who was on the mail — offered, not added. `MailComposer`
+  shows them as checkboxes above the subject, so keeping someone in copy is
+  one tap. This replaces the need for a second button whose meaning ("reply
+  all") has to be learned: there is one Reply, and the recipients are chosen
+  where recipients live. `MailDraft.replyAll` stays for hosts that prefer the
+  classic two-button layout, and "Reply all" in `MailDetailView` is only
+  offered when someone besides the sender would receive it
+  (`MailMessage.hasOtherRecipients`).
 * `MailThreadView` dismisses the keyboard when the thread is tapped — with a
   composer open there was no way back — and forwards `showSubjectOnFirst` and
   `bodyPadding`.

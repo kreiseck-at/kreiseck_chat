@@ -32,6 +32,7 @@ class MailDraft {
     this.body = '',
     this.quotedBody = '',
     this.attachments = const [],
+    this.suggestedCc = const [],
     this.inReplyTo,
     this.references = const [],
     this.mode = MailComposeMode.compose,
@@ -65,6 +66,12 @@ class MailDraft {
   /// Files to send along.
   final List<MailAttachment> attachments;
 
+  /// Everyone else who was on the original mail. They are NOT recipients —
+  /// a reply goes to the sender. The composer offers them as checkboxes, so
+  /// keeping someone in copy is one tap instead of a second button whose
+  /// meaning ("reply all") has to be learned.
+  final List<MailAddress> suggestedCc;
+
   /// The `messageId` this draft answers, so mail clients keep the thread.
   final String? inReplyTo;
 
@@ -84,30 +91,29 @@ class MailDraft {
       attachments.isEmpty;
 
   /// An answer to [source], addressed to whoever should receive replies.
-  factory MailDraft.reply(MailMessage source) => MailDraft(
-        to: [source.replyTo ?? source.from],
-        subject: _prefixed(source.subject, 're', 'Re: '),
-        quotedBody: _quote(source),
-        inReplyTo: source.messageId,
-        references: _chain(source),
-        mode: MailComposeMode.reply,
-      );
+  ///
+  /// Everyone else who was on the mail lands in [suggestedCc] — offered, not
+  /// added. [self] is your own address, which never needs offering.
+  factory MailDraft.reply(MailMessage source, {MailAddress? self}) {
+    final an = source.replyTo ?? source.from;
+    return MailDraft(
+      to: [an],
+      suggestedCc: _others(source, self: self, exclude: an),
+      subject: _prefixed(source.subject, 're', 'Re: '),
+      quotedBody: _quote(source),
+      inReplyTo: source.messageId,
+      references: _chain(source),
+      mode: MailComposeMode.reply,
+    );
+  }
 
   /// An answer to everyone who was on [source] — except [self], who would
   /// otherwise get their own reply.
   factory MailDraft.replyAll(MailMessage source, {MailAddress? self}) {
     final antwortAn = source.replyTo ?? source.from;
-    bool fremd(MailAddress a) =>
-        a.email.toLowerCase() != (self?.email.toLowerCase() ?? '') &&
-        a.email.toLowerCase() != antwortAn.email.toLowerCase();
-
-    final kopie = <MailAddress>[];
-    for (final a in [...source.to, ...source.cc]) {
-      if (fremd(a) && !kopie.any((b) => b.email == a.email)) kopie.add(a);
-    }
     return MailDraft(
       to: [antwortAn],
-      cc: kopie,
+      cc: _others(source, self: self, exclude: antwortAn),
       subject: _prefixed(source.subject, 're', 'Re: '),
       quotedBody: _quote(source),
       inReplyTo: source.messageId,
@@ -132,6 +138,7 @@ class MailDraft {
     String? body,
     String? quotedBody,
     List<MailAttachment>? attachments,
+    List<MailAddress>? suggestedCc,
     String? inReplyTo,
     bool clearInReplyTo = false,
     List<String>? references,
@@ -147,6 +154,7 @@ class MailDraft {
       body: body ?? this.body,
       quotedBody: quotedBody ?? this.quotedBody,
       attachments: attachments ?? this.attachments,
+      suggestedCc: suggestedCc ?? this.suggestedCc,
       inReplyTo: clearInReplyTo ? null : (inReplyTo ?? this.inReplyTo),
       references: references ?? this.references,
       mode: mode ?? this.mode,
@@ -176,6 +184,26 @@ String _quote(MailMessage source, {bool withHeader = false}) {
           'Betreff: ${source.subject}\n\n'
       : '${source.from.display} schrieb:\n';
   return '$kopf$zeilen';
+}
+
+/// Alle anderen, die auf der Mail standen — ohne die eigene Adresse und ohne
+/// die, an die ohnehin geantwortet wird. Doppelte fallen weg.
+List<MailAddress> _others(
+  MailMessage source, {
+  MailAddress? self,
+  required MailAddress exclude,
+}) {
+  final raus = {
+    exclude.email.toLowerCase(),
+    if (self != null) self.email.toLowerCase(),
+  };
+  final out = <MailAddress>[];
+  for (final a in [...source.to, ...source.cc]) {
+    final e = a.email.toLowerCase();
+    if (raus.contains(e) || out.any((b) => b.email.toLowerCase() == e)) continue;
+    out.add(a);
+  }
+  return out;
 }
 
 List<String> _chain(MailMessage source) => [

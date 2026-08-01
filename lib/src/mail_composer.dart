@@ -73,6 +73,10 @@ class _MailComposerState extends State<MailComposer> {
   /// nicht noch einmal im Eingabefeld.
   bool _zitatOffen = false;
 
+  /// Wer aus [MailDraft.suggestedCc] mitbekommen soll. Leer heißt: nur der
+  /// Absender — das ist, was „Antworten" bedeutet.
+  final Set<String> _kopieAn = {};
+
   @override
   void initState() {
     super.initState();
@@ -82,6 +86,7 @@ class _MailComposerState extends State<MailComposer> {
     _subject = TextEditingController(text: widget.draft.subject);
     _body = TextEditingController(text: widget.draft.body);
     _kopieOffen = widget.draft.cc.isNotEmpty || widget.draft.bcc.isNotEmpty;
+    _kopieAn.addAll(widget.draft.cc.map((a) => a.email.toLowerCase()));
     _to.addListener(_geaendert);
     _body.addListener(_geaendert);
   }
@@ -98,29 +103,46 @@ class _MailComposerState extends State<MailComposer> {
 
   void _geaendert() => setState(() {});
 
-  static String _joined(List<MailAddress> a) => a.map((x) => x.email).join(', ');
+  static String _joined(List<MailAddress> a) =>
+      a.map((x) => x.email).join(', ');
 
   /// Kommagetrennte Eingabe zu Adressen. Was keine Adresse ist, fällt weg —
   /// der Server prüft ohnehin noch einmal.
   static List<MailAddress> _parsed(String raw) => [
-        for (final teil in raw.split(RegExp(r'[,;]')))
-          ?MailAddress.parse(teil.trim()),
-      ];
+    for (final teil in raw.split(RegExp(r'[,;]')))
+      ?MailAddress.parse(teil.trim()),
+  ];
 
   bool get _kannSenden =>
       !widget.sending &&
       _parsed(_to.text).isNotEmpty &&
       (_body.text.trim().isNotEmpty || widget.draft.attachments.isNotEmpty);
 
+  /// Angehakte Vorschläge plus, was von Hand im CC-Feld steht.
+  List<MailAddress> get _kopieGesamt {
+    final aus = <MailAddress>[
+      for (final a in widget.draft.suggestedCc)
+        if (_kopieAn.contains(a.email.toLowerCase())) a,
+    ];
+    for (final a in _parsed(_cc.text)) {
+      if (!aus.any((b) => b.email.toLowerCase() == a.email.toLowerCase())) {
+        aus.add(a);
+      }
+    }
+    return aus;
+  }
+
   void _senden() {
     if (!_kannSenden) return;
-    widget.onSend(widget.draft.copyWith(
-      to: _parsed(_to.text),
-      cc: _parsed(_cc.text),
-      bcc: _parsed(_bcc.text),
-      subject: _subject.text.trim(),
-      body: _body.text,
-    ));
+    widget.onSend(
+      widget.draft.copyWith(
+        to: _parsed(_to.text),
+        cc: _kopieGesamt,
+        bcc: _parsed(_bcc.text),
+        subject: _subject.text.trim(),
+        body: _body.text,
+      ),
+    );
   }
 
   @override
@@ -152,6 +174,47 @@ class _MailComposerState extends State<MailComposer> {
                   ),
               ],
             ),
+            // Wer sonst auf der Mail stand: einzeln dazuwählbar, statt
+            // eines zweiten Knopfes namens „Allen antworten".
+            if (widget.draft.suggestedCc.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  strings.cc,
+                  style: TextStyle(
+                    color: theme.textColor.withValues(alpha: 0.6),
+                    fontSize: 11,
+                    letterSpacing: 0.4,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                children: [
+                  for (final a in widget.draft.suggestedCc)
+                    FilterChip(
+                      key: ValueKey('mail-cc-${a.email}'),
+                      label: Text(
+                        a.name?.trim().isNotEmpty == true ? a.name! : a.email,
+                      ),
+                      selected: _kopieAn.contains(a.email.toLowerCase()),
+                      onSelected: (an) => setState(() {
+                        final k = a.email.toLowerCase();
+                        an ? _kopieAn.add(k) : _kopieAn.remove(k);
+                      }),
+                      backgroundColor: theme.background,
+                      selectedColor: theme.accentColor.withValues(alpha: 0.18),
+                      labelStyle: TextStyle(
+                        color: theme.textColor,
+                        fontSize: 12,
+                      ),
+                    ),
+                ],
+              ),
+            ],
             if (_kopieOffen) ...[
               const SizedBox(height: 8),
               TextField(
@@ -243,7 +306,9 @@ class _MailComposerState extends State<MailComposer> {
                             width: 16,
                             height: 16,
                             child: CircularProgressIndicator(
-                                strokeWidth: 2, color: Colors.white),
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
                           )
                         : Text(strings.send),
                   ),
@@ -276,8 +341,10 @@ class _Zitat extends StatelessWidget {
 
   /// Die ">"-Zeichen sind Netz-Konvention, keine Typografie — auf dem Schirm
   /// macht das die Linie am Rand.
-  String get _ohneMarker =>
-      text.split('\n').map((z) => z.replaceFirst(RegExp(r'^>\s?'), '')).join('\n');
+  String get _ohneMarker => text
+      .split('\n')
+      .map((z) => z.replaceFirst(RegExp(r'^>\s?'), ''))
+      .join('\n');
 
   @override
   Widget build(BuildContext context) {
@@ -293,8 +360,11 @@ class _Zitat extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(offen ? Icons.expand_less : Icons.expand_more,
-                    size: 18, color: theme.textColor.withValues(alpha: 0.6)),
+                Icon(
+                  offen ? Icons.expand_less : Icons.expand_more,
+                  size: 18,
+                  color: theme.textColor.withValues(alpha: 0.6),
+                ),
                 const SizedBox(width: 4),
                 Text(
                   offen ? strings.quotedMessage : strings.showQuoted,
@@ -315,7 +385,9 @@ class _Zitat extends StatelessWidget {
             decoration: BoxDecoration(
               border: Border(
                 left: BorderSide(
-                    color: theme.accentColor.withValues(alpha: 0.5), width: 2),
+                  color: theme.accentColor.withValues(alpha: 0.5),
+                  width: 2,
+                ),
               ),
             ),
             child: Text(
