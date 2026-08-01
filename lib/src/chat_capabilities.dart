@@ -24,41 +24,41 @@ class ChatCapabilities {
     bool presence = false,
     bool readReceipts = false,
   }) : this(
-          reactions: reactions,
-          replies: replies,
-          media: media,
-          typingIndicator: typingIndicator,
-          presence: presence,
-          readReceipts: readReceipts,
-        );
+         reactions: reactions,
+         replies: replies,
+         media: media,
+         typingIndicator: typingIndicator,
+         presence: presence,
+         readReceipts: readReceipts,
+       );
 
   /// Classic Twilio SMS: plain text, delivery ceiling, nothing else.
   const ChatCapabilities.twilioSms()
-      : reactions = false,
-        replies = false,
-        media = false,
-        typingIndicator = false,
-        presence = false,
-        readReceipts = false;
+    : reactions = false,
+      replies = false,
+      media = false,
+      typingIndicator = false,
+      presence = false,
+      readReceipts = false;
 
   /// Twilio WhatsApp: media, inbound reactions, quoted replies, read receipts.
   /// No outbound typing signal and no presence in the Business API.
   const ChatCapabilities.twilioWhatsApp()
-      : reactions = true,
-        replies = true,
-        media = true,
-        typingIndicator = false,
-        presence = false,
-        readReceipts = true;
+    : reactions = true,
+      replies = true,
+      media = true,
+      typingIndicator = false,
+      presence = false,
+      readReceipts = true;
 
   /// Full in-app messaging: every affordance enabled.
   const ChatCapabilities.inApp()
-      : reactions = true,
-        replies = true,
-        media = true,
-        typingIndicator = true,
-        presence = true,
-        readReceipts = true;
+    : reactions = true,
+      replies = true,
+      media = true,
+      typingIndicator = true,
+      presence = true,
+      readReceipts = true;
 
   /// Whether long-press reactions and reaction chips are shown.
   final bool reactions;
@@ -114,11 +114,11 @@ class ChatCapabilities {
 
   @override
   int get hashCode => Object.hash(
-        reactions,
-        replies,
-        media,
-        typingIndicator,
-        presence,
-        readReceipts,
-      );
+    reactions,
+    replies,
+    media,
+    typingIndicator,
+    presence,
+    readReceipts,
+  );
 }

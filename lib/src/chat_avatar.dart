@@ -79,10 +79,11 @@ class ChatAvatar extends StatelessWidget {
     );
 
     // Ein Monogramm gibt es nicht zu vergrößern — nur ein echtes Bild.
-    final oeffnen = onTap ??
+    final oeffnen =
+        onTap ??
         (openable && avatarUrl != null && image == null
-            ? () => showChatImageViewer(context,
-                urls: [avatarUrl!], theme: theme)
+            ? () =>
+                  showChatImageViewer(context, urls: [avatarUrl!], theme: theme)
             : null);
     if (oeffnen == null) return kreis;
     return GestureDetector(

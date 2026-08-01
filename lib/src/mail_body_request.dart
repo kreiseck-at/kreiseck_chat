@@ -25,7 +25,11 @@ class MailBodyRequest {
 }
 
 /// Whether a link from a mail may be followed at all.
+///
+/// Web pages, mail addresses and phone numbers — everything a mail legitimately
+/// links to. `javascript:`, `data:` and `file:` are not on the list and never
+/// will be.
 bool isFollowableMailLink(Uri uri) {
-  final schema = uri.scheme.toLowerCase();
-  return schema == 'https' || schema == 'mailto';
+  const erlaubt = {'https', 'mailto', 'tel'};
+  return erlaubt.contains(uri.scheme.toLowerCase());
 }

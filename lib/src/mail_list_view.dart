@@ -55,10 +55,8 @@ class MailListView extends StatelessWidget {
       color: theme.background,
       child: ListView.separated(
         itemCount: messages.length,
-        separatorBuilder: (context, index) => Divider(
-          height: 1,
-          color: theme.textColor.withValues(alpha: 0.08),
-        ),
+        separatorBuilder: (context, index) =>
+            Divider(height: 1, color: theme.textColor.withValues(alpha: 0.08)),
         itemBuilder: (context, index) {
           final message = messages[index];
           return _MailTile(
@@ -111,7 +109,10 @@ class _MailTile extends StatelessWidget {
                   CircleAvatar(
                     radius: 20,
                     backgroundColor: theme.accentColor.withValues(alpha: 0.2),
-                    child: Text(_initial, style: TextStyle(color: theme.accentColor)),
+                    child: Text(
+                      _initial,
+                      style: TextStyle(color: theme.accentColor),
+                    ),
                   ),
                   Positioned(right: -2, bottom: -2, child: badge!),
                 ],

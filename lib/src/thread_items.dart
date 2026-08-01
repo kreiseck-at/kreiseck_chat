@@ -60,18 +60,22 @@ List<ThreadItem> buildThreadItems(
       items.add(DateSeparatorItem(DateTime(m.at.year, m.at.month, m.at.day)));
     }
 
-    final groupsWithPrev = prev != null &&
+    final groupsWithPrev =
+        prev != null &&
         _sameDay(prev.at, m.at) &&
         _groupsWith(prev, m, groupWindow);
-    final groupsWithNext = next != null &&
+    final groupsWithNext =
+        next != null &&
         _sameDay(next.at, m.at) &&
         _groupsWith(m, next, groupWindow);
 
-    items.add(MessageItem(
-      message: m,
-      isFirstInGroup: !groupsWithPrev,
-      isLastInGroup: !groupsWithNext,
-    ));
+    items.add(
+      MessageItem(
+        message: m,
+        isFirstInGroup: !groupsWithPrev,
+        isLastInGroup: !groupsWithNext,
+      ),
+    );
   }
   return items;
 }

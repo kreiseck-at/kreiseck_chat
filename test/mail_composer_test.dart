@@ -8,6 +8,7 @@ Widget host(Widget kind) => MaterialApp(home: Scaffold(body: kind));
 const _anhang = MailAttachment(name: 'foto.png', sizeBytes: 10);
 
 void main() {
+  _schliessen();
   _kopieVorschlaege();
   testWidgets('Kopie-Felder bleiben weg, bis man sie braucht', (t) async {
     await t.pumpWidget(host(MailComposer(
@@ -226,5 +227,35 @@ void _kopieVorschlaege() {
     );
     await t.pumpWidget(host(MailComposer(onSend: (_) {}, draft: allein)));
     expect(find.byType(FilterChip), findsNothing);
+  });
+}
+
+// Nachgereicht: der Entwurf muss sich schließen lassen.
+void _schliessen() {
+  testWidgets('ohne onDiscard gibt es keinen Schließen-Knopf', (t) async {
+    await t.pumpWidget(host(MailComposer(onSend: (_) {})));
+    expect(find.byKey(const ValueKey('mail-discard')), findsNothing);
+  });
+
+  testWidgets('Schließen meldet sich beim Host', (t) async {
+    var zu = false;
+    await t.pumpWidget(host(MailComposer(
+      onSend: (_) {},
+      onDiscard: () => zu = true,
+    )));
+    await t.tap(find.byKey(const ValueKey('mail-discard')));
+    await t.pump();
+    expect(zu, isTrue);
+  });
+
+  testWidgets('während des Sendens ist Schließen gesperrt', (t) async {
+    await t.pumpWidget(host(MailComposer(
+      onSend: (_) {},
+      onDiscard: () {},
+      sending: true,
+    )));
+    final knopf =
+        t.widget<IconButton>(find.byKey(const ValueKey('mail-discard')));
+    expect(knopf.onPressed, isNull);
   });
 }

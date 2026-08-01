@@ -16,10 +16,15 @@ MailMessage m(String id, String body, {int tag = 1}) => MailMessage(
 Widget host(Widget kind) => MaterialApp(home: Scaffold(body: kind));
 
 void main() {
-  testWidgets('die neueste Mail steht offen, ältere eingeklappt', (t) async {
+  testWidgets('die neueste Mail steht oben und offen', (t) async {
     await t.pumpWidget(host(MailThreadView(
       messages: [m('a', 'Erste Nachricht', tag: 1), m('b', 'Zweite', tag: 2)],
     )));
+    // Neueste zuerst: die offene Mail steht über der eingeklappten älteren.
+    expect(
+      t.getTopLeft(find.byType(MailDetailView)).dy,
+      lessThan(t.getTopLeft(find.byType(ListTile)).dy),
+    );
     // Die jüngste in voller Ansicht …
     expect(find.byType(MailDetailView), findsOneWidget);
     // … die ältere nur als Zeile (Vorschau, kein Detail).
@@ -37,6 +42,17 @@ void main() {
     expect(find.byType(ListTile), findsNothing);
   });
 
+  testWidgets('mit newestFirst: false steht die neueste unten', (t) async {
+    await t.pumpWidget(host(MailThreadView(
+      messages: [m('a', 'Erste Nachricht', tag: 1), m('b', 'Zweite', tag: 2)],
+      newestFirst: false,
+    )));
+    expect(
+      t.getTopLeft(find.byType(MailDetailView)).dy,
+      greaterThan(t.getTopLeft(find.byType(ListTile)).dy),
+    );
+  });
+
   testWidgets('eine einzelne Mail ist immer offen', (t) async {
     await t.pumpWidget(host(MailThreadView(messages: [m('a', 'Allein')])));
     expect(find.byType(MailDetailView), findsOneWidget);
@@ -52,9 +68,9 @@ void main() {
       onReply: (x) => beantwortet = x,
       onForward: (x) => weitergeleitet = x,
     )));
-    await t.tap(find.text('Antworten'));
+    await t.tap(find.byKey(const ValueKey('mail-reply')));
     expect(beantwortet?.id, 'a');
-    await t.tap(find.text('Weiterleiten'));
+    await t.tap(find.byKey(const ValueKey('mail-forward')));
     expect(weitergeleitet?.id, 'a');
   });
 

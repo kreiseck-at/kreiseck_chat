@@ -36,3 +36,23 @@ String? _domainIn(String text) {
   ).firstMatch(text.replaceAll(RegExp(r'^https?://'), ''));
   return m?.group(1);
 }
+
+/// What following [uri] would actually do — a link in a mail is not always a
+/// web address, and saying "open" for a phone number is a poor promise.
+enum MailLinkAction {
+  /// Opens a web page.
+  open,
+
+  /// Starts a mail to the address.
+  writeMail,
+
+  /// Places a call.
+  call,
+}
+
+/// Classifies [uri] into what the reader would get.
+MailLinkAction mailLinkAction(Uri uri) => switch (uri.scheme.toLowerCase()) {
+  'mailto' => MailLinkAction.writeMail,
+  'tel' => MailLinkAction.call,
+  _ => MailLinkAction.open,
+};

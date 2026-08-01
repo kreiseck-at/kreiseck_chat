@@ -36,12 +36,12 @@ class MailTheme {
   /// styled its chat gets a matching mail view without configuring anything
   /// twice.
   factory MailTheme.fromChat(ChatTheme chat) => MailTheme(
-        background: chat.colors.background,
-        surfaceColor: chat.colors.composer,
-        textColor: chat.colors.incomingText,
-        unreadDot: chat.colors.accent,
-        accentColor: chat.colors.accent,
-      );
+    background: chat.colors.background,
+    surfaceColor: chat.colors.composer,
+    textColor: chat.colors.incomingText,
+    unreadDot: chat.colors.accent,
+    accentColor: chat.colors.accent,
+  );
 
   /// A light color scheme suitable as a sensible default.
   const factory MailTheme.light() = MailTheme._light;
@@ -50,16 +50,16 @@ class MailTheme {
   const factory MailTheme.dark() = MailTheme._dark;
 
   const MailTheme._light()
-      : background = const Color(0xFFFAFAFA),
-        surfaceColor = const Color(0xFFFFFFFF),
-        textColor = const Color(0xFF1C1C1E),
-        unreadDot = const Color(0xFF3478F6),
-        accentColor = const Color(0xFF3478F6);
+    : background = const Color(0xFFFAFAFA),
+      surfaceColor = const Color(0xFFFFFFFF),
+      textColor = const Color(0xFF1C1C1E),
+      unreadDot = const Color(0xFF3478F6),
+      accentColor = const Color(0xFF3478F6);
 
   const MailTheme._dark()
-      : background = const Color(0xFF000000),
-        surfaceColor = const Color(0xFF1C1C1E),
-        textColor = const Color(0xFFF2F2F7),
-        unreadDot = const Color(0xFF64A1FF),
-        accentColor = const Color(0xFF64A1FF);
+    : background = const Color(0xFF000000),
+      surfaceColor = const Color(0xFF1C1C1E),
+      textColor = const Color(0xFFF2F2F7),
+      unreadDot = const Color(0xFF64A1FF),
+      accentColor = const Color(0xFF64A1FF);
 }

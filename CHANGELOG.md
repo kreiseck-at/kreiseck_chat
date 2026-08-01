@@ -1,3 +1,25 @@
+## 0.18.0
+
+More fallout from real use.
+
+* **Fixed:** the link sheet's confirm button carried the same text as its
+  heading ("Open link?"), so it read as a repeat of the question and people
+  found only the cancel button. It now says `ChatStrings.open` — or, for a
+  `mailto:`/`tel:` link, "Write mail" / "Call".
+* `tel:` links are now followable (`isFollowableMailLink`), and the new
+  `mailLinkAction(uri)` says what following one would actually do. The sheet
+  adapts: a phone number shows the number, not a domain, and offers to call.
+* New `MailComposer.onDiscard` — a close button on the draft. Without it a
+  composer could be opened and never left.
+* `MailDetailView`'s reply / reply-all / forward are icon buttons now, the
+  words moved into their tooltips: three word-buttons side by side burst any
+  narrow row, and every mail client already teaches these three icons.
+* New `MailThreadView.newestFirst`, **on by default**: in a mail thread the
+  newest message is what you came for, and scrolling past the history to
+  reach it is a chore. Pass `false` for the previous oldest-first order.
+* `ChatStrings` gained `open`, `writeMail`, `callNumber` and `discardDraft`
+  in all five languages.
+
 ## 0.17.0
 
 Fallout from using 0.16.0 on a real mailbox.

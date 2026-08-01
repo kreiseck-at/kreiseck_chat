@@ -40,7 +40,9 @@ class ChatChannelBadge extends StatelessWidget {
   /// against [surface] when one was given, otherwise the raw brand tone.
   Color get _iconColor {
     final onto = surface;
-    return onto == null ? channel.color : readableOn(onto, channel.color, target: 3.0);
+    return onto == null
+        ? channel.color
+        : readableOn(onto, channel.color, target: 3.0);
   }
 
   @override

@@ -20,12 +20,12 @@ class PresenceLabels {
   /// that already resolves [ChatStrings] (see [ChatStrings.of]) gets a
   /// matching [PresenceLabels] instead of maintaining a separate translation.
   factory PresenceLabels.fromStrings(ChatStrings strings) => PresenceLabels(
-        online: strings.online,
-        lastSeenTodayPrefix: strings.lastSeenTodayPrefix,
-        lastSeenYesterdayPrefix: strings.lastSeenYesterdayPrefix,
-        lastSeenDatePrefix: strings.lastSeenDatePrefix,
-        lastSeenAtJoiner: strings.lastSeenAtJoiner,
-      );
+    online: strings.online,
+    lastSeenTodayPrefix: strings.lastSeenTodayPrefix,
+    lastSeenYesterdayPrefix: strings.lastSeenYesterdayPrefix,
+    lastSeenDatePrefix: strings.lastSeenDatePrefix,
+    lastSeenAtJoiner: strings.lastSeenAtJoiner,
+  );
 
   /// Shown when online.
   final String online;

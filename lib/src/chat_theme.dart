@@ -61,24 +61,24 @@ class ChatTheme {
   const factory ChatTheme.dark() = ChatTheme._dark;
 
   const ChatTheme._light()
-      : colors = const ChatColors.light(),
-        typography = const ChatTypography(),
-        icons = const ChatIcons(),
-        motion = const ChatMotion(),
-        bubbleStyle = BubbleStyle.minimal,
-        bubbleRadius = 16,
-        showBubbleTail = false,
-        imageProvider = cachedChatImage;
+    : colors = const ChatColors.light(),
+      typography = const ChatTypography(),
+      icons = const ChatIcons(),
+      motion = const ChatMotion(),
+      bubbleStyle = BubbleStyle.minimal,
+      bubbleRadius = 16,
+      showBubbleTail = false,
+      imageProvider = cachedChatImage;
 
   const ChatTheme._dark()
-      : colors = const ChatColors.dark(),
-        typography = const ChatTypography(),
-        icons = const ChatIcons(),
-        motion = const ChatMotion(),
-        bubbleStyle = BubbleStyle.minimal,
-        bubbleRadius = 16,
-        showBubbleTail = false,
-        imageProvider = cachedChatImage;
+    : colors = const ChatColors.dark(),
+      typography = const ChatTypography(),
+      icons = const ChatIcons(),
+      motion = const ChatMotion(),
+      bubbleStyle = BubbleStyle.minimal,
+      bubbleRadius = 16,
+      showBubbleTail = false,
+      imageProvider = cachedChatImage;
 
   /// WhatsApp-flavored preset.
   factory ChatTheme.whatsApp({Brightness brightness = Brightness.light}) {
@@ -86,7 +86,9 @@ class ChatTheme {
     final base = dark ? const ChatColors.dark() : const ChatColors.light();
     return ChatTheme(
       colors: base.copyWith(
-        outgoingBubble: dark ? const Color(0xFF005C4B) : const Color(0xFFD9FDD3),
+        outgoingBubble: dark
+            ? const Color(0xFF005C4B)
+            : const Color(0xFFD9FDD3),
         outgoingText: dark ? const Color(0xFFE9EDEF) : const Color(0xFF111B21),
         bubbleTail: dark ? const Color(0xFF005C4B) : const Color(0xFFD9FDD3),
         accent: const Color(0xFF25D366),

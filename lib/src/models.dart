@@ -79,12 +79,11 @@ class ChatTranslation {
     String? text,
     String? languageLabel,
     bool? showFirst,
-  }) =>
-      ChatTranslation(
-        text: text ?? this.text,
-        languageLabel: languageLabel ?? this.languageLabel,
-        showFirst: showFirst ?? this.showFirst,
-      );
+  }) => ChatTranslation(
+    text: text ?? this.text,
+    languageLabel: languageLabel ?? this.languageLabel,
+    showFirst: showFirst ?? this.showFirst,
+  );
 
   @override
   bool operator ==(Object other) {
@@ -293,24 +292,24 @@ class ChatMessage {
 
   @override
   int get hashCode => Object.hash(
-        id,
-        direction,
-        text,
-        at,
-        status,
-        sender,
-        Object.hashAll(attachments),
-        replyTo,
-        Object.hashAll(reactions),
-        editedAt,
-        deliveredAt,
-        readAt,
-        channel,
-        errorText,
-        kind,
-        translation,
-        headline,
-      );
+    id,
+    direction,
+    text,
+    at,
+    status,
+    sender,
+    Object.hashAll(attachments),
+    replyTo,
+    Object.hashAll(reactions),
+    editedAt,
+    deliveredAt,
+    readAt,
+    channel,
+    errorText,
+    kind,
+    translation,
+    headline,
+  );
 }
 
 /// A lightweight reference to a message being quoted in a reply.
@@ -387,7 +386,8 @@ class TypingState {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is TypingState && _listEquals(other.participants, participants);
+    return other is TypingState &&
+        _listEquals(other.participants, participants);
   }
 
   @override
@@ -520,8 +520,9 @@ class ChatConversation {
       id: id ?? this.id,
       title: title ?? this.title,
       subtitle: clearSubtitle ? null : (subtitle ?? this.subtitle),
-      channelLabel:
-          clearChannelLabel ? null : (channelLabel ?? this.channelLabel),
+      channelLabel: clearChannelLabel
+          ? null
+          : (channelLabel ?? this.channelLabel),
       lastText: clearLastText ? null : (lastText ?? this.lastText),
       lastAt: clearLastAt ? null : (lastAt ?? this.lastAt),
       unread: unread ?? this.unread,
@@ -557,21 +558,21 @@ class ChatConversation {
 
   @override
   int get hashCode => Object.hash(
-        id,
-        title,
-        subtitle,
-        channelLabel,
-        lastText,
-        lastAt,
-        unread,
-        avatar,
-        avatarUrl,
-        presence,
-        typing,
-        muted,
-        pinned,
-        Object.hashAll(channels),
-      );
+    id,
+    title,
+    subtitle,
+    channelLabel,
+    lastText,
+    lastAt,
+    unread,
+    avatar,
+    avatarUrl,
+    presence,
+    typing,
+    muted,
+    pinned,
+    Object.hashAll(channels),
+  );
 }
 
 bool _listEquals<T>(List<T> a, List<T> b) {

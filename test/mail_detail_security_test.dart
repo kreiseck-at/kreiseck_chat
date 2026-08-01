@@ -226,7 +226,7 @@ void _ansicht() {
       onReply: () {},
       onReplyAll: () {},
     )));
-    expect(find.text('Allen antworten'), findsNothing);
+    expect(find.byKey(const ValueKey('mail-reply-all')), findsNothing);
 
     await tester.pumpWidget(host(MailDetailView(
       message: mail(cc: const [MailAddress(email: 'chefin@example.at')]),
@@ -234,6 +234,6 @@ void _ansicht() {
       onReply: () {},
       onReplyAll: () {},
     )));
-    expect(find.text('Allen antworten'), findsOneWidget);
+    expect(find.byKey(const ValueKey('mail-reply-all')), findsOneWidget);
   });
 }

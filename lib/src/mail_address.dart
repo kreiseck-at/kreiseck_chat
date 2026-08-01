@@ -47,8 +47,10 @@ class MailAddress {
 
   /// Returns a copy with the given fields replaced.
   MailAddress copyWith({String? email, String? name, bool clearName = false}) {
-    assert(!(clearName && name != null),
-        'clearName und ein name-Wert schließen sich aus.');
+    assert(
+      !(clearName && name != null),
+      'clearName und ein name-Wert schließen sich aus.',
+    );
     return MailAddress(
       email: email ?? this.email,
       name: clearName ? null : (name ?? this.name),

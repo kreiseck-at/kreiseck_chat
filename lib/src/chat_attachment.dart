@@ -128,8 +128,9 @@ class ChatAttachment {
       kind: kind ?? this.kind,
       url: clearUrl ? null : (url ?? this.url),
       thumbnail: clearThumbnail ? null : (thumbnail ?? this.thumbnail),
-      thumbnailUrl:
-          clearThumbnailUrl ? null : (thumbnailUrl ?? this.thumbnailUrl),
+      thumbnailUrl: clearThumbnailUrl
+          ? null
+          : (thumbnailUrl ?? this.thumbnailUrl),
       fileName: clearFileName ? null : (fileName ?? this.fileName),
       sizeBytes: clearSizeBytes ? null : (sizeBytes ?? this.sizeBytes),
       width: clearWidth ? null : (width ?? this.width),
@@ -153,13 +154,13 @@ class ChatAttachment {
 
   @override
   int get hashCode => Object.hash(
-        kind,
-        url,
-        thumbnail,
-        thumbnailUrl,
-        fileName,
-        sizeBytes,
-        width,
-        height,
-      );
+    kind,
+    url,
+    thumbnail,
+    thumbnailUrl,
+    fileName,
+    sizeBytes,
+    width,
+    height,
+  );
 }

@@ -24,7 +24,12 @@ class BubbleTailPainter extends CustomPainter {
     } else {
       path.moveTo(size.width, 0);
       path.quadraticBezierTo(0, 0, 0, size.height);
-      path.quadraticBezierTo(size.width * 0.6, size.height * 0.4, size.width, 0);
+      path.quadraticBezierTo(
+        size.width * 0.6,
+        size.height * 0.4,
+        size.width,
+        0,
+      );
     }
     path.close();
     canvas.drawPath(path, paint);

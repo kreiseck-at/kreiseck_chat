@@ -69,9 +69,10 @@ class _ChatImageViewerState extends State<_ChatImageViewer> {
                       image: widget.theme.imageProvider(widget.urls[i]),
                       fit: BoxFit.contain,
                       errorBuilder: (_, _, _) => const Icon(
-                          Icons.broken_image_outlined,
-                          color: Colors.white54,
-                          size: 40),
+                        Icons.broken_image_outlined,
+                        color: Colors.white54,
+                        size: 40,
+                      ),
                     ),
                   ),
                 ),
@@ -94,8 +95,9 @@ class _ChatImageViewerState extends State<_ChatImageViewer> {
                 child: Center(
                   child: Text(
                     '${_current + 1} / ${widget.urls.length}',
-                    style: widget.theme.typography.timestamp
-                        .copyWith(color: Colors.white),
+                    style: widget.theme.typography.timestamp.copyWith(
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),

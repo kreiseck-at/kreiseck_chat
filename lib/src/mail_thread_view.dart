@@ -28,6 +28,7 @@ class MailThreadView extends StatefulWidget {
     this.onForward,
     this.showSubjectOnFirst = true,
     this.bodyPadding = EdgeInsets.zero,
+    this.newestFirst = true,
   });
 
   /// The mails of this conversation, oldest first.
@@ -71,6 +72,11 @@ class MailThreadView extends StatefulWidget {
   /// [MailDetailView.bodyPadding].
   final EdgeInsets bodyPadding;
 
+  /// Whether the newest mail sits at the top. On by default: in a mail thread
+  /// the newest one is what you came for, and scrolling past the history to
+  /// reach it is a chore. Pass false for oldest-first (chat order).
+  final bool newestFirst;
+
   @override
   State<MailThreadView> createState() => _MailThreadViewState();
 }
@@ -79,9 +85,15 @@ class _MailThreadViewState extends State<MailThreadView> {
   /// Kennungen der Mails, die der Leser zusätzlich aufgeklappt hat.
   final Set<String> _offen = {};
 
-  bool _istOffen(int index) =>
-      index == widget.messages.length - 1 ||
-      _offen.contains(widget.messages[index].id);
+  /// Die Mails in Anzeige-Reihenfolge: neueste oben, sofern gewünscht.
+  List<MailMessage> get _sortiert => widget.newestFirst
+      ? widget.messages.reversed.toList(growable: false)
+      : widget.messages;
+
+  /// Offen ist die neueste — und alles, was der Leser aufgeklappt hat.
+  bool _istOffen(int index, List<MailMessage> liste) =>
+      index == (widget.newestFirst ? 0 : liste.length - 1) ||
+      _offen.contains(liste[index].id);
 
   @override
   Widget build(BuildContext context) {
@@ -94,10 +106,11 @@ class _MailThreadViewState extends State<MailThreadView> {
         behavior: HitTestBehavior.translucent,
         onTap: () => FocusScope.of(context).unfocus(),
         child: ListView.builder(
-          itemCount: widget.messages.length,
+          itemCount: _sortiert.length,
           itemBuilder: (context, i) {
-            final m = widget.messages[i];
-            if (!_istOffen(i)) {
+            final liste = _sortiert;
+            final m = liste[i];
+            if (!_istOffen(i, liste)) {
               return _EingeklappteMail(
                 message: m,
                 theme: widget.theme,

@@ -57,8 +57,9 @@ class DateSeparator extends StatelessWidget {
         ),
         child: Text(
           label,
-          style: theme.typography.dateSeparator
-              .copyWith(color: theme.colors.dateSeparatorText),
+          style: theme.typography.dateSeparator.copyWith(
+            color: theme.colors.dateSeparatorText,
+          ),
         ),
       ),
     );

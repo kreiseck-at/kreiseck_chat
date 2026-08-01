@@ -99,8 +99,7 @@ class ConversationListView extends StatelessWidget {
             timeLabel: timeLabelBuilder?.call(c),
             unreadStyle: unreadStyle,
             onTap: () => onOpen(c),
-            onLongPress:
-                onLongPress == null ? null : () => onLongPress!(c),
+            onLongPress: onLongPress == null ? null : () => onLongPress!(c),
           );
         },
       ),
@@ -137,8 +136,7 @@ class _ConversationTile extends StatelessWidget {
       capabilities.presence &&
       conversation.presence?.state == PresenceState.online;
 
-  bool get _typing =>
-      capabilities.typingIndicator && conversation.typing;
+  bool get _typing => capabilities.typingIndicator && conversation.typing;
 
   /// Time and unread marker at the end of the row. Null when there is
   /// neither — the row then ends after the preview, as before.
@@ -151,9 +149,12 @@ class _ConversationTile extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         if (timeLabel != null)
-          Text(timeLabel!,
-              style: theme.typography.timestamp
-                  .copyWith(color: theme.colors.dateSeparatorText)),
+          Text(
+            timeLabel!,
+            style: theme.typography.timestamp.copyWith(
+              color: theme.colors.dateSeparatorText,
+            ),
+          ),
         if (ungelesen) ...[
           if (timeLabel != null) const SizedBox(height: 4),
           if (unreadStyle == UnreadStyle.dot)
@@ -161,7 +162,9 @@ class _ConversationTile extends StatelessWidget {
               width: 9,
               height: 9,
               decoration: BoxDecoration(
-                  color: theme.colors.accent, shape: BoxShape.circle),
+                color: theme.colors.accent,
+                shape: BoxShape.circle,
+              ),
             )
           else
             Container(
@@ -172,8 +175,10 @@ class _ConversationTile extends StatelessWidget {
               ),
               child: Text(
                 '${conversation.unread}',
-                style:
-                    TextStyle(color: theme.colors.outgoingText, fontSize: 11),
+                style: TextStyle(
+                  color: theme.colors.outgoingText,
+                  fontSize: 11,
+                ),
               ),
             ),
         ],
@@ -218,10 +223,7 @@ class _ConversationTile extends StatelessWidget {
       ),
       title: Row(
         children: [
-          if (titleBadge != null) ...[
-            titleBadge!,
-            const SizedBox(width: 6),
-          ],
+          if (titleBadge != null) ...[titleBadge!, const SizedBox(width: 6)],
           Expanded(
             child: Text(
               conversation.title,
@@ -235,12 +237,19 @@ class _ConversationTile extends StatelessWidget {
             ),
           ),
           if (conversation.pinned)
-            Icon(Icons.push_pin, size: 14, color: theme.colors.dateSeparatorText),
+            Icon(
+              Icons.push_pin,
+              size: 14,
+              color: theme.colors.dateSeparatorText,
+            ),
           if (conversation.muted)
             Padding(
               padding: const EdgeInsets.only(left: 4),
-              child: Icon(Icons.volume_off,
-                  size: 14, color: theme.colors.dateSeparatorText),
+              child: Icon(
+                Icons.volume_off,
+                size: 14,
+                color: theme.colors.dateSeparatorText,
+              ),
             ),
         ],
       ),
@@ -251,12 +260,14 @@ class _ConversationTile extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: conversation.channels
-                    .map((c) => ChatChannelBadge(
-                          channel: c,
-                          compact: true,
-                          theme: theme,
-                          surface: theme.colors.background,
-                        ))
+                    .map(
+                      (c) => ChatChannelBadge(
+                        channel: c,
+                        compact: true,
+                        theme: theme,
+                        surface: theme.colors.background,
+                      ),
+                    )
                     .toList(),
               ),
             ),
@@ -268,9 +279,12 @@ class _ConversationTile extends StatelessWidget {
                 color: theme.colors.accent.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(6),
               ),
-              child: Text(conversation.channelLabel!,
-                  style: theme.typography.timestamp
-                      .copyWith(color: theme.colors.accent)),
+              child: Text(
+                conversation.channelLabel!,
+                style: theme.typography.timestamp.copyWith(
+                  color: theme.colors.accent,
+                ),
+              ),
             ),
             const SizedBox(width: 6),
           ],
@@ -283,7 +297,8 @@ class _ConversationTile extends StatelessWidget {
                 color: _typing
                     ? theme.colors.accent
                     : theme.colors.incomingText.withValues(
-                        alpha: conversation.unread > 0 ? 1.0 : 0.6),
+                        alpha: conversation.unread > 0 ? 1.0 : 0.6,
+                      ),
               ),
             ),
           ),

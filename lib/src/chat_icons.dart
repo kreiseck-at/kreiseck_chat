@@ -92,5 +92,15 @@ class ChatIcons {
 
   @override
   int get hashCode => Object.hash(
-      send, attach, camera, mic, sent, delivered, read, reply, copy, error);
+    send,
+    attach,
+    camera,
+    mic,
+    sent,
+    delivered,
+    read,
+    reply,
+    copy,
+    error,
+  );
 }

@@ -210,31 +210,34 @@ class MailDetailView extends StatelessWidget {
               ),
             ],
             if (onReply != null || onForward != null) ...[
-              const SizedBox(height: 24),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
+              const SizedBox(height: 16),
+              // Symbole statt Wörter — so kennt man es aus jedem Mail-Programm,
+              // und drei Wortknöpfe nebeneinander sprengen jede schmale Zeile.
+              Row(
                 children: [
                   if (onReply != null)
-                    ElevatedButton(
+                    IconButton(
+                      key: const ValueKey('mail-reply'),
+                      tooltip: strings.reply,
                       onPressed: onReply,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: theme.accentColor,
-                        foregroundColor: Colors.white,
-                      ),
-                      child: Text(strings.reply),
+                      color: theme.accentColor,
+                      icon: const Icon(Icons.reply_rounded),
                     ),
-                  // "Allen antworten" nur, wenn es überhaupt jemanden außer
-                  // dem Absender gibt — sonst ist es dasselbe wie Antworten.
                   if (onReplyAll != null && message.hasOtherRecipients)
-                    OutlinedButton(
+                    IconButton(
+                      key: const ValueKey('mail-reply-all'),
+                      tooltip: strings.replyAll,
                       onPressed: onReplyAll,
-                      child: Text(strings.replyAll),
+                      color: theme.accentColor,
+                      icon: const Icon(Icons.reply_all_rounded),
                     ),
                   if (onForward != null)
-                    OutlinedButton(
+                    IconButton(
+                      key: const ValueKey('mail-forward'),
+                      tooltip: strings.forward,
                       onPressed: onForward,
-                      child: Text(strings.forward),
+                      color: theme.accentColor,
+                      icon: const Icon(Icons.forward_rounded),
                     ),
                 ],
               ),

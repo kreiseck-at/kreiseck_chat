@@ -240,72 +240,78 @@ class _ChatThreadViewState extends State<ChatThreadView> {
               behavior: HitTestBehavior.translucent,
               onTap: () => FocusScope.of(context).unfocus(),
               child: ListView.builder(
-              controller: _scroll,
-              // Umgekehrt gezeichnet: der Boden ist Offset 0 (siehe _scroll).
-              reverse: true,
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              itemCount: childCount,
-              itemBuilder: (context, reversed) {
-                if (showTyping && reversed == 0) {
-                  return TypingIndicator(theme: widget.theme);
-                }
-                final index =
-                    items.length - 1 - (showTyping ? reversed - 1 : reversed);
-                final item = items[index];
-                if (item is DateSeparatorItem) {
-                  return DateSeparator(
-                    date: item.date,
-                    theme: widget.theme,
-                    now: widget.now,
-                    strings: widget.strings,
-                  );
-                }
-                final mi = item as MessageItem;
-                if (mi.message.kind == ChatMessageKind.system) {
-                  return ChatSystemCard(
-                    theme: widget.theme,
-                    child: Text(
-                      mi.message.text,
-                      style: widget.theme.typography.systemMessage,
-                    ),
-                  );
-                }
-                if (mi.message.kind == ChatMessageKind.custom) {
-                  final custom = widget.customMessageBuilder?.call(mi.message);
-                  // Ein eigenes Widget bekommt dieselben Ränder wie eine Blase,
-                  // damit es in der Spalte steht statt am Rand zu kleben.
-                  if (custom != null) {
-                    return Padding(
-                      padding: EdgeInsets.fromLTRB(
-                          12, mi.isFirstInGroup ? 6 : 2, 12, 2),
-                      child: custom,
+                controller: _scroll,
+                // Umgekehrt gezeichnet: der Boden ist Offset 0 (siehe _scroll).
+                reverse: true,
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                itemCount: childCount,
+                itemBuilder: (context, reversed) {
+                  if (showTyping && reversed == 0) {
+                    return TypingIndicator(theme: widget.theme);
+                  }
+                  final index =
+                      items.length - 1 - (showTyping ? reversed - 1 : reversed);
+                  final item = items[index];
+                  if (item is DateSeparatorItem) {
+                    return DateSeparator(
+                      date: item.date,
+                      theme: widget.theme,
+                      now: widget.now,
+                      strings: widget.strings,
                     );
                   }
-                }
-                return MessageBubble(
-                  key: ValueKey(mi.message.id),
-                  message: mi.message,
-                  theme: widget.theme,
-                  capabilities: widget.capabilities,
-                  isFirstInGroup: mi.isFirstInGroup,
-                  isLastInGroup: mi.isLastInGroup,
-                  animateIn: index >= items.length - 1,
-                  onReplyRequested: widget.onReplyRequested == null
-                      ? null
-                      : () => widget.onReplyRequested!(mi.message.id),
-                  onReact: widget.onReact == null
-                      ? null
-                      : (emoji) => widget.onReact!(mi.message.id, emoji),
-                  onOpenAttachment: widget.onOpenAttachment,
-                  onOpenImages: widget.onOpenImages,
-                  onCopy: widget.onCopy,
-                  onRetry: widget.onRetry == null
-                      ? null
-                      : () => widget.onRetry!(mi.message),
-                  strings: widget.strings,
-                  textBuilder: widget.textBuilder,
-                );
-              },
+                  final mi = item as MessageItem;
+                  if (mi.message.kind == ChatMessageKind.system) {
+                    return ChatSystemCard(
+                      theme: widget.theme,
+                      child: Text(
+                        mi.message.text,
+                        style: widget.theme.typography.systemMessage,
+                      ),
+                    );
+                  }
+                  if (mi.message.kind == ChatMessageKind.custom) {
+                    final custom = widget.customMessageBuilder?.call(
+                      mi.message,
+                    );
+                    // Ein eigenes Widget bekommt dieselben Ränder wie eine Blase,
+                    // damit es in der Spalte steht statt am Rand zu kleben.
+                    if (custom != null) {
+                      return Padding(
+                        padding: EdgeInsets.fromLTRB(
+                          12,
+                          mi.isFirstInGroup ? 6 : 2,
+                          12,
+                          2,
+                        ),
+                        child: custom,
+                      );
+                    }
+                  }
+                  return MessageBubble(
+                    key: ValueKey(mi.message.id),
+                    message: mi.message,
+                    theme: widget.theme,
+                    capabilities: widget.capabilities,
+                    isFirstInGroup: mi.isFirstInGroup,
+                    isLastInGroup: mi.isLastInGroup,
+                    animateIn: index >= items.length - 1,
+                    onReplyRequested: widget.onReplyRequested == null
+                        ? null
+                        : () => widget.onReplyRequested!(mi.message.id),
+                    onReact: widget.onReact == null
+                        ? null
+                        : (emoji) => widget.onReact!(mi.message.id, emoji),
+                    onOpenAttachment: widget.onOpenAttachment,
+                    onOpenImages: widget.onOpenImages,
+                    onCopy: widget.onCopy,
+                    onRetry: widget.onRetry == null
+                        ? null
+                        : () => widget.onRetry!(mi.message),
+                    strings: widget.strings,
+                    textBuilder: widget.textBuilder,
+                  );
+                },
               ),
             ),
           ),

@@ -7,13 +7,19 @@ class ChatTypography {
   const ChatTypography({
     this.body = const TextStyle(fontSize: 15, height: 1.3),
     this.timestamp = const TextStyle(fontSize: 11),
-    this.senderName =
-        const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-    this.dateSeparator =
-        const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+    this.senderName = const TextStyle(
+      fontSize: 12,
+      fontWeight: FontWeight.w600,
+    ),
+    this.dateSeparator = const TextStyle(
+      fontSize: 12,
+      fontWeight: FontWeight.w500,
+    ),
     this.systemMessage = const TextStyle(fontSize: 12),
-    this.headerTitle =
-        const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+    this.headerTitle = const TextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.w600,
+    ),
     this.headerSubtitle = const TextStyle(fontSize: 12),
     this.replyQuote = const TextStyle(fontSize: 13),
     this.reaction = const TextStyle(fontSize: 16, height: 1.1),
@@ -50,19 +56,28 @@ class ChatTypography {
   factory ChatTypography.fromTextTheme(TextTheme t) {
     return ChatTypography(
       body: t.bodyMedium ?? const TextStyle(fontSize: 15, height: 1.3),
-      timestamp: (t.labelSmall ?? const TextStyle(fontSize: 11))
-          .copyWith(fontSize: 11),
-      senderName: (t.labelMedium ?? const TextStyle())
-          .copyWith(fontSize: 12, fontWeight: FontWeight.w600),
-      dateSeparator: (t.labelMedium ?? const TextStyle())
-          .copyWith(fontSize: 12, fontWeight: FontWeight.w500),
+      timestamp: (t.labelSmall ?? const TextStyle(fontSize: 11)).copyWith(
+        fontSize: 11,
+      ),
+      senderName: (t.labelMedium ?? const TextStyle()).copyWith(
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+      ),
+      dateSeparator: (t.labelMedium ?? const TextStyle()).copyWith(
+        fontSize: 12,
+        fontWeight: FontWeight.w500,
+      ),
       systemMessage: t.bodySmall ?? const TextStyle(fontSize: 12),
-      headerTitle: (t.titleMedium ?? const TextStyle())
-          .copyWith(fontSize: 16, fontWeight: FontWeight.w600),
+      headerTitle: (t.titleMedium ?? const TextStyle()).copyWith(
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+      ),
       headerSubtitle: t.bodySmall ?? const TextStyle(fontSize: 12),
       replyQuote: t.bodySmall ?? const TextStyle(fontSize: 13),
-      reaction: (t.bodyMedium ?? const TextStyle())
-          .copyWith(fontSize: 16, height: 1.1),
+      reaction: (t.bodyMedium ?? const TextStyle()).copyWith(
+        fontSize: 16,
+        height: 1.1,
+      ),
     );
   }
 
@@ -107,6 +122,15 @@ class ChatTypography {
   }
 
   @override
-  int get hashCode => Object.hash(body, timestamp, senderName, dateSeparator,
-      systemMessage, headerTitle, headerSubtitle, replyQuote, reaction);
+  int get hashCode => Object.hash(
+    body,
+    timestamp,
+    senderName,
+    dateSeparator,
+    systemMessage,
+    headerTitle,
+    headerSubtitle,
+    replyQuote,
+    reaction,
+  );
 }

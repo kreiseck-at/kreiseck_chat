@@ -83,7 +83,8 @@ class Composer extends StatefulWidget {
   State<Composer> createState() => _ComposerState();
 }
 
-class _ComposerState extends State<Composer> with SingleTickerProviderStateMixin {
+class _ComposerState extends State<Composer>
+    with SingleTickerProviderStateMixin {
   late final TextEditingController _controller;
   late final AnimationController _sendAnim;
   bool _isTyping = false;
@@ -196,75 +197,90 @@ class _ComposerState extends State<Composer> with SingleTickerProviderStateMixin
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-              if (widget.leading != null) ...[
-                widget.leading!,
-                const SizedBox(width: 8),
-              ],
-              if (widget.capabilities.media)
-                IconButton(
-                  icon: Icon(theme.icons.attach, color: theme.colors.accent),
-                  onPressed: () => _openAttachMenu(strings),
-                ),
-              Expanded(
-                child: TextField(
-                  controller: _controller,
-                  minLines: 1,
-                  maxLines: 5,
-                  textCapitalization: widget.textCapitalization,
-                  keyboardType: TextInputType.multiline,
-                  textInputAction: widget.sendOnEnter
-                      ? TextInputAction.send
-                      : TextInputAction.newline,
-                  onSubmitted: widget.sendOnEnter ? (_) => _submit() : null,
-                  decoration: InputDecoration(
-                    hintText: widget.hintText ?? strings.messageHint,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20),
-                      borderSide: BorderSide.none,
+                  if (widget.leading != null) ...[
+                    widget.leading!,
+                    const SizedBox(width: 8),
+                  ],
+                  if (widget.capabilities.media)
+                    IconButton(
+                      icon: Icon(
+                        theme.icons.attach,
+                        color: theme.colors.accent,
+                      ),
+                      onPressed: () => _openAttachMenu(strings),
                     ),
-                    filled: true,
-                    isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 10,
+                  Expanded(
+                    child: TextField(
+                      controller: _controller,
+                      minLines: 1,
+                      maxLines: 5,
+                      textCapitalization: widget.textCapitalization,
+                      keyboardType: TextInputType.multiline,
+                      textInputAction: widget.sendOnEnter
+                          ? TextInputAction.send
+                          : TextInputAction.newline,
+                      onSubmitted: widget.sendOnEnter ? (_) => _submit() : null,
+                      decoration: InputDecoration(
+                        hintText: widget.hintText ?? strings.messageHint,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(20),
+                          borderSide: BorderSide.none,
+                        ),
+                        filled: true,
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
-              const SizedBox(width: 4),
-              if (showSend)
-                ScaleTransition(
-                  scale: Tween<double>(begin: 1.0, end: 0.8).animate(
-                    CurvedAnimation(parent: _sendAnim, curve: Curves.easeInOut),
-                  ),
-                  child: IconButton(
-                    icon: Icon(theme.icons.send, color: theme.colors.accent),
-                    onPressed: _submit,
-                  ),
-                )
-              else if (widget.capabilities.media) ...[
-                IconButton(
-                  icon: Icon(theme.icons.camera, color: theme.colors.accent),
-                  onPressed: () => widget.onAttach?.call(AttachSource.camera),
-                ),
-                if (widget.showMic)
-                  IconButton(
-                    icon: Icon(theme.icons.mic, color: theme.colors.accent),
-                    onPressed: null,
-                  ),
-              ] else if (widget.showMic)
-                IconButton(
-                  icon: Icon(theme.icons.mic, color: theme.colors.accent),
-                  onPressed: null,
-                )
-              else
-                // Keine Medien-/Mic-Funktion und leeres Feld: Sende-Button
-                // sichtbar, aber deaktiviert -- die Leiste wirkt nicht „leer".
-                IconButton(
-                  icon: Icon(theme.icons.send,
-                      color: theme.colors.accent.withValues(alpha: 0.35)),
-                  onPressed: null,
-                ),
+                  const SizedBox(width: 4),
+                  if (showSend)
+                    ScaleTransition(
+                      scale: Tween<double>(begin: 1.0, end: 0.8).animate(
+                        CurvedAnimation(
+                          parent: _sendAnim,
+                          curve: Curves.easeInOut,
+                        ),
+                      ),
+                      child: IconButton(
+                        icon: Icon(
+                          theme.icons.send,
+                          color: theme.colors.accent,
+                        ),
+                        onPressed: _submit,
+                      ),
+                    )
+                  else if (widget.capabilities.media) ...[
+                    IconButton(
+                      icon: Icon(
+                        theme.icons.camera,
+                        color: theme.colors.accent,
+                      ),
+                      onPressed: () =>
+                          widget.onAttach?.call(AttachSource.camera),
+                    ),
+                    if (widget.showMic)
+                      IconButton(
+                        icon: Icon(theme.icons.mic, color: theme.colors.accent),
+                        onPressed: null,
+                      ),
+                  ] else if (widget.showMic)
+                    IconButton(
+                      icon: Icon(theme.icons.mic, color: theme.colors.accent),
+                      onPressed: null,
+                    )
+                  else
+                    // Keine Medien-/Mic-Funktion und leeres Feld: Sende-Button
+                    // sichtbar, aber deaktiviert -- die Leiste wirkt nicht „leer".
+                    IconButton(
+                      icon: Icon(
+                        theme.icons.send,
+                        color: theme.colors.accent.withValues(alpha: 0.35),
+                      ),
+                      onPressed: null,
+                    ),
                 ],
               ),
             ],
@@ -298,11 +314,13 @@ class _AttachmentPreviewRow extends StatelessWidget {
     final children = <Widget>[];
     for (var i = 0; i < images.length; i++) {
       if (i > 0) children.add(const SizedBox(width: 10));
-      children.add(_Thumb(
-        image: images[i],
-        accent: accent,
-        onRemove: onRemoveAt == null ? null : () => onRemoveAt!(i),
-      ));
+      children.add(
+        _Thumb(
+          image: images[i],
+          accent: accent,
+          onRemove: onRemoveAt == null ? null : () => onRemoveAt!(i),
+        ),
+      );
     }
     if (onAdd != null) {
       if (children.isNotEmpty) children.add(const SizedBox(width: 10));
@@ -314,7 +332,10 @@ class _AttachmentPreviewRow extends StatelessWidget {
         height: _tile + 8, // Platz für den überstehenden ×-Knopf.
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: children),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: children,
+          ),
         ),
       ),
     );
@@ -322,7 +343,11 @@ class _AttachmentPreviewRow extends StatelessWidget {
 }
 
 class _Thumb extends StatelessWidget {
-  const _Thumb({required this.image, required this.accent, required this.onRemove});
+  const _Thumb({
+    required this.image,
+    required this.accent,
+    required this.onRemove,
+  });
 
   final ImageProvider image;
   final Color accent;
@@ -358,7 +383,10 @@ class _Thumb extends StatelessWidget {
             child: GestureDetector(
               onTap: onRemove,
               child: Container(
-                decoration: BoxDecoration(color: accent, shape: BoxShape.circle),
+                decoration: BoxDecoration(
+                  color: accent,
+                  shape: BoxShape.circle,
+                ),
                 padding: const EdgeInsets.all(2),
                 child: const Icon(Icons.close, size: 16, color: Colors.white),
               ),
@@ -390,7 +418,10 @@ class _AddTile extends StatelessWidget {
             height: _AttachmentPreviewRow._tile,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: accent.withValues(alpha: 0.6), width: 1.5),
+              border: Border.all(
+                color: accent.withValues(alpha: 0.6),
+                width: 1.5,
+              ),
             ),
             child: Icon(Icons.add, color: accent, size: 28),
           ),

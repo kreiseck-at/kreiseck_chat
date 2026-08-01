@@ -30,11 +30,13 @@ List<ChatMessage> groupMediaRuns(
       out.add(lauf.first);
     } else {
       final letzte = lauf.last;
-      out.add(lauf.first.copyWith(
-        at: letzte.at,
-        status: letzte.status,
-        attachments: [for (final m in lauf) ...m.attachments],
-      ));
+      out.add(
+        lauf.first.copyWith(
+          at: letzte.at,
+          status: letzte.status,
+          attachments: [for (final m in lauf) ...m.attachments],
+        ),
+      );
     }
     lauf = [];
   }

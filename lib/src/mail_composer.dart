@@ -24,6 +24,7 @@ class MailComposer extends StatefulWidget {
     this.onRemoveAttachmentAt,
     this.sending = false,
     this.errorText,
+    this.onDiscard,
   });
 
   /// Called with the finished draft when the user sends.
@@ -53,6 +54,11 @@ class MailComposer extends StatefulWidget {
   /// Why the last send failed. Shown above the button; the text the user
   /// typed stays where it is.
   final String? errorText;
+
+  /// Called when the writer closes the draft without sending. Null hides the
+  /// close button — but then there is no way out of the composer, so pass one
+  /// unless something else closes it.
+  final VoidCallback? onDiscard;
 
   @override
   State<MailComposer> createState() => _MailComposerState();
@@ -159,6 +165,13 @@ class _MailComposerState extends State<MailComposer> {
           children: [
             Row(
               children: [
+                if (widget.onDiscard != null)
+                  IconButton(
+                    key: const ValueKey('mail-discard'),
+                    tooltip: strings.discardDraft,
+                    icon: const Icon(Icons.close_rounded, size: 20),
+                    onPressed: widget.sending ? null : widget.onDiscard,
+                  ),
                 Expanded(
                   child: TextField(
                     controller: _to,

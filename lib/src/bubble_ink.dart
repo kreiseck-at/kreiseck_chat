@@ -8,7 +8,11 @@ import 'contrast.dart';
 @immutable
 class BubbleInk {
   /// Creates an ink set explicitly. Prefer [BubbleInk.forSurface].
-  const BubbleInk({required this.text, required this.muted, required this.line});
+  const BubbleInk({
+    required this.text,
+    required this.muted,
+    required this.line,
+  });
 
   /// Message text and emphasised labels. Reaches at least 4.5:1 — unless
   /// [BubbleInk.forSurface] was given a `textColor` whose polarity itself
@@ -143,7 +147,8 @@ class BubbleInk {
 /// with the highest contrast actually measured along the way.
 Color readableOn(Color surface, Color desired, {double target = 4.5}) {
   if (contrastRatio(desired, surface) >= target) return desired;
-  final towards = contrastRatio(const Color(0xFFFFFFFF), surface) >=
+  final towards =
+      contrastRatio(const Color(0xFFFFFFFF), surface) >=
           contrastRatio(const Color(0xFF000000), surface)
       ? const Color(0xFFFFFFFF)
       : const Color(0xFF000000);

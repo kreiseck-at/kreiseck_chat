@@ -79,7 +79,8 @@ class MailAttachment {
       sizeBytes: json['sizeBytes'] as int,
       url: json['url'] as String?,
       contentType: json['contentType'] as String?,
-      safety: AttachmentSafety.values.asNameMap()[json['safety'] as String?] ??
+      safety:
+          AttachmentSafety.values.asNameMap()[json['safety'] as String?] ??
           AttachmentSafety.unknown,
       blockedReason: json['blockedReason'] as String?,
     );
@@ -247,7 +248,8 @@ class MailMessage {
     return MailMessage(
       id: json['id'] as String,
       direction: MailDirection.values.byName(json['direction'] as String),
-      from: MailAddress.parse(json['from'] as String?) ??
+      from:
+          MailAddress.parse(json['from'] as String?) ??
           const MailAddress(email: ''),
       to: _addresses(json['to']),
       cc: _addresses(json['cc']),
@@ -260,12 +262,14 @@ class MailMessage {
       seen: json['seen'] as bool? ?? false,
       messageId: json['messageId'] as String?,
       inReplyTo: json['inReplyTo'] as String?,
-      references: (json['references'] as List<dynamic>?)
+      references:
+          (json['references'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
           const [],
       senderVerified: json['senderVerified'] as bool?,
-      attachments: (json['attachments'] as List<dynamic>?)
+      attachments:
+          (json['attachments'] as List<dynamic>?)
               ?.map((e) => MailAttachment.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
@@ -309,14 +313,22 @@ class MailMessage {
       !(clearBodyHtml && bodyHtml != null),
       'clearBodyHtml und ein bodyHtml-Wert schließen sich aus.',
     );
-    assert(!(clearReplyTo && replyTo != null),
-        'clearReplyTo und ein replyTo-Wert schließen sich aus.');
-    assert(!(clearMessageId && messageId != null),
-        'clearMessageId und ein messageId-Wert schließen sich aus.');
-    assert(!(clearInReplyTo && inReplyTo != null),
-        'clearInReplyTo und ein inReplyTo-Wert schließen sich aus.');
-    assert(!(clearSenderVerified && senderVerified != null),
-        'clearSenderVerified und ein senderVerified-Wert schließen sich aus.');
+    assert(
+      !(clearReplyTo && replyTo != null),
+      'clearReplyTo und ein replyTo-Wert schließen sich aus.',
+    );
+    assert(
+      !(clearMessageId && messageId != null),
+      'clearMessageId und ein messageId-Wert schließen sich aus.',
+    );
+    assert(
+      !(clearInReplyTo && inReplyTo != null),
+      'clearInReplyTo und ein inReplyTo-Wert schließen sich aus.',
+    );
+    assert(
+      !(clearSenderVerified && senderVerified != null),
+      'clearSenderVerified und ein senderVerified-Wert schließen sich aus.',
+    );
     return MailMessage(
       id: id ?? this.id,
       direction: direction ?? this.direction,
@@ -328,8 +340,9 @@ class MailMessage {
       messageId: clearMessageId ? null : (messageId ?? this.messageId),
       inReplyTo: clearInReplyTo ? null : (inReplyTo ?? this.inReplyTo),
       references: references ?? this.references,
-      senderVerified:
-          clearSenderVerified ? null : (senderVerified ?? this.senderVerified),
+      senderVerified: clearSenderVerified
+          ? null
+          : (senderVerified ?? this.senderVerified),
       subject: subject ?? this.subject,
       bodyText: bodyText ?? this.bodyText,
       bodyHtml: clearBodyHtml ? null : (bodyHtml ?? this.bodyHtml),
@@ -365,32 +378,30 @@ class MailMessage {
 
   @override
   int get hashCode => Object.hash(
-        id,
-        direction,
-        from,
-        Object.hashAll(to),
-        Object.hashAll(cc),
-        Object.hashAll(bcc),
-        replyTo,
-        messageId,
-        inReplyTo,
-        senderVerified,
-        subject,
-        bodyText,
-        bodyHtml,
-        date,
-        seen,
-        Object.hashAll(attachments),
-        spam,
-      );
+    id,
+    direction,
+    from,
+    Object.hashAll(to),
+    Object.hashAll(cc),
+    Object.hashAll(bcc),
+    replyTo,
+    messageId,
+    inReplyTo,
+    senderVerified,
+    subject,
+    bodyText,
+    bodyHtml,
+    date,
+    seen,
+    Object.hashAll(attachments),
+    spam,
+  );
 }
 
 /// Adressen aus einer JSON-Liste bzw. einer einzelnen Kopfzeile.
 List<MailAddress> _addresses(dynamic value) {
   if (value is List) {
-    return [
-      for (final e in value) ?MailAddress.parse(e?.toString()),
-    ];
+    return [for (final e in value) ?MailAddress.parse(e?.toString())];
   }
   final einzeln = MailAddress.parse(value?.toString());
   return einzeln == null ? const [] : [einzeln];

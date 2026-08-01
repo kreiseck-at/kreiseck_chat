@@ -126,7 +126,9 @@ class ChatColors {
   /// shared-color case.
   BubbleInk inkFor(Color bubble, {bool? isOutgoing}) {
     final matchesOutgoing = isOutgoing ?? bubble == outgoingBubble;
-    final matchesIncoming = isOutgoing == null ? bubble == incomingBubble : !isOutgoing;
+    final matchesIncoming = isOutgoing == null
+        ? bubble == incomingBubble
+        : !isOutgoing;
 
     if (matchesOutgoing && outgoingInk != null) return outgoingInk!;
     if (matchesIncoming && incomingInk != null) return incomingInk!;
@@ -154,24 +156,24 @@ class ChatColors {
     this.outgoingInk,
     this.incomingBubbleBorder,
     this.outgoingBubbleBorder,
-  })  : incomingBubble = const Color(0xFFE9E9EB),
-        outgoingBubble = const Color(0xFF3478F6),
-        incomingText = const Color(0xFF1C1C1E),
-        outgoingText = const Color(0xFFFFFFFF),
-        background = const Color(0xFFFAFAFA),
-        composer = const Color(0xFFFFFFFF),
-        accent = const Color(0xFF3478F6),
-        bubbleTail = const Color(0xFFE9E9EB),
-        reactionChipBackground = const Color(0xFFFFFFFF),
-        reactionChipText = const Color(0xFF1C1C1E),
-        presenceOnline = const Color(0xFF34C759),
-        typingDot = const Color(0xFF8E8E93),
-        dateSeparatorBackground = const Color(0x14000000),
-        dateSeparatorText = const Color(0xFF6C6C70),
-        replyAccent = const Color(0xFF3478F6),
-        readReceipt = const Color(0xFF34B7F1),
-        error = const Color(0xFFB5374A),
-        warning = const Color(0xFFB8860B);
+  }) : incomingBubble = const Color(0xFFE9E9EB),
+       outgoingBubble = const Color(0xFF3478F6),
+       incomingText = const Color(0xFF1C1C1E),
+       outgoingText = const Color(0xFFFFFFFF),
+       background = const Color(0xFFFAFAFA),
+       composer = const Color(0xFFFFFFFF),
+       accent = const Color(0xFF3478F6),
+       bubbleTail = const Color(0xFFE9E9EB),
+       reactionChipBackground = const Color(0xFFFFFFFF),
+       reactionChipText = const Color(0xFF1C1C1E),
+       presenceOnline = const Color(0xFF34C759),
+       typingDot = const Color(0xFF8E8E93),
+       dateSeparatorBackground = const Color(0x14000000),
+       dateSeparatorText = const Color(0xFF6C6C70),
+       replyAccent = const Color(0xFF3478F6),
+       readReceipt = const Color(0xFF34B7F1),
+       error = const Color(0xFFB5374A),
+       warning = const Color(0xFFB8860B);
 
   /// Sensible dark palette.
   const ChatColors.dark({
@@ -179,24 +181,24 @@ class ChatColors {
     this.outgoingInk,
     this.incomingBubbleBorder,
     this.outgoingBubbleBorder,
-  })  : incomingBubble = const Color(0xFF2C2C2E),
-        outgoingBubble = const Color(0xFF3478F6),
-        incomingText = const Color(0xFFF2F2F7),
-        outgoingText = const Color(0xFFFFFFFF),
-        background = const Color(0xFF000000),
-        composer = const Color(0xFF1C1C1E),
-        accent = const Color(0xFF64A1FF),
-        bubbleTail = const Color(0xFF2C2C2E),
-        reactionChipBackground = const Color(0xFF3A3A3C),
-        reactionChipText = const Color(0xFFF2F2F7),
-        presenceOnline = const Color(0xFF32D74B),
-        typingDot = const Color(0xFF98989F),
-        dateSeparatorBackground = const Color(0x33FFFFFF),
-        dateSeparatorText = const Color(0xFFC7C7CC),
-        replyAccent = const Color(0xFF64A1FF),
-        readReceipt = const Color(0xFF53BDEB),
-        error = const Color(0xFFFF6B7A),
-        warning = const Color(0xFFE0B44A);
+  }) : incomingBubble = const Color(0xFF2C2C2E),
+       outgoingBubble = const Color(0xFF3478F6),
+       incomingText = const Color(0xFFF2F2F7),
+       outgoingText = const Color(0xFFFFFFFF),
+       background = const Color(0xFF000000),
+       composer = const Color(0xFF1C1C1E),
+       accent = const Color(0xFF64A1FF),
+       bubbleTail = const Color(0xFF2C2C2E),
+       reactionChipBackground = const Color(0xFF3A3A3C),
+       reactionChipText = const Color(0xFFF2F2F7),
+       presenceOnline = const Color(0xFF32D74B),
+       typingDot = const Color(0xFF98989F),
+       dateSeparatorBackground = const Color(0x33FFFFFF),
+       dateSeparatorText = const Color(0xFFC7C7CC),
+       replyAccent = const Color(0xFF64A1FF),
+       readReceipt = const Color(0xFF53BDEB),
+       error = const Color(0xFFFF6B7A),
+       warning = const Color(0xFFE0B44A);
 
   /// Returns a copy with the given fields replaced.
   ChatColors copyWith({
@@ -225,10 +227,14 @@ class ChatColors {
     bool clearIncomingBubbleBorder = false,
     bool clearOutgoingBubbleBorder = false,
   }) {
-    assert(!(clearIncomingBubbleBorder && incomingBubbleBorder != null),
-        'clearIncomingBubbleBorder and incomingBubbleBorder are exclusive');
-    assert(!(clearOutgoingBubbleBorder && outgoingBubbleBorder != null),
-        'clearOutgoingBubbleBorder and outgoingBubbleBorder are exclusive');
+    assert(
+      !(clearIncomingBubbleBorder && incomingBubbleBorder != null),
+      'clearIncomingBubbleBorder and incomingBubbleBorder are exclusive',
+    );
+    assert(
+      !(clearOutgoingBubbleBorder && outgoingBubbleBorder != null),
+      'clearOutgoingBubbleBorder and outgoingBubbleBorder are exclusive',
+    );
     return ChatColors(
       incomingBubble: incomingBubble ?? this.incomingBubble,
       outgoingBubble: outgoingBubble ?? this.outgoingBubble,
@@ -293,28 +299,28 @@ class ChatColors {
 
   @override
   int get hashCode => Object.hashAll([
-        incomingBubble,
-        outgoingBubble,
-        incomingText,
-        outgoingText,
-        background,
-        composer,
-        accent,
-        bubbleTail,
-        reactionChipBackground,
-        reactionChipText,
-        presenceOnline,
-        typingDot,
-        dateSeparatorBackground,
-        dateSeparatorText,
-        // ignore: deprecated_member_use_from_same_package
-        replyAccent,
-        readReceipt,
-        error,
-        warning,
-        incomingInk,
-        outgoingInk,
-        incomingBubbleBorder,
-        outgoingBubbleBorder,
-      ]);
+    incomingBubble,
+    outgoingBubble,
+    incomingText,
+    outgoingText,
+    background,
+    composer,
+    accent,
+    bubbleTail,
+    reactionChipBackground,
+    reactionChipText,
+    presenceOnline,
+    typingDot,
+    dateSeparatorBackground,
+    dateSeparatorText,
+    // ignore: deprecated_member_use_from_same_package
+    replyAccent,
+    readReceipt,
+    error,
+    warning,
+    incomingInk,
+    outgoingInk,
+    incomingBubbleBorder,
+    outgoingBubbleBorder,
+  ]);
 }

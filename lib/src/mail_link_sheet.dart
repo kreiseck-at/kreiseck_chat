@@ -24,8 +24,24 @@ Future<bool> showMailLinkSheet(
   ChatStrings? strings,
 }) async {
   final s = ChatStrings.of(context, override: strings);
+  final art = mailLinkAction(uri);
   final verkleidet = linkLooksDisguised(linkText, uri);
-  final domain = uri.host.isEmpty ? uri.toString() : registrableDomain(uri.host);
+  // Bei Telefon und Mail steht das Ziel selbst da — eine Domain gibt es nicht.
+  final gross = switch (art) {
+    MailLinkAction.open =>
+      uri.host.isEmpty ? uri.toString() : registrableDomain(uri.host),
+    _ => uri.path.isEmpty ? uri.toString() : uri.path,
+  };
+  final titel = switch (art) {
+    MailLinkAction.writeMail => s.writeMail,
+    MailLinkAction.call => s.callNumber,
+    MailLinkAction.open => s.openLink,
+  };
+  final knopf = switch (art) {
+    MailLinkAction.writeMail => s.writeMail,
+    MailLinkAction.call => s.callNumber,
+    MailLinkAction.open => s.open,
+  };
 
   final ok = await showModalBottomSheet<bool>(
     context: context,
@@ -41,7 +57,7 @@ Future<bool> showMailLinkSheet(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              s.openLink,
+              titel,
               style: TextStyle(
                 color: theme.textColor,
                 fontSize: 16,
@@ -50,7 +66,7 @@ Future<bool> showMailLinkSheet(
             ),
             const SizedBox(height: 14),
             Text(
-              s.linkGoesTo,
+              art == MailLinkAction.open ? s.linkGoesTo : titel,
               style: TextStyle(
                 color: theme.textColor.withValues(alpha: 0.6),
                 fontSize: 11,
@@ -61,7 +77,7 @@ Future<bool> showMailLinkSheet(
             // Die Domain groß: das ist der Teil, an dem eine gefälschte
             // Adresse auffällt.
             Text(
-              domain,
+              gross,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
@@ -93,16 +109,20 @@ Future<bool> showMailLinkSheet(
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.warning_amber_rounded,
-                        size: 18, color: Color(0xFFB5374A)),
+                    const Icon(
+                      Icons.warning_amber_rounded,
+                      size: 18,
+                      color: Color(0xFFB5374A),
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         s.linkDisguised,
                         style: const TextStyle(
-                            color: Color(0xFFB5374A),
-                            fontSize: 12,
-                            height: 1.35),
+                          color: Color(0xFFB5374A),
+                          fontSize: 12,
+                          height: 1.35,
+                        ),
                       ),
                     ),
                   ],
@@ -122,18 +142,23 @@ Future<bool> showMailLinkSheet(
                 // unauffälligere von beiden.
                 verkleidet
                     ? TextButton(
+                        key: const ValueKey('mail-link-open'),
                         onPressed: () => Navigator.of(ctx).pop(true),
                         style: TextButton.styleFrom(
-                            foregroundColor: const Color(0xFFB5374A)),
+                          foregroundColor: const Color(0xFFB5374A),
+                        ),
                         child: Text(s.openAnyway),
                       )
                     : ElevatedButton(
+                        key: const ValueKey('mail-link-open'),
                         onPressed: () => Navigator.of(ctx).pop(true),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: theme.accentColor,
                           foregroundColor: Colors.white,
                         ),
-                        child: Text(s.openLink),
+                        // Nicht derselbe Text wie die Überschrift — sonst
+                        // liest man den Knopf als Frage und findet ihn nicht.
+                        child: Text(knopf),
                       ),
               ],
             ),

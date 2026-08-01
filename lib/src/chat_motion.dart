@@ -21,17 +21,17 @@ class ChatMotion {
 
   /// All motion and haptics off.
   const ChatMotion.none()
-      : bubbleEntrance = false,
-        sendAnimation = false,
-        animatedAutoScroll = false,
-        hapticsEnabled = false,
-        hapticOnSend = false,
-        hapticOnReceive = false,
-        hapticOnLongPress = false,
-        hapticOnReaction = false,
-        bubbleEntranceDuration = Duration.zero,
-        autoScrollDuration = Duration.zero,
-        entranceCurve = Curves.linear;
+    : bubbleEntrance = false,
+      sendAnimation = false,
+      animatedAutoScroll = false,
+      hapticsEnabled = false,
+      hapticOnSend = false,
+      hapticOnReceive = false,
+      hapticOnLongPress = false,
+      hapticOnReaction = false,
+      bubbleEntranceDuration = Duration.zero,
+      autoScrollDuration = Duration.zero,
+      entranceCurve = Curves.linear;
 
   /// Animate new bubbles in.
   final bool bubbleEntrance;
@@ -115,16 +115,16 @@ class ChatMotion {
 
   @override
   int get hashCode => Object.hashAll([
-        bubbleEntrance,
-        sendAnimation,
-        animatedAutoScroll,
-        hapticsEnabled,
-        hapticOnSend,
-        hapticOnReceive,
-        hapticOnLongPress,
-        hapticOnReaction,
-        bubbleEntranceDuration,
-        autoScrollDuration,
-        entranceCurve,
-      ]);
+    bubbleEntrance,
+    sendAnimation,
+    animatedAutoScroll,
+    hapticsEnabled,
+    hapticOnSend,
+    hapticOnReceive,
+    hapticOnLongPress,
+    hapticOnReaction,
+    bubbleEntranceDuration,
+    autoScrollDuration,
+    entranceCurve,
+  ]);
 }

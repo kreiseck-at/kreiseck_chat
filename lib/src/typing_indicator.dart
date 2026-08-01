@@ -52,7 +52,8 @@ class _TypingIndicatorState extends State<TypingIndicator>
               mainAxisSize: MainAxisSize.min,
               children: List.generate(3, (i) {
                 final t = (_controller.value + i * 0.2) % 1.0;
-                final opacity = 0.3 + 0.7 * (1 - (t - 0.5).abs() * 2).clamp(0.0, 1.0);
+                final opacity =
+                    0.3 + 0.7 * (1 - (t - 0.5).abs() * 2).clamp(0.0, 1.0);
                 return Padding(
                   padding: EdgeInsets.only(right: i < 2 ? 4 : 0),
                   child: Opacity(

@@ -108,14 +108,21 @@ class ChatHeader extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(title,
-                        style: theme.typography.headerTitle
-                            .copyWith(color: theme.colors.incomingText)),
+                    Text(
+                      title,
+                      style: theme.typography.headerTitle.copyWith(
+                        color: theme.colors.incomingText,
+                      ),
+                    ),
                     if (subtitle != null)
-                      Text(subtitle,
-                          style: theme.typography.headerSubtitle.copyWith(
-                              color: theme.colors.incomingText
-                                  .withValues(alpha: 0.6))),
+                      Text(
+                        subtitle,
+                        style: theme.typography.headerSubtitle.copyWith(
+                          color: theme.colors.incomingText.withValues(
+                            alpha: 0.6,
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),

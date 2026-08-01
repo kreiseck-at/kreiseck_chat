@@ -122,7 +122,13 @@ void main() {
       ),
       locale: const Locale('uk'),
     ));
-    expect(find.text('Відповісти'), findsOneWidget);
+    // Die Aktionen sind Symbole; das Wort steht im Tooltip.
+    expect(
+      tester
+          .widget<IconButton>(find.byKey(const ValueKey('mail-reply')))
+          .tooltip,
+      'Відповісти',
+    );
     expect(find.text('Можливий спам'), findsOneWidget);
   });
 }

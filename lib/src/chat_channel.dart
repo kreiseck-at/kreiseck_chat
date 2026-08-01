@@ -31,33 +31,33 @@ class ChatChannel {
 
   /// WhatsApp — brand green.
   const ChatChannel.whatsApp({this.label = 'WhatsApp'})
-      : id = 'whatsapp',
-        icon = Icons.chat_rounded,
-        color = const Color(0xFF25D366);
+    : id = 'whatsapp',
+      icon = Icons.chat_rounded,
+      color = const Color(0xFF25D366);
 
   /// SMS.
   const ChatChannel.sms({this.label = 'SMS'})
-      : id = 'sms',
-        icon = Icons.sms_rounded,
-        color = const Color(0xFF6C6C70);
+    : id = 'sms',
+      icon = Icons.sms_rounded,
+      color = const Color(0xFF6C6C70);
 
   /// Email.
   const ChatChannel.email({this.label = 'E-Mail'})
-      : id = 'email',
-        icon = Icons.email_outlined,
-        color = const Color(0xFF4A6FA5);
+    : id = 'email',
+      icon = Icons.email_outlined,
+      color = const Color(0xFF4A6FA5);
 
   /// Chat within the host app itself.
   const ChatChannel.inApp({this.label = 'In-App'})
-      : id = 'inapp',
-        icon = Icons.forum_outlined,
-        color = const Color(0xFF3478F6);
+    : id = 'inapp',
+      icon = Icons.forum_outlined,
+      color = const Color(0xFF3478F6);
 
   /// Phone call.
   const ChatChannel.voice({this.label = 'Anruf'})
-      : id = 'voice',
-        icon = Icons.call_rounded,
-        color = const Color(0xFF7C4DFF);
+    : id = 'voice',
+      icon = Icons.call_rounded,
+      color = const Color(0xFF7C4DFF);
 
   /// Returns a copy with the given fields replaced.
   ChatChannel copyWith({

@@ -65,9 +65,12 @@ class ChatBanner extends StatelessWidget {
               const SizedBox(width: 8),
             ],
             Expanded(
-              child: Text(text,
-                  style:
-                      theme.typography.systemMessage.copyWith(color: onBackground)),
+              child: Text(
+                text,
+                style: theme.typography.systemMessage.copyWith(
+                  color: onBackground,
+                ),
+              ),
             ),
           ],
         ),

@@ -60,8 +60,7 @@ class MailDraft {
   final String quotedBody;
 
   /// What actually goes out: what was typed, then the quoted original.
-  String get composedBody =>
-      quotedBody.isEmpty ? body : '$body\n\n$quotedBody';
+  String get composedBody => quotedBody.isEmpty ? body : '$body\n\n$quotedBody';
 
   /// Files to send along.
   final List<MailAttachment> attachments;
@@ -124,10 +123,10 @@ class MailDraft {
 
   /// [source] passed on: no recipients yet, the original quoted in full.
   factory MailDraft.forward(MailMessage source) => MailDraft(
-        subject: _prefixed(source.subject, 'fwd', 'Fwd: '),
-        quotedBody: _quote(source, withHeader: true),
-        mode: MailComposeMode.forward,
-      );
+    subject: _prefixed(source.subject, 'fwd', 'Fwd: '),
+    quotedBody: _quote(source, withHeader: true),
+    mode: MailComposeMode.forward,
+  );
 
   /// Returns a copy with the given fields replaced.
   MailDraft copyWith({
@@ -144,8 +143,10 @@ class MailDraft {
     List<String>? references,
     MailComposeMode? mode,
   }) {
-    assert(!(clearInReplyTo && inReplyTo != null),
-        'clearInReplyTo und ein inReplyTo-Wert schließen sich aus.');
+    assert(
+      !(clearInReplyTo && inReplyTo != null),
+      'clearInReplyTo und ein inReplyTo-Wert schließen sich aus.',
+    );
     return MailDraft(
       to: to ?? this.to,
       cc: cc ?? this.cc,
@@ -180,8 +181,8 @@ String _quote(MailMessage source, {bool withHeader = false}) {
   final zeilen = source.bodyText.split('\n').map((z) => '> $z').join('\n');
   final kopf = withHeader
       ? '--- Weitergeleitete Nachricht ---\n'
-          'Von: ${source.from.display}\n'
-          'Betreff: ${source.subject}\n\n'
+            'Von: ${source.from.display}\n'
+            'Betreff: ${source.subject}\n\n'
       : '${source.from.display} schrieb:\n';
   return '$kopf$zeilen';
 }
@@ -200,13 +201,14 @@ List<MailAddress> _others(
   final out = <MailAddress>[];
   for (final a in [...source.to, ...source.cc]) {
     final e = a.email.toLowerCase();
-    if (raus.contains(e) || out.any((b) => b.email.toLowerCase() == e)) continue;
+    if (raus.contains(e) || out.any((b) => b.email.toLowerCase() == e))
+      continue;
     out.add(a);
   }
   return out;
 }
 
 List<String> _chain(MailMessage source) => [
-      ...source.references,
-      if (source.messageId != null) source.messageId!,
-    ];
+  ...source.references,
+  if (source.messageId != null) source.messageId!,
+];

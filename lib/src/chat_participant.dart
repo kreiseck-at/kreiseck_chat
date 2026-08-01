@@ -15,9 +15,9 @@ class ChatPresence {
 
   /// Convenience for an online participant.
   const ChatPresence.online()
-      : state = PresenceState.online,
-        lastSeen = null,
-        customLabel = null;
+    : state = PresenceState.online,
+      lastSeen = null,
+      customLabel = null;
 
   /// Coarse online state.
   final PresenceState state;
