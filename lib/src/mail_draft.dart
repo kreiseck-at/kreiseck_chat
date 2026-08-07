@@ -201,8 +201,9 @@ List<MailAddress> _others(
   final out = <MailAddress>[];
   for (final a in [...source.to, ...source.cc]) {
     final e = a.email.toLowerCase();
-    if (raus.contains(e) || out.any((b) => b.email.toLowerCase() == e))
+    if (raus.contains(e) || out.any((b) => b.email.toLowerCase() == e)) {
       continue;
+    }
     out.add(a);
   }
   return out;
