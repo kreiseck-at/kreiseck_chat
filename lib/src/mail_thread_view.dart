@@ -52,8 +52,9 @@ class MailThreadView extends StatefulWidget {
   /// Called with a link the reader wants to follow.
   final void Function(Uri)? onOpenLink;
 
-  /// Called with an attachment the reader wants to open.
-  final void Function(MailAttachment)? onOpenAttachment;
+  /// Called with an attachment the reader wants to open. The chip shows a
+  /// spinner until the returned future completes.
+  final Future<void> Function(MailAttachment)? onOpenAttachment;
 
   /// Called with the mail the reader wants to answer.
   final void Function(MailMessage)? onReply;

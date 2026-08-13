@@ -62,8 +62,9 @@ class MailDetailView extends StatelessWidget {
   final void Function(Uri)? onOpenLink;
 
   /// Called with an attachment the reader wants to open. Only ever called
-  /// for attachments that may be opened (see [MailAttachment.canOpen]).
-  final void Function(MailAttachment)? onOpenAttachment;
+  /// for attachments that may be opened (see [MailAttachment.canOpen]). The
+  /// chip shows a spinner until the returned future completes.
+  final Future<void> Function(MailAttachment)? onOpenAttachment;
 
   /// Whether the subject is shown. Turn it off where the surrounding screen
   /// already carries it — a subject printed twice is a subject nobody reads.
@@ -299,7 +300,7 @@ class _Hinweis extends StatelessWidget {
 
 /// Ein Anhang. Was sich öffnen lässt und was nicht, entscheidet allein die
 /// Einstufung — siehe [MailAttachment.canOpen].
-class _AnhangChip extends StatelessWidget {
+class _AnhangChip extends StatefulWidget {
   const _AnhangChip({
     required this.attachment,
     required this.theme,
@@ -310,21 +311,52 @@ class _AnhangChip extends StatelessWidget {
   final MailAttachment attachment;
   final MailTheme theme;
   final ChatStrings strings;
-  final void Function(MailAttachment)? onOpen;
+  final Future<void> Function(MailAttachment)? onOpen;
+
+  @override
+  State<_AnhangChip> createState() => _AnhangChipState();
+}
+
+class _AnhangChipState extends State<_AnhangChip> {
+  /// Läuft gerade ein Öffnen? Eine große Datei braucht Sekunden; ohne
+  /// Rückmeldung sieht der Chip aus, als hätte er den Tipp verschluckt.
+  bool _laedt = false;
+
+  Future<void> _oeffnen() async {
+    final onOpen = widget.onOpen;
+    if (onOpen == null || _laedt) return;
+    setState(() => _laedt = true);
+    try {
+      await onOpen(widget.attachment);
+    } finally {
+      if (mounted) setState(() => _laedt = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final attachment = widget.attachment;
+    final theme = widget.theme;
     final gesperrt = attachment.safety == AttachmentSafety.blocked;
     final ungeprueft = attachment.safety == AttachmentSafety.unknown;
     final marke = gesperrt
-        ? strings.attachmentBlocked
+        ? widget.strings.attachmentBlocked
         : ungeprueft
-        ? strings.attachmentUnknown
+        ? widget.strings.attachmentUnknown
         : null;
     return Tooltip(
       message: attachment.blockedReason ?? '',
       child: ActionChip(
-        avatar: Icon(gesperrt ? Icons.block : Icons.attach_file, size: 16),
+        avatar: _laedt
+            ? SizedBox(
+                width: 14,
+                height: 14,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: theme.textColor.withValues(alpha: 0.6),
+                ),
+              )
+            : Icon(gesperrt ? Icons.block : Icons.attach_file, size: 16),
         label: Text(
           marke == null ? attachment.name : '${attachment.name} · $marke',
         ),
@@ -334,8 +366,9 @@ class _AnhangChip extends StatelessWidget {
               ? theme.textColor.withValues(alpha: 0.5)
               : theme.textColor,
         ),
-        onPressed: attachment.canOpen && onOpen != null
-            ? () => onOpen!(attachment)
+        onPressed:
+            attachment.canOpen && widget.onOpen != null && !_laedt
+            ? _oeffnen
             : null,
       ),
     );

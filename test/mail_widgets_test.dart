@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kreiseck_chat/kreiseck_chat.dart';
@@ -130,5 +132,89 @@ void main() {
       'Відповісти',
     );
     expect(find.text('Можливий спам'), findsOneWidget);
+  });
+
+  testWidgets('Anhang-Chip zeigt während des Öffnens einen Ladepunkt',
+      (t) async {
+    final fertig = Completer<void>();
+    await t.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: MailDetailView(
+          message: MailMessage(
+            id: 'm1',
+            direction: MailDirection.incoming,
+            from: const MailAddress(email: 'a@b.at'),
+            to: const [MailAddress(email: 'studio@v.at')],
+            subject: 'Rechnung',
+            bodyText: 'Anbei',
+            date: DateTime(2026, 8, 14),
+            attachments: const [
+              MailAttachment(
+                name: 'rechnung.pdf',
+                sizeBytes: 1024,
+                url: 'https://example.at/r.pdf',
+                contentType: 'application/pdf',
+                safety: AttachmentSafety.safe,
+              ),
+            ],
+          ),
+          onOpenAttachment: (_) => fertig.future,
+        ),
+      ),
+    ));
+
+    // Vorher: Büroklammer, kein Ladepunkt.
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+
+    await t.tap(find.byType(ActionChip));
+    await t.pump();
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+    fertig.complete();
+    await t.pumpAndSettle();
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+  });
+
+  testWidgets('während des Öffnens ist der Chip nicht erneut tippbar',
+      (t) async {
+    final fertig = Completer<void>();
+    var aufrufe = 0;
+    await t.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: MailDetailView(
+          message: MailMessage(
+            id: 'm2',
+            direction: MailDirection.incoming,
+            from: const MailAddress(email: 'a@b.at'),
+            to: const [MailAddress(email: 'studio@v.at')],
+            subject: 'Rechnung',
+            bodyText: 'Anbei',
+            date: DateTime(2026, 8, 14),
+            attachments: const [
+              MailAttachment(
+                name: 'rechnung.pdf',
+                sizeBytes: 1024,
+                url: 'https://example.at/r.pdf',
+                contentType: 'application/pdf',
+                safety: AttachmentSafety.safe,
+              ),
+            ],
+          ),
+          onOpenAttachment: (_) {
+            aufrufe++;
+            return fertig.future;
+          },
+        ),
+      ),
+    ));
+
+    await t.tap(find.byType(ActionChip));
+    await t.pump();
+    await t.tap(find.byType(ActionChip), warnIfMissed: false);
+    await t.pump();
+    expect(aufrufe, 1);
+
+    fertig.complete();
+    await t.pumpAndSettle();
   });
 }

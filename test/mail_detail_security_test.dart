@@ -141,7 +141,7 @@ void main() {
       await tester.pumpWidget(host(MailDetailView(
         message: mail(attachments: const [gesperrt]),
         strings: const ChatStrings.de(),
-        onOpenAttachment: geoeffnet.add,
+        onOpenAttachment: (a) async => geoeffnet.add(a),
       )));
       expect(find.textContaining('Gesperrt'), findsOneWidget);
       await tester.tap(find.byType(ActionChip));
@@ -155,7 +155,7 @@ void main() {
       await tester.pumpWidget(host(MailDetailView(
         message: mail(attachments: const [ungeprueft]),
         strings: const ChatStrings.de(),
-        onOpenAttachment: geoeffnet.add,
+        onOpenAttachment: (a) async => geoeffnet.add(a),
       )));
       expect(find.textContaining('Ungeprüft'), findsOneWidget);
       await tester.tap(find.byType(ActionChip));
@@ -167,7 +167,7 @@ void main() {
       await tester.pumpWidget(host(MailDetailView(
         message: mail(attachments: const [geprueft]),
         strings: const ChatStrings.de(),
-        onOpenAttachment: (_) {},
+        onOpenAttachment: (_) async {},
       )));
       expect(find.text('foto.png'), findsOneWidget);
     });

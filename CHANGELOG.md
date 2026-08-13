@@ -1,3 +1,11 @@
+## 0.19.0
+
+* **Breaking:** `MailDetailView.onOpenAttachment` and
+  `MailThreadView.onOpenAttachment` now take
+  `Future<void> Function(MailAttachment)`. The chip shows a spinner until the
+  future completes and ignores further taps while it runs — opening a large
+  attachment takes seconds, and until now nothing on screen said so.
+
 ## 0.18.1
 
 * **Fixed:** `MailThreadView` with no messages rendered a blank white area,
