@@ -1,3 +1,11 @@
+## 0.18.1
+
+* **Fixed:** `MailThreadView` with no messages rendered a blank white area,
+  which reads as a stuck screen rather than as an empty thread — a real
+  conversation whose messages failed to store looked broken. It now shows
+  `ChatStrings.noMailYet`, the string that already existed for exactly this
+  and was so far unused.
+
 ## 0.18.0
 
 More fallout from real use.

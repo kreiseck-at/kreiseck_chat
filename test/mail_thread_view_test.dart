@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kreiseck_chat/kreiseck_chat.dart';
 
+import 'locale_host.dart';
+
 MailMessage m(String id, String body, {int tag = 1}) => MailMessage(
       id: id,
       direction: MailDirection.incoming,
@@ -100,5 +102,22 @@ void main() {
     expect(mail.background, chat.colors.background);
     expect(mail.accentColor, chat.colors.accent);
     expect(mail.textColor, chat.colors.incomingText);
+  });
+
+  testWidgets('ohne Mails steht ein Hinweis statt einer leeren Fläche',
+      (t) async {
+    await t.pumpWidget(host(const MailThreadView(messages: [])));
+    // Eine weiße Fläche sagt der Leserin nicht, ob nichts da ist oder ob
+    // etwas hängt.
+    expect(find.text('No mail yet'), findsOneWidget);
+    expect(find.byType(MailDetailView), findsNothing);
+  });
+
+  testWidgets('der Hinweis folgt der Sprache', (t) async {
+    await t.pumpWidget(localeHost(
+      const MailThreadView(messages: []),
+      locale: const Locale('de'),
+    ));
+    expect(find.text('Noch keine Mails'), findsOneWidget);
   });
 }

@@ -98,6 +98,26 @@ class _MailThreadViewState extends State<MailThreadView> {
   @override
   Widget build(BuildContext context) {
     final strings = ChatStrings.of(context, override: widget.strings);
+    // Ohne Mails bliebe sonst eine weiße Fläche stehen — die sieht aus wie
+    // eine hängende Ansicht und sagt nicht, dass hier nichts liegt.
+    if (widget.messages.isEmpty) {
+      return Material(
+        color: widget.theme.background,
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Text(
+              strings.noMailYet,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: widget.theme.textColor.withValues(alpha: 0.6),
+                fontSize: 14,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
     return Material(
       color: widget.theme.background,
       // Tippen in den Verlauf schließt die Tastatur — im Composer gibt es
