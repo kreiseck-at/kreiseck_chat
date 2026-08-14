@@ -1,3 +1,12 @@
+## 0.21.0
+
+* New `hatFernInhalt` on `MailDetailView` and `MailThreadView`: a predicate the
+  host supplies to say whether a mail actually carries something that would be
+  fetched. Without it the "load images" notice showed on every HTML mail, even
+  when there was nothing to load — a question with no subject. Omitting the
+  predicate keeps the previous behaviour. The package still does not inspect
+  the HTML itself; that stays with the caller.
+
 ## 0.20.0
 
 * New `highlightMessageId` on `ChatThreadView` and `MailThreadView`. The chat

@@ -20,6 +20,7 @@ class MailDetailView extends StatelessWidget {
     this.bodyBuilder,
     this.remoteContentAllowed = false,
     this.onAllowRemoteContent,
+    this.hatFernInhalt,
     this.onOpenLink,
     this.onOpenAttachment,
     this.showSubject = true,
@@ -54,6 +55,12 @@ class MailDetailView extends StatelessWidget {
   /// Called when the reader taps "load images". Without it the notice has no
   /// button — for hosts that never allow remote content.
   final VoidCallback? onAllowRemoteContent;
+
+  /// Trägt diese Mail überhaupt etwas, das erst nachgeladen werden müsste?
+  /// Ohne den Prüfer erscheint die Leiste bei jeder Mail mit HTML — eine
+  /// Frage ohne Gegenstand, wenn gar nichts nachzuladen ist. Das Paket sieht
+  /// sich das HTML bewusst nicht selbst an; das bleibt Sache des Aufrufers.
+  final bool Function(MailMessage)? hatFernInhalt;
 
   /// Called with a link the reader wants to follow. Links are never opened
   /// by this widget; and anything that is not `https` or `mailto` is not
@@ -165,7 +172,9 @@ class MailDetailView extends StatelessWidget {
                 text: strings.senderUnverified,
               ),
             ],
-            if (!remoteContentAllowed && message.bodyHtml != null) ...[
+            if (!remoteContentAllowed &&
+                message.bodyHtml != null &&
+                (hatFernInhalt?.call(message) ?? true)) ...[
               const SizedBox(height: 12),
               _Hinweis(
                 theme: theme,

@@ -15,6 +15,19 @@ MailMessage m(String id, String body, {int tag = 1}) => MailMessage(
       date: DateTime(2026, 8, tag, 10),
     );
 
+/// Eine Mail mit HTML — nur so kann die Leiste „Bilder laden" überhaupt
+/// erscheinen (sie hängt an `bodyHtml`).
+MailMessage mitHtml(String id) => MailMessage(
+      id: id,
+      direction: MailDirection.incoming,
+      from: MailAddress(email: '$id@example.at'),
+      to: const [MailAddress(email: 'studio@example.at')],
+      subject: 'Termin',
+      bodyText: 'Text',
+      bodyHtml: '<p>Text</p>',
+      date: DateTime(2026, 8, 1, 10),
+    );
+
 Widget host(Widget kind) => MaterialApp(home: Scaffold(body: kind));
 
 void main() {
@@ -136,5 +149,34 @@ void main() {
       messages: [m('a', 'Erste Nachricht', tag: 1), m('b', 'Zweite', tag: 2)],
     )));
     expect(find.byType(MailDetailView), findsOneWidget);
+  });
+
+  testWidgets('ohne Ferninhalt bleibt die Leiste „Bilder laden" weg',
+      (t) async {
+    await t.pumpWidget(host(MailThreadView(
+      messages: [mitHtml('a')],
+      // Die Mail trägt HTML, aber nichts Nachzuladendes — dann ist die
+      // Leiste eine Frage ohne Gegenstand.
+      hatFernInhalt: (_) => false,
+      onAllowRemoteContent: () {},
+    )));
+    expect(find.text('Load images'), findsNothing);
+  });
+
+  testWidgets('mit Ferninhalt erscheint sie weiterhin', (t) async {
+    await t.pumpWidget(host(MailThreadView(
+      messages: [mitHtml('a')],
+      hatFernInhalt: (_) => true,
+      onAllowRemoteContent: () {},
+    )));
+    expect(find.text('Load images'), findsOneWidget);
+  });
+
+  testWidgets('ohne Prüfer bleibt es beim bisherigen Verhalten', (t) async {
+    await t.pumpWidget(host(MailThreadView(
+      messages: [mitHtml('a')],
+      onAllowRemoteContent: () {},
+    )));
+    expect(find.text('Load images'), findsOneWidget);
   });
 }

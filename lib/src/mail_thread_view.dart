@@ -21,6 +21,7 @@ class MailThreadView extends StatefulWidget {
     this.bodyBuilder,
     this.remoteContentAllowed = false,
     this.onAllowRemoteContent,
+    this.hatFernInhalt,
     this.onOpenLink,
     this.onOpenAttachment,
     this.onReply,
@@ -49,6 +50,10 @@ class MailThreadView extends StatefulWidget {
 
   /// Called when the reader allows remote content.
   final VoidCallback? onAllowRemoteContent;
+
+  /// Trägt eine Mail etwas, das erst nachgeladen werden müsste? Wird an
+  /// [MailDetailView.hatFernInhalt] durchgereicht.
+  final bool Function(MailMessage)? hatFernInhalt;
 
   /// Called with a link the reader wants to follow.
   final void Function(Uri)? onOpenLink;
@@ -157,6 +162,7 @@ class _MailThreadViewState extends State<MailThreadView> {
               bodyBuilder: widget.bodyBuilder,
               remoteContentAllowed: widget.remoteContentAllowed,
               onAllowRemoteContent: widget.onAllowRemoteContent,
+              hatFernInhalt: widget.hatFernInhalt,
               onOpenLink: widget.onOpenLink,
               onOpenAttachment: widget.onOpenAttachment,
               onReply: widget.onReply == null ? null : () => widget.onReply!(m),
