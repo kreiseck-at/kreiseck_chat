@@ -408,4 +408,39 @@ void main() {
     expect(find.text('Konversation geschlossen'), findsOneWidget);
     expect(find.byType(Composer), findsNothing);
   });
+
+  testWidgets('highlightMessageId hebt die genannte Nachricht hervor',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: ChatThreadView(
+          messages: [
+            nachricht('a', ChatMessageKind.normal, text: 'Erste'),
+            nachricht('b', ChatMessageKind.normal, text: 'Zweite'),
+          ],
+          onSend: (_) {},
+          highlightMessageId: 'a',
+        ),
+      ),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('hervorgehoben')), findsOneWidget);
+  });
+
+  testWidgets('ohne highlightMessageId gibt es keine Hervorhebung',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: ChatThreadView(
+          messages: [
+            nachricht('a', ChatMessageKind.normal, text: 'Erste'),
+            nachricht('b', ChatMessageKind.normal, text: 'Zweite'),
+          ],
+          onSend: (_) {},
+        ),
+      ),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('hervorgehoben')), findsNothing);
+  });
 }

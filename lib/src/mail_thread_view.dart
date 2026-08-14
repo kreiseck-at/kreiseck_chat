@@ -29,6 +29,7 @@ class MailThreadView extends StatefulWidget {
     this.showSubjectOnFirst = true,
     this.bodyPadding = EdgeInsets.zero,
     this.newestFirst = true,
+    this.highlightMessageId,
   });
 
   /// The mails of this conversation, oldest first.
@@ -80,6 +81,10 @@ class MailThreadView extends StatefulWidget {
   /// reach it is a chore. Pass false for oldest-first (chat order).
   final bool newestFirst;
 
+  /// This mail is expanded, even when it is not the newest one — meant for
+  /// arriving from a search hit. `null` keeps the previous behaviour.
+  final String? highlightMessageId;
+
   @override
   State<MailThreadView> createState() => _MailThreadViewState();
 }
@@ -93,9 +98,11 @@ class _MailThreadViewState extends State<MailThreadView> {
       ? widget.messages.reversed.toList(growable: false)
       : widget.messages;
 
-  /// Offen ist die neueste — und alles, was der Leser aufgeklappt hat.
+  /// Offen ist die neueste, die hervorgehobene — und alles, was der Leser
+  /// aufgeklappt hat.
   bool _istOffen(int index, List<MailMessage> liste) =>
       index == (widget.newestFirst ? 0 : liste.length - 1) ||
+      liste[index].id == widget.highlightMessageId ||
       _offen.contains(liste[index].id);
 
   @override

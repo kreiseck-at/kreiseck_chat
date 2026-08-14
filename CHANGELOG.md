@@ -1,3 +1,10 @@
+## 0.20.0
+
+* New `highlightMessageId` on `ChatThreadView` and `MailThreadView`. The chat
+  scrolls to that message and tints it briefly instead of jumping to the end;
+  the mail thread opens it even when it is not the newest one. Meant for
+  arriving from a search hit. `null` keeps the previous behaviour.
+
 ## 0.19.0
 
 * **Breaking:** `MailDetailView.onOpenAttachment` and

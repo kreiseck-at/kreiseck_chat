@@ -120,4 +120,21 @@ void main() {
     ));
     expect(find.text('Noch keine Mails'), findsOneWidget);
   });
+
+  testWidgets('highlightMessageId klappt die genannte Mail auf', (t) async {
+    await t.pumpWidget(host(MailThreadView(
+      messages: [m('a', 'Erste Nachricht', tag: 1), m('b', 'Zweite', tag: 2)],
+      highlightMessageId: 'a',
+    )));
+    // Sonst wäre nur die neueste offen und „Erste Nachricht" stünde als
+    // eingeklappte Zeile da.
+    expect(find.byType(MailDetailView), findsNWidgets(2));
+  });
+
+  testWidgets('ohne highlightMessageId bleibt es bei der neuesten', (t) async {
+    await t.pumpWidget(host(MailThreadView(
+      messages: [m('a', 'Erste Nachricht', tag: 1), m('b', 'Zweite', tag: 2)],
+    )));
+    expect(find.byType(MailDetailView), findsOneWidget);
+  });
 }

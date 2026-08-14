@@ -47,6 +47,7 @@ class ChatThreadView extends StatefulWidget {
     this.strings,
     this.textBuilder,
     this.groupMedia = true,
+    this.highlightMessageId,
   });
 
   /// Messages, oldest first.
@@ -147,6 +148,11 @@ class ChatThreadView extends StatefulWidget {
   /// message would otherwise fill the thread with single-image bubbles.
   final bool groupMedia;
 
+  /// This message is scrolled to on build, and briefly tinted — meant for
+  /// arriving from a search hit. `null` keeps the previous behaviour of
+  /// jumping to the end.
+  final String? highlightMessageId;
+
   @override
   State<ChatThreadView> createState() => _ChatThreadViewState();
 }
@@ -161,11 +167,29 @@ class _ChatThreadViewState extends State<ChatThreadView> {
   final ScrollController _scroll = ScrollController();
   int _lastCount = 0;
 
+  /// Schlüssel der hervorgehobenen Nachricht — über ihn findet
+  /// `Scrollable.ensureVisible` die Stelle, ohne dass die Liste feste
+  /// Zeilenhöhen bräuchte.
+  final GlobalKey _hervorKey = GlobalKey();
+
   @override
   void initState() {
     super.initState();
     _lastCount = widget.messages.length;
     _scroll.addListener(_onScroll);
+    // Der reversed ListView landet von selbst am Boden (offset 0); nur ein
+    // Sprung zu einer hervorgehobenen Nachricht braucht einen expliziten
+    // Scroll nach dem ersten Bild.
+    if (widget.highlightMessageId != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _zurHervorhebung());
+    }
+  }
+
+  void _zurHervorhebung() {
+    final ctx = _hervorKey.currentContext;
+    if (ctx == null) return;
+    Scrollable.ensureVisible(ctx, duration: const Duration(milliseconds: 300),
+        alignment: 0.3);
   }
 
   @override
@@ -261,8 +285,9 @@ class _ChatThreadViewState extends State<ChatThreadView> {
                     );
                   }
                   final mi = item as MessageItem;
+                  Widget? zeile;
                   if (mi.message.kind == ChatMessageKind.system) {
-                    return ChatSystemCard(
+                    zeile = ChatSystemCard(
                       theme: widget.theme,
                       child: Text(
                         mi.message.text,
@@ -270,14 +295,14 @@ class _ChatThreadViewState extends State<ChatThreadView> {
                       ),
                     );
                   }
-                  if (mi.message.kind == ChatMessageKind.custom) {
+                  if (zeile == null && mi.message.kind == ChatMessageKind.custom) {
                     final custom = widget.customMessageBuilder?.call(
                       mi.message,
                     );
                     // Ein eigenes Widget bekommt dieselben Ränder wie eine Blase,
                     // damit es in der Spalte steht statt am Rand zu kleben.
                     if (custom != null) {
-                      return Padding(
+                      zeile = Padding(
                         padding: EdgeInsets.fromLTRB(
                           12,
                           mi.isFirstInGroup ? 6 : 2,
@@ -288,7 +313,7 @@ class _ChatThreadViewState extends State<ChatThreadView> {
                       );
                     }
                   }
-                  return MessageBubble(
+                  zeile ??= MessageBubble(
                     key: ValueKey(mi.message.id),
                     message: mi.message,
                     theme: widget.theme,
@@ -311,6 +336,22 @@ class _ChatThreadViewState extends State<ChatThreadView> {
                     strings: widget.strings,
                     textBuilder: widget.textBuilder,
                   );
+                  if (mi.message.id == widget.highlightMessageId) {
+                    return TweenAnimationBuilder<double>(
+                      key: const ValueKey('hervorgehoben'),
+                      tween: Tween(begin: 1, end: 0),
+                      duration: const Duration(seconds: 2),
+                      builder: (context, t, kind) => Container(
+                        key: _hervorKey,
+                        color: widget.theme.colors.accent.withValues(
+                          alpha: 0.18 * t,
+                        ),
+                        child: kind,
+                      ),
+                      child: zeile,
+                    );
+                  }
+                  return zeile;
                 },
               ),
             ),
