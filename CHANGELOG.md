@@ -4,7 +4,10 @@
   `MailThreadView.onOpenAttachment` now take
   `Future<void> Function(MailAttachment)`. The chip shows a spinner until the
   future completes and ignores further taps while it runs — opening a large
-  attachment takes seconds, and until now nothing on screen said so.
+  attachment takes seconds, and until now nothing on screen said so. The
+  spinner also clears when the future completes with an error; the chip does
+  not catch it, so the error still reaches the caller, which is responsible
+  for reporting it to the reader.
 
 ## 0.18.1
 

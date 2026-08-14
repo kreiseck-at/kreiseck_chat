@@ -217,4 +217,56 @@ void main() {
     fertig.complete();
     await t.pumpAndSettle();
   });
+
+  testWidgets(
+      'scheitert das Öffnen, verschwindet der Ladepunkt trotzdem und der '
+      'Chip ist wieder tippbar', (t) async {
+    // Der Chip fängt den Fehler nicht ab — das ist Sache der einbindenden
+    // App (siehe Doc-Kommentar an onOpenAttachment). Genau deshalb landet er
+    // unbehandelt in der Zone; hier fangen wir ihn stellvertretend für die
+    // App ab, statt den Test daran scheitern zu lassen.
+    Object? erfasst;
+    await runZonedGuarded(() async {
+      final fertig = Completer<void>();
+      await t.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: MailDetailView(
+            message: MailMessage(
+              id: 'm3',
+              direction: MailDirection.incoming,
+              from: const MailAddress(email: 'a@b.at'),
+              to: const [MailAddress(email: 'studio@v.at')],
+              subject: 'Rechnung',
+              bodyText: 'Anbei',
+              date: DateTime(2026, 8, 14),
+              attachments: const [
+                MailAttachment(
+                  name: 'rechnung.pdf',
+                  sizeBytes: 1024,
+                  url: 'https://example.at/r.pdf',
+                  contentType: 'application/pdf',
+                  safety: AttachmentSafety.safe,
+                ),
+              ],
+            ),
+            onOpenAttachment: (_) => fertig.future,
+          ),
+        ),
+      ));
+
+      await t.tap(find.byType(ActionChip));
+      await t.pump();
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+      fertig.completeError(Exception('Download fehlgeschlagen'));
+      await t.pump();
+    }, (error, stack) => erfasst = error);
+    expect(erfasst, isNotNull);
+
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(
+      t.widget<ActionChip>(find.byType(ActionChip)).onPressed,
+      isNotNull,
+    );
+  });
 }

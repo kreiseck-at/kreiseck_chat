@@ -53,7 +53,9 @@ class MailThreadView extends StatefulWidget {
   final void Function(Uri)? onOpenLink;
 
   /// Called with an attachment the reader wants to open. The chip shows a
-  /// spinner until the returned future completes.
+  /// spinner until the returned future completes — including when it
+  /// completes with an error, which the chip does not catch; reporting that
+  /// failure to the reader is the caller's job.
   final Future<void> Function(MailAttachment)? onOpenAttachment;
 
   /// Called with the mail the reader wants to answer.

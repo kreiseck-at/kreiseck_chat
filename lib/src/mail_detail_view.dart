@@ -63,7 +63,9 @@ class MailDetailView extends StatelessWidget {
 
   /// Called with an attachment the reader wants to open. Only ever called
   /// for attachments that may be opened (see [MailAttachment.canOpen]). The
-  /// chip shows a spinner until the returned future completes.
+  /// chip shows a spinner until the returned future completes — including
+  /// when it completes with an error, which the chip does not catch;
+  /// reporting that failure to the reader is the caller's job.
   final Future<void> Function(MailAttachment)? onOpenAttachment;
 
   /// Whether the subject is shown. Turn it off where the surrounding screen
