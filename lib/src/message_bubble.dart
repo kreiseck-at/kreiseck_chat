@@ -12,7 +12,9 @@ import 'chat_colors.dart';
 import 'chat_reaction.dart';
 import 'chat_strings.dart';
 import 'chat_theme.dart';
+import 'chat_audio.dart';
 import 'models.dart';
+import 'voice_bubble.dart';
 
 /// Renders a single [ChatMessage] as a chat bubble, honoring the theme's
 /// [BubbleStyle], the [ChatCapabilities], and grouping flags.
@@ -35,6 +37,10 @@ class MessageBubble extends StatefulWidget {
     this.onOpenImages,
     this.onCopy,
     this.onRetry,
+    this.audioPlayback,
+    this.onToggleAudio,
+    this.onSeekAudio,
+    this.onAudioSpeed,
     this.strings,
     this.textBuilder,
   });
@@ -78,6 +84,20 @@ class MessageBubble extends StatefulWidget {
   /// Called when the user taps the retry action on a failed message. Null
   /// hides the action, leaving only the failure reason.
   final VoidCallback? onRetry;
+
+  /// Playback state of whichever voice attachment is currently loaded in the
+  /// thread — null when none is.
+  final ChatAudioPlayback? audioPlayback;
+
+  /// Called with an audio attachment and its index when its play/pause button
+  /// is tapped.
+  final void Function(ChatAttachment attachment, int index)? onToggleAudio;
+
+  /// Called with the target position when a voice bubble's bar is dragged.
+  final void Function(Duration position)? onSeekAudio;
+
+  /// Called with the next playback rate when the speed chip is tapped.
+  final void Function(double speed)? onAudioSpeed;
 
   /// Overrides the words used by this bubble. Left null, they follow the
   /// ambient locale (see [ChatStrings.of]).
@@ -252,7 +272,8 @@ class _MessageBubbleState extends State<MessageBubble> {
     // Angehängte Bilder werden IMMER gezeigt. Dass eine Nachricht welche hat,
     // beweist, dass der Kanal sie befördert hat -- `capabilities.media` regelt
     // nur, ob man selbst welche anhängen darf (siehe Composer).
-    final hasMedia = message.attachments.isNotEmpty;
+    final albumAttachments = _nonAudio(message.attachments);
+    final hasMedia = albumAttachments.isNotEmpty;
     final maxBubbleWidth = MediaQuery.of(context).size.width * 0.75;
 
     Widget bubble = Container(
@@ -281,13 +302,30 @@ class _MessageBubbleState extends State<MessageBubble> {
                 ink: ink,
               ),
             ),
+          // Audio-Anhaenge bekommen eine eigene Blase; das Album weiter unten
+          // sieht sie nicht mehr, sonst landeten sie als Datei-Zeile darin.
+          for (final entry in _audioEntries(message.attachments))
+            VoiceBubble(
+              attachment: entry.value,
+              messageId: message.id,
+              attachmentIndex: entry.key,
+              theme: theme,
+              ink: ink.text,
+              playback: widget.audioPlayback,
+              onToggle: widget.onToggleAudio == null
+                  ? null
+                  : () => widget.onToggleAudio!(entry.value, entry.key),
+              onSeek: widget.onSeekAudio,
+              onSpeed: widget.onAudioSpeed,
+              strings: strings,
+            ),
           if (hasMedia)
             ClipRRect(
               borderRadius: BorderRadius.circular(
                 (theme.bubbleRadius - 3).clamp(0, theme.bubbleRadius),
               ),
               child: _Album(
-                attachments: message.attachments,
+                attachments: albumAttachments,
                 onOpen: widget.onOpenAttachment,
                 onOpenImages: widget.onOpenImages,
                 theme: theme,
@@ -926,3 +964,19 @@ String _formatTime(DateTime time) {
   final minute = time.minute.toString().padLeft(2, '0');
   return '$hour:$minute';
 }
+
+/// Audio-Anhaenge mit ihrem Index in der Original-Liste -- der Index
+/// unterscheidet zwei Sprachnachrichten in derselben Nachricht.
+Iterable<MapEntry<int, ChatAttachment>> _audioEntries(
+  List<ChatAttachment> attachments,
+) sync* {
+  for (var i = 0; i < attachments.length; i++) {
+    if (attachments[i].kind == AttachmentKind.audio) {
+      yield MapEntry(i, attachments[i]);
+    }
+  }
+}
+
+/// Alles ausser Audio -- das Album stellt Bilder und Dateien dar.
+List<ChatAttachment> _nonAudio(List<ChatAttachment> attachments) =>
+    attachments.where((a) => a.kind != AttachmentKind.audio).toList();

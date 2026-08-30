@@ -135,4 +135,20 @@ void main() {
     expect(const ChatStrings.de().hashCode, const ChatStrings.de().hashCode);
     expect(const ChatStrings.de() == const ChatStrings.en(), isFalse);
   });
+
+  test('jede Sprache hat einen eigenen Text fuer Sprachnachricht', () {
+    const presets = [
+      ChatStrings.en(),
+      ChatStrings.de(),
+      ChatStrings.hr(),
+      ChatStrings.tr(),
+      ChatStrings.uk(),
+    ];
+    for (final s in presets) {
+      expect(s.voiceMessage.trim(), isNotEmpty);
+      expect(s.playbackSpeed.trim(), isNotEmpty);
+    }
+    expect(const ChatStrings.de().voiceMessage, 'Sprachnachricht');
+    expect(const ChatStrings.en().voiceMessage, 'Voice message');
+  });
 }

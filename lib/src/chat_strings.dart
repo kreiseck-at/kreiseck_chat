@@ -21,6 +21,8 @@ class ChatStrings {
     required this.camera,
     required this.gallery,
     required this.file,
+    required this.voiceMessage,
+    required this.playbackSpeed,
     required this.typing,
     required this.spam,
     required this.subject,
@@ -87,6 +89,12 @@ class ChatStrings {
 
   /// Attachment source (and fallback name for an unnamed attachment).
   final String file;
+
+  /// Label for a voice message, e.g. on the voice bubble's accessibility node.
+  final String voiceMessage;
+
+  /// Label for the voice bubble's playback-rate control.
+  final String playbackSpeed;
 
   /// Presence line while someone is typing.
   final String typing;
@@ -200,6 +208,8 @@ class ChatStrings {
       camera = 'Camera',
       gallery = 'Gallery',
       file = 'File',
+      voiceMessage = 'Voice message',
+      playbackSpeed = 'Playback speed',
       typing = 'typing…',
       spam = 'Spam',
       subject = 'Subject',
@@ -247,6 +257,8 @@ class ChatStrings {
       camera = 'Kamera',
       gallery = 'Galerie',
       file = 'Datei',
+      voiceMessage = 'Sprachnachricht',
+      playbackSpeed = 'Wiedergabetempo',
       typing = 'tippt…',
       spam = 'Spam',
       subject = 'Betreff',
@@ -294,6 +306,8 @@ class ChatStrings {
       camera = 'Kamera',
       gallery = 'Galerija',
       file = 'Datoteka',
+      voiceMessage = 'Glasovna poruka',
+      playbackSpeed = 'Brzina reprodukcije',
       typing = 'piše…',
       spam = 'Neželjeno',
       subject = 'Predmet',
@@ -340,6 +354,8 @@ class ChatStrings {
       camera = 'Kamera',
       gallery = 'Galeri',
       file = 'Dosya',
+      voiceMessage = 'Sesli mesaj',
+      playbackSpeed = 'Oynatma hızı',
       typing = 'yazıyor…',
       spam = 'Spam',
       subject = 'Konu',
@@ -391,6 +407,8 @@ class ChatStrings {
       camera = 'Камера',
       gallery = 'Галерея',
       file = 'Файл',
+      voiceMessage = 'Голосове повідомлення',
+      playbackSpeed = 'Швидкість відтворення',
       typing = 'пише…',
       spam = 'Спам',
       subject = 'Тема',
@@ -462,6 +480,8 @@ class ChatStrings {
     String? camera,
     String? gallery,
     String? file,
+    String? voiceMessage,
+    String? playbackSpeed,
     String? typing,
     String? spam,
     String? subject,
@@ -507,6 +527,8 @@ class ChatStrings {
       camera: camera ?? this.camera,
       gallery: gallery ?? this.gallery,
       file: file ?? this.file,
+      voiceMessage: voiceMessage ?? this.voiceMessage,
+      playbackSpeed: playbackSpeed ?? this.playbackSpeed,
       typing: typing ?? this.typing,
       spam: spam ?? this.spam,
       subject: subject ?? this.subject,
@@ -558,6 +580,8 @@ class ChatStrings {
         other.camera == camera &&
         other.gallery == gallery &&
         other.file == file &&
+        other.voiceMessage == voiceMessage &&
+        other.playbackSpeed == playbackSpeed &&
         other.typing == typing &&
         other.spam == spam &&
         other.subject == subject &&
@@ -587,6 +611,8 @@ class ChatStrings {
     camera,
     gallery,
     file,
+    voiceMessage,
+    playbackSpeed,
     typing,
     spam,
     subject,

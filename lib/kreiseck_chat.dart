@@ -44,4 +44,5 @@ export 'src/chat_image_viewer.dart';
 export 'src/chat_images.dart';
 export 'src/media_grouping.dart';
 export 'src/thread_items.dart';
+export 'src/voice_bubble.dart';
 export 'src/typing_indicator.dart';

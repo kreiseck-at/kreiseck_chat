@@ -12,6 +12,7 @@ class ChatAttachment {
   /// Creates an attachment.
   const ChatAttachment({
     required this.kind,
+    this.contentType,
     this.url,
     this.thumbnail,
     this.thumbnailUrl,
@@ -23,6 +24,9 @@ class ChatAttachment {
 
   /// Content kind.
   final AttachmentKind kind;
+
+  /// MIME type of the full asset, e.g. `audio/ogg`, when the host knows it.
+  final String? contentType;
 
   /// URL of the full asset.
   final String? url;
@@ -50,6 +54,7 @@ class ChatAttachment {
   factory ChatAttachment.fromJson(Map<String, dynamic> json) {
     return ChatAttachment(
       kind: AttachmentKind.values.byName(json['kind'] as String),
+      contentType: json['contentType'] as String?,
       url: json['url'] as String?,
       thumbnailUrl: json['thumbnailUrl'] as String?,
       fileName: json['fileName'] as String?,
@@ -63,6 +68,7 @@ class ChatAttachment {
   Map<String, dynamic> toJson() {
     return {
       'kind': kind.name,
+      if (contentType != null) 'contentType': contentType,
       if (url != null) 'url': url,
       if (thumbnailUrl != null) 'thumbnailUrl': thumbnailUrl,
       if (fileName != null) 'fileName': fileName,
@@ -81,6 +87,8 @@ class ChatAttachment {
   /// programming error and triggers an assertion.
   ChatAttachment copyWith({
     AttachmentKind? kind,
+    String? contentType,
+    bool clearContentType = false,
     String? url,
     bool clearUrl = false,
     ImageProvider? thumbnail,
@@ -96,6 +104,10 @@ class ChatAttachment {
     int? height,
     bool clearHeight = false,
   }) {
+    assert(
+      !(clearContentType && contentType != null),
+      'clearContentType und ein contentType-Wert schließen sich aus.',
+    );
     assert(
       !(clearUrl && url != null),
       'clearUrl und ein url-Wert schließen sich aus.',
@@ -126,6 +138,7 @@ class ChatAttachment {
     );
     return ChatAttachment(
       kind: kind ?? this.kind,
+      contentType: clearContentType ? null : (contentType ?? this.contentType),
       url: clearUrl ? null : (url ?? this.url),
       thumbnail: clearThumbnail ? null : (thumbnail ?? this.thumbnail),
       thumbnailUrl: clearThumbnailUrl
@@ -143,6 +156,7 @@ class ChatAttachment {
     if (identical(this, other)) return true;
     return other is ChatAttachment &&
         other.kind == kind &&
+        other.contentType == contentType &&
         other.url == url &&
         other.thumbnail == thumbnail &&
         other.thumbnailUrl == thumbnailUrl &&
@@ -155,6 +169,7 @@ class ChatAttachment {
   @override
   int get hashCode => Object.hash(
     kind,
+    contentType,
     url,
     thumbnail,
     thumbnailUrl,

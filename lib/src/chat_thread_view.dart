@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'chat_attachment.dart';
+import 'chat_audio.dart';
 import 'chat_capabilities.dart';
 import 'chat_strings.dart';
 import 'chat_system_card.dart';
@@ -48,7 +49,12 @@ class ChatThreadView extends StatefulWidget {
     this.textBuilder,
     this.groupMedia = true,
     this.highlightMessageId,
+    this.audioController,
   });
+
+  /// Holds voice playback for this thread. Provide one to make audio
+  /// attachments playable; without it they render as inert voice bubbles.
+  final ChatAudioPlaybackController? audioController;
 
   /// Messages, oldest first.
   final List<ChatMessage> messages;
@@ -177,6 +183,7 @@ class _ChatThreadViewState extends State<ChatThreadView> {
     super.initState();
     _lastCount = widget.messages.length;
     _scroll.addListener(_onScroll);
+    widget.audioController?.addListener(_onAudio);
     // Der reversed ListView landet von selbst am Boden (offset 0); nur ein
     // Sprung zu einer hervorgehobenen Nachricht braucht einen expliziten
     // Scroll nach dem ersten Bild.
@@ -195,6 +202,10 @@ class _ChatThreadViewState extends State<ChatThreadView> {
   @override
   void didUpdateWidget(covariant ChatThreadView oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (widget.audioController != oldWidget.audioController) {
+      oldWidget.audioController?.removeListener(_onAudio);
+      widget.audioController?.addListener(_onAudio);
+    }
     if (widget.messages.length != _lastCount) {
       final grew = widget.messages.length > oldWidget.messages.length;
       if (grew &&
@@ -215,7 +226,13 @@ class _ChatThreadViewState extends State<ChatThreadView> {
   void dispose() {
     _scroll.removeListener(_onScroll);
     _scroll.dispose();
+    widget.audioController?.removeListener(_onAudio);
     super.dispose();
+  }
+
+  /// Der Controller meldet Fortschritt -- die Sprachblasen neu zeichnen.
+  void _onAudio() {
+    if (mounted) setState(() {});
   }
 
   /// In a reversed list the OLDEST message sits at the maximum offset -- so
@@ -333,6 +350,20 @@ class _ChatThreadViewState extends State<ChatThreadView> {
                     onRetry: widget.onRetry == null
                         ? null
                         : () => widget.onRetry!(mi.message),
+                    audioPlayback: widget.audioController?.current,
+                    onToggleAudio: widget.audioController == null
+                        ? null
+                        : (attachment, index) {
+                            final url = attachment.url;
+                            if (url == null) return;
+                            widget.audioController!.toggle(
+                              mi.message.id,
+                              url,
+                              attachmentIndex: index,
+                            );
+                          },
+                    onSeekAudio: widget.audioController?.seek,
+                    onAudioSpeed: widget.audioController?.setSpeed,
                     strings: widget.strings,
                     textBuilder: widget.textBuilder,
                   );
