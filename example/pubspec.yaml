@@ -11,6 +11,9 @@ dependencies:
     sdk: flutter
   kreiseck_chat:
     path: ../
+  # Nur das Beispiel hängt daran: es zeigt die Verdrahtung des
+  # ChatAudioPlaybackController. Das Paket selbst bleibt ohne Audio-Plugin.
+  just_audio: ^0.10.6
 
 dev_dependencies:
   flutter_test:

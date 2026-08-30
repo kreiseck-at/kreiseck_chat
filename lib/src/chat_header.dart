@@ -22,12 +22,18 @@ class ChatHeader extends StatelessWidget {
     this.now,
     this.actions = const [],
     this.onBack,
+    this.subtitle,
     this.typingLabel,
     this.strings,
   });
 
   /// Contact/group name.
   final String title;
+
+  /// A second line under the title, e.g. the channel a thread runs on. Falls
+  /// back behind a live typing or presence line — those describe the moment,
+  /// this describes the thread. Null keeps the header single-line.
+  final String? subtitle;
 
   /// Visual configuration.
   final ChatTheme theme;
@@ -69,13 +75,16 @@ class ChatHeader extends StatelessWidget {
       return typingLabel ?? resolved.typing;
     }
     if (capabilities.presence) {
-      return formatPresenceLabel(
+      final label = formatPresenceLabel(
         presence,
         now: now ?? DateTime.now(),
         labels: PresenceLabels.fromStrings(resolved),
       );
+      // Ohne Präsenzdaten liefert das einen leeren Text -- der zeichnete
+      // bisher eine leere zweite Zeile. Dann gilt der Rückfall.
+      if (label != null && label.trim().isNotEmpty) return label;
     }
-    return null;
+    return subtitle;
   }
 
   @override

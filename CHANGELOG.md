@@ -1,3 +1,30 @@
+## 0.22.0
+
+* Voice messages. `VoiceBubble` renders an `AttachmentKind.audio` attachment as
+  a play/pause button, a draggable progress bar, elapsed / total time and a
+  speed chip; `MessageBubble` and `ChatThreadView` pick audio attachments out
+  of the album and render them that way. Deliberately no waveform: the package
+  never analyses the audio, and a waveform derived from the URL would draw
+  information nobody has.
+* The package still ships no audio plugin. `ChatAudioPlaybackController` is a
+  `ChangeNotifier` scaffold that holds `ChatAudioPlayback` state and enforces
+  that only one voice message plays at a time; hosts implement five members
+  over the player of their choice. See "Voice messages" in the README for a
+  complete `just_audio` wiring, and `example/` for a running one.
+* New `ChatAttachment.contentType` — the MIME type, when the host knows it.
+* New `ChatHeader.subtitle`, a second line under the title (e.g. the channel a
+  thread runs on). `ChatTypography.headerSubtitle` already existed for it.
+* **Fixed:** a presence-capable `ChatHeader` with no presence data drew an
+  empty second line. It now falls through to `subtitle`.
+* **Fixed:** swipe-to-reply and the menu's reply entry appeared whenever
+  `capabilities.replies` was set, even without an `onReplyRequested` — the
+  bubble swiped and nothing happened. Both now also require the callback.
+  Quoted replies still render on `capabilities.replies` alone, so a channel
+  that delivers quotes but cannot send them shows them without offering an
+  action it cannot perform.
+* `ChatStrings` gained `voiceMessage` and `playbackSpeed` in all five
+  languages.
+
 ## 0.21.0
 
 * New `hatFernInhalt` on `MailDetailView` and `MailThreadView`: a predicate the

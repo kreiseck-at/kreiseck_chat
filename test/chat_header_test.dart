@@ -84,4 +84,27 @@ void main() {
     ));
     expect(find.text('schreibt'), findsOneWidget);
   });
+
+  testWidgets('subtitle steht unter dem Titel', (tester) async {
+    await tester.pumpWidget(const MaterialApp(
+      home: Scaffold(
+        body: ChatHeader(
+          title: '+43 660 1234567',
+          subtitle: 'WhatsApp',
+          theme: ChatTheme.light(),
+        ),
+      ),
+    ));
+    expect(find.text('+43 660 1234567'), findsOneWidget);
+    expect(find.text('WhatsApp'), findsOneWidget);
+  });
+
+  testWidgets('ohne subtitle bleibt die Kopfzeile einzeilig', (tester) async {
+    await tester.pumpWidget(const MaterialApp(
+      home: Scaffold(
+        body: ChatHeader(title: 'Nur Titel', theme: ChatTheme.light()),
+      ),
+    ));
+    expect(find.text('Nur Titel'), findsOneWidget);
+  });
 }

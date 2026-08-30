@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:kreiseck_chat/kreiseck_chat.dart';
 
 import 'gallery_page.dart';
@@ -66,11 +67,18 @@ class _DemoAppState extends State<DemoApp> {
   String _composerChannel = 'whatsapp';
   Locale _locale = const Locale('de');
   late List<ChatMessage> _messages;
+  final JustAudioChatController _audio = JustAudioChatController();
 
   @override
   void initState() {
     super.initState();
     _messages = _seed();
+  }
+
+  @override
+  void dispose() {
+    _audio.dispose();
+    super.dispose();
   }
 
   List<ChatMessage> _seed() {
@@ -144,6 +152,22 @@ class _DemoAppState extends State<DemoApp> {
         text: 'Anruf verpasst, 0:42 Min.',
         at: now.subtract(const Duration(minutes: 2)),
         kind: ChatMessageKind.custom,
+      ),
+      // Eine Sprachnachricht: Abspielknopf, Balken, Dauer, Tempo. Die Datei
+      // liegt frei im Netz, damit das Beispiel ohne Zutun laeuft.
+      ChatMessage(
+        id: '9',
+        direction: MessageDirection.incoming,
+        text: '',
+        at: now.subtract(const Duration(minutes: 1)),
+        attachments: const [
+          ChatAttachment(
+            kind: AttachmentKind.audio,
+            url: 'https://download.samplelib.com/mp3/sample-9s.mp3',
+            contentType: 'audio/mpeg',
+            fileName: 'sprachnachricht.mp3',
+          ),
+        ],
       ),
     ];
   }
@@ -247,6 +271,7 @@ class _DemoAppState extends State<DemoApp> {
       onSend: _send,
       theme: _theme,
       capabilities: _caps,
+      audioController: _audio,
       typing: const TypingState(
         participants: [ChatParticipant(id: 'ada', displayName: 'Ada')],
       ),
@@ -447,5 +472,43 @@ class _CallSummaryCard extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// Die Verdrahtung aus dem README, hier lauffaehig: das Geruest aus dem Paket
+/// ueber just_audio. Der Zustand und die Regel "nur eine laeuft" stecken in
+/// ChatAudioPlaybackController; hier steht nur die Verbindung zum Player.
+class JustAudioChatController extends ChatAudioPlaybackController {
+  final AudioPlayer _player = AudioPlayer();
+
+  JustAudioChatController() {
+    _player.positionStream.listen(reportPosition);
+    _player.durationStream.listen((d) {
+      if (d != null) reportDuration(d);
+    });
+    _player.playerStateStream.listen((s) {
+      if (s.processingState == ProcessingState.completed) reportEnded();
+    });
+  }
+
+  @override
+  Future<void> loadSource(String url) => _player.setUrl(url);
+
+  @override
+  Future<void> resume() => _player.play();
+
+  @override
+  Future<void> pause() => _player.pause();
+
+  @override
+  Future<void> seekSource(Duration position) => _player.seek(position);
+
+  @override
+  Future<void> applySpeed(double speed) => _player.setSpeed(speed);
+
+  @override
+  void dispose() {
+    _player.dispose();
+    super.dispose();
   }
 }

@@ -226,7 +226,9 @@ class _MessageBubbleState extends State<MessageBubble> {
                   .toList(),
             ),
           ),
-        if (widget.capabilities.replies)
+        // Antworten anbieten nur, wenn der Gastgeber es auch entgegennimmt --
+        // ein Menuepunkt ohne Rueckruf tut nichts.
+        if (widget.capabilities.replies && widget.onReplyRequested != null)
           PopupMenuItem<String>(
             value: 'reply',
             child: _menuRow(widget.theme.icons.reply, strings.reply, menuColor),
@@ -487,15 +489,14 @@ class _MessageBubbleState extends State<MessageBubble> {
       ],
     );
 
+    final canReply = capabilities.replies && widget.onReplyRequested != null;
     final canAct =
-        capabilities.reactions ||
-        capabilities.replies ||
-        message.text.isNotEmpty;
+        capabilities.reactions || canReply || message.text.isNotEmpty;
     content = GestureDetector(
       onLongPressStart: canAct
           ? (details) => _openActions(context, details.globalPosition, strings)
           : null,
-      onHorizontalDragEnd: capabilities.replies
+      onHorizontalDragEnd: canReply
           ? (details) {
               final v = details.primaryVelocity ?? 0;
               if ((_isOutgoing && v < -200) || (!_isOutgoing && v > 200)) {

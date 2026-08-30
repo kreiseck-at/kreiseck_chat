@@ -17,6 +17,11 @@ and `ChatConversation` and handling the `onSend`/`onOpen` callbacks.
   timestamps — plus `channel`, `errorText`, `kind`, `translation`, and
   `headline` (see below). `ChatConversation` carries `channels`, a list of
   `ChatChannel` feeding into it.
+* **Voice messages** — an `AttachmentKind.audio` attachment renders as a
+  `VoiceBubble` (play/pause, draggable progress bar, elapsed / total time,
+  speed chip). The package ships no audio plugin: `ChatAudioPlaybackController`
+  is a scaffold you subclass over your own player, and it enforces that only
+  one voice message plays at a time. See "Voice messages" below.
 * **`ChatChannel`** — a value object describing a channel a message travelled
   over: an id, display label, icon, and brand color. Ready-made templates —
   `ChatChannel.whatsApp()`, `.sms()`, `.email()`, `.inApp()`, `.voice()` —
@@ -225,6 +230,65 @@ between bubble presets, capability profiles, and light/dark mode against
 seeded data (presence, typing, reactions, a reply, channels, translations,
 system/custom messages, and a conversation list with pinned rows and channel
 badges).
+
+### Voice messages
+
+Audio attachments render as a voice bubble. The package draws it but plays
+nothing — subclass `ChatAudioPlaybackController` over the player of your
+choice and hand it to `ChatThreadView`. The controller already holds the
+playback state and guarantees that only one voice message plays at a time.
+
+```dart
+import 'package:just_audio/just_audio.dart';
+import 'package:kreiseck_chat/kreiseck_chat.dart';
+
+class JustAudioChatController extends ChatAudioPlaybackController {
+  final AudioPlayer _player = AudioPlayer();
+
+  JustAudioChatController() {
+    _player.positionStream.listen(reportPosition);
+    _player.durationStream.listen((d) {
+      if (d != null) reportDuration(d);
+    });
+    _player.playerStateStream.listen((s) {
+      if (s.processingState == ProcessingState.completed) reportEnded();
+    });
+  }
+
+  @override
+  Future<void> loadSource(String url) => _player.setUrl(url);
+
+  @override
+  Future<void> resume() => _player.play();
+
+  @override
+  Future<void> pause() => _player.pause();
+
+  @override
+  Future<void> seekSource(Duration position) => _player.seek(position);
+
+  @override
+  Future<void> applySpeed(double speed) => _player.setSpeed(speed);
+
+  @override
+  void dispose() {
+    _player.dispose();
+    super.dispose();
+  }
+}
+```
+
+```dart
+ChatThreadView(
+  messages: messages,
+  onSend: send,
+  audioController: controller, // dispose it with your screen
+  capabilities: const ChatCapabilities.twilioWhatsApp(),
+)
+```
+
+The bubble shows `--:--` until the player reports a duration; nothing invents
+a length. `example/` runs this wiring against a seeded voice message.
 
 ## Additional information
 
