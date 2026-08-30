@@ -297,3 +297,8 @@ apps can support light and dark mode and match a channel's native look
 (WhatsApp, iMessage, or a fully custom `minimal` base) without forking the
 widgets. Pair a theme with the `ChatCapabilities` profile that matches your
 transport so the UI only offers what the channel can actually deliver.
+
+## License
+
+Apache License 2.0 — see [LICENSE](LICENSE). Contributions are accepted under
+the same terms.

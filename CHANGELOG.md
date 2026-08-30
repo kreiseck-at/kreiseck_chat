@@ -24,6 +24,7 @@
   action it cannot perform.
 * `ChatStrings` gained `voiceMessage` and `playbackSpeed` in all five
   languages.
+* Relicensed from MIT to Apache License 2.0.
 
 ## 0.21.0
 
