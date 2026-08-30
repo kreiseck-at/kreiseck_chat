@@ -1,8 +1,8 @@
 name: kreiseck_chat
 description: "Reusable, backend-agnostic chat UI widgets and models for Flutter apps."
 version: 0.22.0
-repository: https://github.com/kreiseck/kreiseck_chat
-homepage: https://github.com/kreiseck/kreiseck_chat
+repository: https://github.com/kreiseck-at/kreiseck_chat
+homepage: https://github.com/kreiseck-at/kreiseck_chat
 topics:
   - chat
   - messaging
