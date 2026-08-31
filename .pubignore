@@ -24,3 +24,13 @@ migrate_working_dir/
 # Interne Planungs- und Arbeitsdateien gehören nicht ins veröffentlichte Paket.
 docs/
 .superpowers/
+
+# Plattform-Gerüst des Beispiels (Gradle, Xcode, CMake, App-Icons): 2 MB, die
+# niemand braucht, der das Paket einbindet. pub.dev zeigt im Beispiel-Reiter
+# nur example/lib; wer das Beispiel starten will, klont das Repo, wo alles
+# unverändert liegt.
+example/android/
+example/ios/
+example/macos/
+example/linux/
+example/windows/
