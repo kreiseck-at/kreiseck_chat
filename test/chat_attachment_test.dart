@@ -105,4 +105,29 @@ void main() {
       throwsAssertionError,
     );
   });
+
+  test('ChatAttachment: duration lässt sich setzen und leeren', () {
+    const a = ChatAttachment(kind: AttachmentKind.audio);
+    final mit = a.copyWith(duration: const Duration(seconds: 42));
+    expect(mit.duration, const Duration(seconds: 42));
+    expect(mit, isNot(equals(a)));
+    expect(mit.hashCode, isNot(a.hashCode));
+    expect(mit.copyWith(fileName: 'x').duration, const Duration(seconds: 42));
+    expect(mit.copyWith(clearDuration: true).duration, isNull);
+    expect(
+      () => mit.copyWith(
+        duration: const Duration(seconds: 1),
+        clearDuration: true,
+      ),
+      throwsAssertionError,
+    );
+  });
+
+  test('ChatAttachment: duration übersteht JSON', () {
+    const a = ChatAttachment(
+      kind: AttachmentKind.audio,
+      duration: Duration(milliseconds: 42500),
+    );
+    expect(ChatAttachment.fromJson(a.toJson()), equals(a));
+  });
 }

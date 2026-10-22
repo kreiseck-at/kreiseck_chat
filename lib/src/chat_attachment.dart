@@ -20,6 +20,7 @@ class ChatAttachment {
     this.sizeBytes,
     this.width,
     this.height,
+    this.duration,
   });
 
   /// Content kind.
@@ -49,6 +50,11 @@ class ChatAttachment {
   /// Pixel height, if known.
   final int? height;
 
+  /// Playing time, if the host knows it up front (e.g. from the backend).
+  /// A voice bubble shows it before any player has loaded the audio; once the
+  /// player reports a duration, that one wins.
+  final Duration? duration;
+
   /// Creates an attachment from a JSON-decoded map. The in-memory [thumbnail]
   /// provider is not part of JSON.
   factory ChatAttachment.fromJson(Map<String, dynamic> json) {
@@ -61,6 +67,9 @@ class ChatAttachment {
       sizeBytes: json['sizeBytes'] as int?,
       width: json['width'] as int?,
       height: json['height'] as int?,
+      duration: json['durationMs'] == null
+          ? null
+          : Duration(milliseconds: json['durationMs'] as int),
     );
   }
 
@@ -75,6 +84,7 @@ class ChatAttachment {
       if (sizeBytes != null) 'sizeBytes': sizeBytes,
       if (width != null) 'width': width,
       if (height != null) 'height': height,
+      if (duration != null) 'durationMs': duration!.inMilliseconds,
     };
   }
 
@@ -103,6 +113,8 @@ class ChatAttachment {
     bool clearWidth = false,
     int? height,
     bool clearHeight = false,
+    Duration? duration,
+    bool clearDuration = false,
   }) {
     assert(
       !(clearContentType && contentType != null),
@@ -136,6 +148,10 @@ class ChatAttachment {
       !(clearHeight && height != null),
       'clearHeight und ein height-Wert schließen sich aus.',
     );
+    assert(
+      !(clearDuration && duration != null),
+      'clearDuration und ein duration-Wert schließen sich aus.',
+    );
     return ChatAttachment(
       kind: kind ?? this.kind,
       contentType: clearContentType ? null : (contentType ?? this.contentType),
@@ -148,6 +164,7 @@ class ChatAttachment {
       sizeBytes: clearSizeBytes ? null : (sizeBytes ?? this.sizeBytes),
       width: clearWidth ? null : (width ?? this.width),
       height: clearHeight ? null : (height ?? this.height),
+      duration: clearDuration ? null : (duration ?? this.duration),
     );
   }
 
@@ -163,7 +180,8 @@ class ChatAttachment {
         other.fileName == fileName &&
         other.sizeBytes == sizeBytes &&
         other.width == width &&
-        other.height == height;
+        other.height == height &&
+        other.duration == duration;
   }
 
   @override
@@ -177,5 +195,6 @@ class ChatAttachment {
     sizeBytes,
     width,
     height,
+    duration,
   );
 }

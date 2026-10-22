@@ -24,6 +24,52 @@ void main() {
     expect(find.text('--:--'), findsOneWidget);
   });
 
+  testWidgets('zeigt die am Anhang bekannte Dauer ohne Player', (tester) async {
+    await tester.pumpWidget(_host(VoiceBubble(
+      attachment: _voice().copyWith(duration: const Duration(seconds: 42)),
+      messageId: 'm1',
+      attachmentIndex: 0,
+      theme: const ChatTheme.light(),
+      ink: const ChatTheme.light().colors.incomingText,
+    )));
+    expect(find.text('00:42'), findsOneWidget);
+    expect(find.text('--:--'), findsNothing);
+  });
+
+  testWidgets('die Dauer des Players gewinnt gegen die des Anhangs', (tester) async {
+    await tester.pumpWidget(_host(VoiceBubble(
+      attachment: _voice().copyWith(duration: const Duration(seconds: 42)),
+      messageId: 'm1',
+      attachmentIndex: 0,
+      theme: const ChatTheme.light(),
+      ink: const ChatTheme.light().colors.incomingText,
+      playback: const ChatAudioPlayback(
+        messageId: 'm1',
+        duration: Duration(seconds: 75),
+      ),
+    )));
+    expect(find.text('01:15'), findsOneWidget);
+    expect(find.text('00:42'), findsNothing);
+  });
+
+  testWidgets('mit nur der Anhangs-Dauer ist der Balken nicht ziehbar', (tester) async {
+    Duration? gezogen;
+    await tester.pumpWidget(_host(SizedBox(
+      width: 300,
+      child: VoiceBubble(
+        attachment: _voice().copyWith(duration: const Duration(seconds: 42)),
+        messageId: 'm1',
+        attachmentIndex: 0,
+        theme: const ChatTheme.light(),
+        ink: const ChatTheme.light().colors.incomingText,
+        onSeek: (d) => gezogen = d,
+      ),
+    )));
+    final slider = tester.widget<Slider>(find.byType(Slider));
+    expect(slider.onChanged, isNull);
+    expect(gezogen, isNull);
+  });
+
   testWidgets('zeigt die gemeldete Dauer, sobald sie da ist', (tester) async {
     await tester.pumpWidget(_host(VoiceBubble(
       attachment: _voice(),

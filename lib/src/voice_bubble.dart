@@ -72,7 +72,9 @@ class VoiceBubble extends StatelessWidget {
 
   ChatAudioState get _state => _isMine ? playback!.state : ChatAudioState.idle;
 
-  Duration? get _duration => _isMine ? playback!.duration : null;
+  // Player-Dauer, sonst die am Anhang bekannte.
+  Duration? get _duration =>
+      (_isMine ? playback!.duration : null) ?? attachment.duration;
 
   Duration get _position => _isMine ? playback!.position : Duration.zero;
 
@@ -87,9 +89,13 @@ class VoiceBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = ChatStrings.of(context, override: strings);
     final total = _duration;
-    final canSeek = onSeek != null && total != null && total > Duration.zero;
+    // Ziehen erst, wenn der Player seine eigene Dauer kennt.
+    final playerDuration = _isMine ? playback!.duration : null;
+    final canSeek = onSeek != null &&
+        playerDuration != null &&
+        playerDuration > Duration.zero;
     final value = canSeek
-        ? (_position.inMilliseconds / total.inMilliseconds).clamp(0.0, 1.0)
+        ? (_position.inMilliseconds / playerDuration.inMilliseconds).clamp(0.0, 1.0)
         : 0.0;
     // Beim Abspielen die verstrichene Zeit, sonst die Gesamtlaenge -- das ist
     // die Zahl, die im jeweiligen Zustand etwas aussagt.
@@ -129,7 +135,7 @@ class VoiceBubble extends StatelessWidget {
                       onChanged: canSeek
                           ? (v) => onSeek!(
                               Duration(
-                                milliseconds: (total.inMilliseconds * v)
+                                milliseconds: (playerDuration.inMilliseconds * v)
                                     .round(),
                               ),
                             )
