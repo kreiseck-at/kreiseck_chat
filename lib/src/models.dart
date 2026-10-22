@@ -32,6 +32,19 @@ enum MessageStatus {
   failed,
 }
 
+/// Where the written-out text of a voice message stands.
+enum ChatTranscriptState {
+  /// The transcript is still being produced; the bubble shows a hint and no
+  /// text.
+  pending,
+
+  /// [ChatMessage.text] holds the transcript; the bubble labels it as one.
+  done,
+
+  /// No transcript will come; the bubble says so.
+  unavailable,
+}
+
 /// The kind of a message — determines how it is rendered.
 enum ChatMessageKind {
   /// Regular speech bubble.
@@ -121,6 +134,7 @@ class ChatMessage {
     this.kind = ChatMessageKind.normal,
     this.translation,
     this.headline,
+    this.transcriptState,
   });
 
   /// Unique identifier of this message.
@@ -175,6 +189,10 @@ class ChatMessage {
   /// Bold first line above the text, e.g. an email subject.
   final String? headline;
 
+  /// Transcript state of a voice message. Null means [text] was typed, not
+  /// transcribed — the bubble shows it unchanged.
+  final ChatTranscriptState? transcriptState;
+
   /// Returns a copy of this message with the given fields replaced.
   ///
   /// For each nullable field there is a matching `clearX` flag: passing
@@ -209,6 +227,8 @@ class ChatMessage {
     bool clearTranslation = false,
     String? headline,
     bool clearHeadline = false,
+    ChatTranscriptState? transcriptState,
+    bool clearTranscriptState = false,
   }) {
     assert(
       !(clearSender && sender != null),
@@ -246,6 +266,10 @@ class ChatMessage {
       !(clearHeadline && headline != null),
       'clearHeadline und ein headline-Wert schließen sich aus.',
     );
+    assert(
+      !(clearTranscriptState && transcriptState != null),
+      'clearTranscriptState und ein transcriptState-Wert schließen sich aus.',
+    );
     return ChatMessage(
       id: id ?? this.id,
       direction: direction ?? this.direction,
@@ -264,6 +288,9 @@ class ChatMessage {
       kind: kind ?? this.kind,
       translation: clearTranslation ? null : (translation ?? this.translation),
       headline: clearHeadline ? null : (headline ?? this.headline),
+      transcriptState: clearTranscriptState
+          ? null
+          : (transcriptState ?? this.transcriptState),
     );
   }
 
@@ -287,7 +314,8 @@ class ChatMessage {
         other.errorText == errorText &&
         other.kind == kind &&
         other.translation == translation &&
-        other.headline == headline;
+        other.headline == headline &&
+        other.transcriptState == transcriptState;
   }
 
   @override
@@ -309,6 +337,7 @@ class ChatMessage {
     kind,
     translation,
     headline,
+    transcriptState,
   );
 }
 

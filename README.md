@@ -287,8 +287,22 @@ ChatThreadView(
 )
 ```
 
-The bubble shows `--:--` until the player reports a duration; nothing invents
-a length. `example/` runs this wiring against a seeded voice message.
+`resume()` may block until playback stops (just_audio's `play()` completes
+only then); that is fine, the controller marks the message as playing before
+it awaits. If `loadSource` or `resume()` throws, the bubble shows a failed
+state and a tap retries.
+
+The bubble shows `--:--` until a duration is known; nothing invents a length.
+If your backend knows it up front, set `ChatAttachment.duration` and the bubble
+shows it right away (the player's own duration wins once reported; dragging
+the bar stays locked until then).
+
+To show the written-out text under the bubble, put it in `ChatMessage.text`
+and set `ChatMessage.transcriptState`: `done` labels the text as a
+transcript, `pending` shows a "Transcribing…" hint instead of text,
+`unavailable` says there is none. Leave it null for typed text.
+
+`example/` runs this wiring against a seeded voice message.
 
 ## Additional information
 

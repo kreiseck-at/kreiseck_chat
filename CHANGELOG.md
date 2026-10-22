@@ -1,3 +1,33 @@
+## 0.23.0
+
+* Voice messages carry a known duration and a transcript state.
+* New `ChatAttachment.duration` (`copyWith(duration:, clearDuration:)`, part
+  of `==`/`hashCode` and JSON as `durationMs`). A voice bubble shows it before
+  any player has loaded the audio; once the player reports a duration, that
+  one wins. The progress bar stays locked until the player knows its own
+  duration.
+* New `ChatMessage.transcriptState` with the new enum `ChatTranscriptState`
+  (`pending`, `done`, `unavailable`; null means the text was typed). `done`
+  puts a small "Transcript" label above the text (translation toggle
+  unchanged), `pending` shows only a "Transcribing…" hint, `unavailable`
+  shows "No transcript".
+* New `ChatAudioState.failed` and `ChatStrings.voicePlaybackFailed`: a voice
+  message that cannot be loaded or played shows an error state with a retry
+  instead of spinning forever.
+* `ChatStrings` gained `transcriptLabel`, `transcribing` and
+  `transcriptUnavailable` in all five languages.
+* **Fixed:** the loading spinner never stopped when loading failed.
+* **Fixed:** tapping play after the recording had ended did nothing; it now
+  restarts from the beginning.
+* **Fixed:** the speed chip showed 1x while the player kept the previous
+  speed; the chosen speed now carries over to the next voice message.
+* **Fixed:** recordings longer than an hour showed wrong minutes.
+* **Fixed:** the speed chip always used a decimal comma; it now follows the
+  language.
+* The `playing` state is now set before a possibly blocking `resume()`
+  (just_audio's `play()` completes only when playback stops), and late results
+  of a voice message that has been replaced by another are dropped.
+
 ## 0.22.0
 
 * Voice messages. `VoiceBubble` renders an `AttachmentKind.audio` attachment as

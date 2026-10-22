@@ -148,4 +148,31 @@ void main() {
     expect(unveraendert.headline, 'Betreff');
     expect(unveraendert.channel, const ChatChannel.sms());
   });
+
+  test('transcriptState: Standard null, copyWith setzt und leert', () {
+    final m = basis();
+    expect(m.transcriptState, isNull);
+    final mit = m.copyWith(transcriptState: ChatTranscriptState.pending);
+    expect(mit.transcriptState, ChatTranscriptState.pending);
+    expect(mit.copyWith(text: 'x').transcriptState, ChatTranscriptState.pending);
+    expect(mit.copyWith(clearTranscriptState: true).transcriptState, isNull);
+    expect(
+      () => mit.copyWith(
+        transcriptState: ChatTranscriptState.done,
+        clearTranscriptState: true,
+      ),
+      throwsAssertionError,
+    );
+  });
+
+  test('transcriptState zählt bei == und hashCode', () {
+    final a = basis().copyWith(transcriptState: ChatTranscriptState.done);
+    final b = basis().copyWith(transcriptState: ChatTranscriptState.done);
+    expect(a, b);
+    expect(a.hashCode, b.hashCode);
+    expect(a == basis(), isFalse);
+    expect(
+        a == basis().copyWith(transcriptState: ChatTranscriptState.pending),
+        isFalse);
+  });
 }

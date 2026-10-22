@@ -345,7 +345,37 @@ class _MessageBubbleState extends State<MessageBubble> {
                 ),
               ),
             ),
-          if (message.text.isNotEmpty)
+          if (message.transcriptState == ChatTranscriptState.pending ||
+              message.transcriptState == ChatTranscriptState.unavailable)
+            Padding(
+              padding: hasMedia
+                  ? const EdgeInsets.fromLTRB(8, 6, 8, 0)
+                  : EdgeInsets.zero,
+              child: Text(
+                message.transcriptState == ChatTranscriptState.pending
+                    ? strings.transcribing
+                    : strings.transcriptUnavailable,
+                style: theme.typography.body.copyWith(
+                  color: ink.muted,
+                  fontStyle:
+                      message.transcriptState == ChatTranscriptState.pending
+                      ? FontStyle.italic
+                      : null,
+                ),
+              ),
+            ),
+          if (message.transcriptState == ChatTranscriptState.done &&
+              message.text.isNotEmpty)
+            Padding(
+              padding: EdgeInsets.fromLTRB(hasMedia ? 8 : 0, 6, 8, 0),
+              child: Text(
+                strings.transcriptLabel,
+                style: theme.typography.timestamp.copyWith(color: ink.muted),
+              ),
+            ),
+          if (message.text.isNotEmpty &&
+              message.transcriptState != ChatTranscriptState.pending &&
+              message.transcriptState != ChatTranscriptState.unavailable)
             Padding(
               padding: hasMedia
                   ? const EdgeInsets.fromLTRB(8, 6, 8, 0)

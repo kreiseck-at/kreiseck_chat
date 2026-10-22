@@ -24,6 +24,9 @@ class ChatStrings {
     required this.voiceMessage,
     required this.playbackSpeed,
     required this.voicePlaybackFailed,
+    required this.transcriptLabel,
+    required this.transcribing,
+    required this.transcriptUnavailable,
     required this.typing,
     required this.spam,
     required this.subject,
@@ -99,6 +102,15 @@ class ChatStrings {
 
   /// Label shown when a voice message could not be played.
   final String voicePlaybackFailed;
+
+  /// Small label above the written-out text of a voice message.
+  final String transcriptLabel;
+
+  /// Shown in place of the text while a voice message is being transcribed.
+  final String transcribing;
+
+  /// Shown when a voice message has no transcript and will not get one.
+  final String transcriptUnavailable;
 
   /// Presence line while someone is typing.
   final String typing;
@@ -215,6 +227,9 @@ class ChatStrings {
       voiceMessage = 'Voice message',
       playbackSpeed = 'Playback speed',
       voicePlaybackFailed = "Can't play",
+      transcriptLabel = 'Transcript',
+      transcribing = 'Transcribing…',
+      transcriptUnavailable = 'No transcript',
       typing = 'typing…',
       spam = 'Spam',
       subject = 'Subject',
@@ -265,6 +280,9 @@ class ChatStrings {
       voiceMessage = 'Sprachnachricht',
       playbackSpeed = 'Wiedergabetempo',
       voicePlaybackFailed = 'Kann nicht abgespielt werden',
+      transcriptLabel = 'Abschrift',
+      transcribing = 'Wird abgeschrieben …',
+      transcriptUnavailable = 'Keine Abschrift',
       typing = 'tippt…',
       spam = 'Spam',
       subject = 'Betreff',
@@ -315,6 +333,9 @@ class ChatStrings {
       voiceMessage = 'Glasovna poruka',
       playbackSpeed = 'Brzina reprodukcije',
       voicePlaybackFailed = 'Nije moguće reproducirati',
+      transcriptLabel = 'Prijepis',
+      transcribing = 'Prepisivanje…',
+      transcriptUnavailable = 'Nema prijepisa',
       typing = 'piše…',
       spam = 'Neželjeno',
       subject = 'Predmet',
@@ -364,6 +385,9 @@ class ChatStrings {
       voiceMessage = 'Sesli mesaj',
       playbackSpeed = 'Oynatma hızı',
       voicePlaybackFailed = 'Oynatılamıyor',
+      transcriptLabel = 'Metin dökümü',
+      transcribing = 'Metne dökülüyor…',
+      transcriptUnavailable = 'Metin dökümü yok',
       typing = 'yazıyor…',
       spam = 'Spam',
       subject = 'Konu',
@@ -418,6 +442,9 @@ class ChatStrings {
       voiceMessage = 'Голосове повідомлення',
       playbackSpeed = 'Швидкість відтворення',
       voicePlaybackFailed = 'Не вдається відтворити',
+      transcriptLabel = 'Розшифровка',
+      transcribing = 'Розшифровується…',
+      transcriptUnavailable = 'Немає розшифровки',
       typing = 'пише…',
       spam = 'Спам',
       subject = 'Тема',
@@ -492,6 +519,9 @@ class ChatStrings {
     String? voiceMessage,
     String? playbackSpeed,
     String? voicePlaybackFailed,
+    String? transcriptLabel,
+    String? transcribing,
+    String? transcriptUnavailable,
     String? typing,
     String? spam,
     String? subject,
@@ -540,6 +570,9 @@ class ChatStrings {
       voiceMessage: voiceMessage ?? this.voiceMessage,
       playbackSpeed: playbackSpeed ?? this.playbackSpeed,
       voicePlaybackFailed: voicePlaybackFailed ?? this.voicePlaybackFailed,
+      transcriptLabel: transcriptLabel ?? this.transcriptLabel,
+      transcribing: transcribing ?? this.transcribing,
+      transcriptUnavailable: transcriptUnavailable ?? this.transcriptUnavailable,
       typing: typing ?? this.typing,
       spam: spam ?? this.spam,
       subject: subject ?? this.subject,
@@ -594,6 +627,9 @@ class ChatStrings {
         other.voiceMessage == voiceMessage &&
         other.playbackSpeed == playbackSpeed &&
         other.voicePlaybackFailed == voicePlaybackFailed &&
+        other.transcriptLabel == transcriptLabel &&
+        other.transcribing == transcribing &&
+        other.transcriptUnavailable == transcriptUnavailable &&
         other.typing == typing &&
         other.spam == spam &&
         other.subject == subject &&
@@ -626,6 +662,9 @@ class ChatStrings {
     voiceMessage,
     playbackSpeed,
     voicePlaybackFailed,
+    transcriptLabel,
+    transcribing,
+    transcriptUnavailable,
     typing,
     spam,
     subject,

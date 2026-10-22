@@ -868,4 +868,92 @@ void main() {
     ));
     expect(find.text('Файл'), findsOneWidget);
   });
+
+  group('Abschrift', () {
+    ChatMessage sprach({
+      String text = '',
+      ChatTranscriptState? state,
+      ChatTranslation? translation,
+    }) =>
+        ChatMessage(
+          id: 'v1',
+          direction: MessageDirection.incoming,
+          text: text,
+          at: DateTime(2026, 10, 21, 9),
+          attachments: const [
+            ChatAttachment(
+              kind: AttachmentKind.audio,
+              url: 'https://x/a.ogg',
+              duration: Duration(seconds: 12),
+            ),
+          ],
+          transcriptState: state,
+          translation: translation,
+        );
+
+    Future<void> zeige(WidgetTester tester, ChatMessage msg) =>
+        tester.pumpWidget(MaterialApp(
+          home: Scaffold(
+            body: MessageBubble(message: msg, strings: const ChatStrings.de()),
+          ),
+        ));
+
+    testWidgets('done zeigt Label und Text', (tester) async {
+      await zeige(
+        tester,
+        sprach(
+          text: 'Hallo, ich komme zehn Minuten später',
+          state: ChatTranscriptState.done,
+        ),
+      );
+      expect(find.text('Abschrift'), findsOneWidget);
+      expect(find.text('Hallo, ich komme zehn Minuten später'), findsOneWidget);
+      expect(
+        tester.getTopLeft(find.text('Abschrift')).dy,
+        lessThan(
+          tester.getTopLeft(find.text('Hallo, ich komme zehn Minuten später')).dy,
+        ),
+      );
+    });
+
+    testWidgets('pending zeigt nur den Hinweis', (tester) async {
+      await zeige(tester, sprach(state: ChatTranscriptState.pending));
+      expect(find.text('Wird abgeschrieben …'), findsOneWidget);
+      expect(find.text('Abschrift'), findsNothing);
+    });
+
+    testWidgets('unavailable zeigt den Hinweis', (tester) async {
+      await zeige(tester, sprach(state: ChatTranscriptState.unavailable));
+      expect(find.text('Keine Abschrift'), findsOneWidget);
+    });
+
+    testWidgets('done mit Übersetzung: Umschalter geht, Label bleibt',
+        (tester) async {
+      await zeige(
+        tester,
+        sprach(
+          text: 'Привіт',
+          state: ChatTranscriptState.done,
+          translation: const ChatTranslation(
+            text: 'Hallo dort',
+            languageLabel: 'DE',
+          ),
+        ),
+      );
+      expect(find.text('Привіт'), findsOneWidget);
+      await tester.tap(find.text('Привіт'));
+      await tester.pump();
+      expect(find.text('Hallo dort'), findsOneWidget);
+      expect(find.text('Abschrift'), findsOneWidget);
+    });
+
+    testWidgets('ohne transcriptState kein Label und kein Hinweis',
+        (tester) async {
+      await zeige(tester, sprach(text: 'Getippt'));
+      expect(find.text('Abschrift'), findsNothing);
+      expect(find.text('Wird abgeschrieben …'), findsNothing);
+      expect(find.text('Keine Abschrift'), findsNothing);
+      expect(find.text('Getippt'), findsOneWidget);
+    });
+  });
 }
