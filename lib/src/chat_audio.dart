@@ -112,6 +112,10 @@ class ChatAudioPlayback {
 abstract class ChatAudioPlaybackController extends ChangeNotifier {
   ChatAudioPlayback? _current;
 
+  // Zaehlt Ladevorgaenge; verspaetete Ergebnisse eines aelteren Ladens werden
+  // so verworfen.
+  int _generation = 0;
+
   /// What is loaded right now, or null if nothing ever was.
   ChatAudioPlayback? get current => _current;
 
@@ -135,9 +139,12 @@ abstract class ChatAudioPlaybackController extends ChangeNotifier {
   }) async {
     if (isActive(messageId, attachmentIndex)) {
       final c = _current!;
+      final gen = _generation;
       if (c.state == ChatAudioState.playing) {
         await pause();
-        _set(_current!.copyWith(state: ChatAudioState.paused));
+        if (_still(messageId, attachmentIndex, gen)) {
+          _set(_current!.copyWith(state: ChatAudioState.paused));
+        }
         return;
       }
       if (c.state == ChatAudioState.failed) {
@@ -148,12 +155,17 @@ abstract class ChatAudioPlaybackController extends ChangeNotifier {
       try {
         // Nach dem Ende steht der Player hinten; ohne Zurueckspulen spielt er
         // nichts. (Position 0 + idle ist der Zustand nach reportEnded.)
-        if (c.state == ChatAudioState.idle) await seekSource(Duration.zero);
-        await resume();
-        _set(_current!.copyWith(state: ChatAudioState.playing));
+        if (c.state == ChatAudioState.idle) {
+          await seekSource(Duration.zero);
+          if (!_still(messageId, attachmentIndex, gen)) return;
+        }
       } catch (_) {
-        _set(_current!.copyWith(state: ChatAudioState.failed));
+        if (_still(messageId, attachmentIndex, gen)) {
+          _set(_current!.copyWith(state: ChatAudioState.failed));
+        }
+        return;
       }
+      await _play(messageId, attachmentIndex, gen);
       return;
     }
     if (_current != null && _current!.state == ChatAudioState.playing) {
@@ -162,12 +174,32 @@ abstract class ChatAudioPlaybackController extends ChangeNotifier {
     await _load(messageId, url, attachmentIndex, _current?.speed ?? 1.0);
   }
 
+  /// Whether the attachment loaded right now is still the one a pending
+  /// operation started on (same attachment, no newer load in between).
+  bool _still(String messageId, int attachmentIndex, int gen) =>
+      gen == _generation && isActive(messageId, attachmentIndex);
+
+  /// Marks the attachment as playing, then starts the player. [resume] may
+  /// complete only when playback stops (just_audio's `play()` does), so the
+  /// state is set first and a normal return writes nothing.
+  Future<void> _play(String messageId, int attachmentIndex, int gen) async {
+    _set(_current!.copyWith(state: ChatAudioState.playing));
+    try {
+      await resume();
+    } catch (_) {
+      if (_still(messageId, attachmentIndex, gen)) {
+        _set(_current!.copyWith(state: ChatAudioState.failed));
+      }
+    }
+  }
+
   Future<void> _load(
     String messageId,
     String url,
     int attachmentIndex,
     double speed,
   ) async {
+    final gen = ++_generation;
     _set(
       ChatAudioPlayback(
         messageId: messageId,
@@ -179,27 +211,41 @@ abstract class ChatAudioPlaybackController extends ChangeNotifier {
     try {
       await loadSource(url);
       // Das Tempo wandert mit: der Player behaelt es sonst vom Vorgaenger.
-      if (speed != 1.0) await applySpeed(speed);
-      await resume();
-      _set(_current!.copyWith(state: ChatAudioState.playing));
+      if (_still(messageId, attachmentIndex, gen) && speed != 1.0) {
+        await applySpeed(speed);
+      }
     } catch (_) {
-      _set(_current!.copyWith(state: ChatAudioState.failed));
+      if (_still(messageId, attachmentIndex, gen)) {
+        _set(_current!.copyWith(state: ChatAudioState.failed));
+      }
+      return;
     }
+    // Eine neuere Nachricht hat uebernommen: Ergebnis verwerfen.
+    if (!_still(messageId, attachmentIndex, gen)) return;
+    await _play(messageId, attachmentIndex, gen);
   }
 
   /// Jumps to [position] within the loaded attachment. No-op when nothing is
   /// loaded.
   Future<void> seek(Duration position) async {
-    if (_current == null) return;
+    final c = _current;
+    if (c == null) return;
+    final gen = _generation;
     await seekSource(position);
-    _set(_current!.copyWith(position: position));
+    if (_still(c.messageId, c.attachmentIndex, gen)) {
+      _set(_current!.copyWith(position: position));
+    }
   }
 
   /// Sets the playback rate. No-op when nothing is loaded.
   Future<void> setSpeed(double speed) async {
-    if (_current == null) return;
+    final c = _current;
+    if (c == null) return;
+    final gen = _generation;
     await applySpeed(speed);
-    _set(_current!.copyWith(speed: speed));
+    if (_still(c.messageId, c.attachmentIndex, gen)) {
+      _set(_current!.copyWith(speed: speed));
+    }
   }
 
   /// Feed the player's position stream in here.
@@ -234,6 +280,10 @@ abstract class ChatAudioPlaybackController extends ChangeNotifier {
   Future<void> loadSource(String url);
 
   /// Start or continue playback of the loaded source.
+  ///
+  /// The returned future may complete only when playback stops (as with
+  /// just_audio's `play()`); the controller never relies on it returning
+  /// early. Throwing marks the attachment as failed.
   @protected
   Future<void> resume();
 

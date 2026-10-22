@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kreiseck_chat/kreiseck_chat.dart';
 
@@ -7,16 +9,20 @@ class _FakeController extends ChatAudioPlaybackController {
   final List<String> calls = [];
   bool failLoad = false;
   bool failResume = false;
+  Future<void>? resumeGate;
+  Future<void>? loadGate;
 
   @override
   Future<void> loadSource(String url) async {
     calls.add('load:$url');
+    if (loadGate != null) await loadGate;
     if (failLoad) throw StateError('laden');
   }
 
   @override
   Future<void> resume() async {
     calls.add('resume');
+    if (resumeGate != null) await resumeGate;
     if (failResume) throw StateError('abspielen');
   }
 
@@ -32,6 +38,46 @@ class _FakeController extends ChatAudioPlaybackController {
 }
 
 void main() {
+  test('blockierendes resume: playing waehrend es aussteht, Ende bleibt idle', () async {
+    final gate = Completer<void>();
+    final c = _FakeController()..resumeGate = gate.future;
+    final f = c.toggle('m1', 'https://x/a.ogg');
+    await pumpEventQueue();
+    expect(c.current!.state, ChatAudioState.playing);
+    c.reportEnded();
+    expect(c.current!.state, ChatAudioState.idle);
+    gate.complete();
+    await f;
+    expect(c.current!.state, ChatAudioState.idle);
+  });
+
+  test('blockierendes resume wirft spaeter → failed', () async {
+    final gate = Completer<void>();
+    final c = _FakeController()..resumeGate = gate.future;
+    final f = c.toggle('m1', 'https://x/a.ogg');
+    await pumpEventQueue();
+    expect(c.current!.state, ChatAudioState.playing);
+    gate.completeError(StateError('abspielen'));
+    await f;
+    expect(c.current!.state, ChatAudioState.failed);
+  });
+
+  test('verspaetetes Laden von A ueberschreibt B nicht', () async {
+    final gate = Completer<void>();
+    final c = _FakeController()..loadGate = gate.future;
+    final a = c.toggle('a', 'https://x/a.ogg');
+    await pumpEventQueue();
+    c.loadGate = null;
+    await c.toggle('b', 'https://x/b.ogg');
+    expect(c.current!.messageId, 'b');
+    c.calls.clear();
+    gate.complete();
+    await a;
+    expect(c.current!.messageId, 'b');
+    expect(c.current!.state, ChatAudioState.playing);
+    expect(c.calls, isEmpty);
+  });
+
   test('toggle: loadSource wirft → state failed, kein Rethrow', () async {
     final c = _FakeController()..failLoad = true;
     await c.toggle('m1', 'https://x/a.ogg');
