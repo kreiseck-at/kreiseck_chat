@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kreiseck_chat/kreiseck_chat.dart';
 
+import 'locale_host.dart';
+
 ChatAttachment _voice() => const ChatAttachment(
       kind: AttachmentKind.audio,
       url: 'https://x/a.ogg',
@@ -184,5 +186,65 @@ void main() {
     )));
     expect(find.byType(VoiceBubble), findsOneWidget);
     expect(find.byIcon(Icons.insert_drive_file_outlined), findsNothing);
+  });
+
+  testWidgets('Dauer ueber eine Stunde', (tester) async {
+    await tester.pumpWidget(_host(VoiceBubble(
+      attachment: _voice(),
+      messageId: 'm1',
+      attachmentIndex: 0,
+      theme: const ChatTheme.light(),
+      ink: const ChatTheme.light().colors.incomingText,
+      playback: const ChatAudioPlayback(
+        messageId: 'm1',
+        duration: Duration(minutes: 75, seconds: 3),
+      ),
+    )));
+    expect(find.text('75:03'), findsOneWidget);
+  });
+
+  for (final (locale, text) in [
+    (const Locale('en'), '1.5×'),
+    (const Locale('de'), '1,5×'),
+  ]) {
+    testWidgets('Tempo-Chip folgt der Sprache ${locale.languageCode}', (tester) async {
+      await tester.pumpWidget(localeHost(
+        VoiceBubble(
+          attachment: _voice(),
+          messageId: 'm1',
+          attachmentIndex: 0,
+          theme: const ChatTheme.light(),
+          ink: const ChatTheme.light().colors.incomingText,
+          onSpeed: (_) {},
+          playback: const ChatAudioPlayback(
+            messageId: 'm1',
+            state: ChatAudioState.paused,
+            speed: 1.5,
+          ),
+        ),
+        locale: locale,
+      ));
+      expect(find.text(text), findsOneWidget);
+    });
+  }
+
+  testWidgets('failed zeigt Fehlersymbol und Text', (tester) async {
+    var taps = 0;
+    await tester.pumpWidget(_host(VoiceBubble(
+      attachment: _voice(),
+      messageId: 'm1',
+      attachmentIndex: 0,
+      theme: const ChatTheme.light(),
+      ink: const ChatTheme.light().colors.incomingText,
+      onToggle: () => taps++,
+      playback: const ChatAudioPlayback(
+        messageId: 'm1',
+        state: ChatAudioState.failed,
+      ),
+    )));
+    expect(find.byIcon(Icons.error_outline_rounded), findsOneWidget);
+    expect(find.byTooltip(const ChatStrings.en().voicePlaybackFailed), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.error_outline_rounded));
+    expect(taps, 1);
   });
 }

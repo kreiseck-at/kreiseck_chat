@@ -5,12 +5,20 @@ import 'package:kreiseck_chat/kreiseck_chat.dart';
 /// wurde. Damit ist die Regel „nur eine laeuft" ohne Plattform-Plugin pruefbar.
 class _FakeController extends ChatAudioPlaybackController {
   final List<String> calls = [];
+  bool failLoad = false;
+  bool failResume = false;
 
   @override
-  Future<void> loadSource(String url) async => calls.add('load:$url');
+  Future<void> loadSource(String url) async {
+    calls.add('load:$url');
+    if (failLoad) throw StateError('laden');
+  }
 
   @override
-  Future<void> resume() async => calls.add('resume');
+  Future<void> resume() async {
+    calls.add('resume');
+    if (failResume) throw StateError('abspielen');
+  }
 
   @override
   Future<void> pause() async => calls.add('pause');
@@ -24,6 +32,51 @@ class _FakeController extends ChatAudioPlaybackController {
 }
 
 void main() {
+  test('toggle: loadSource wirft → state failed, kein Rethrow', () async {
+    final c = _FakeController()..failLoad = true;
+    await c.toggle('m1', 'https://x/a.ogg');
+    expect(c.current!.state, ChatAudioState.failed);
+  });
+
+  test('toggle: resume wirft → state failed', () async {
+    final c = _FakeController()..failResume = true;
+    await c.toggle('m1', 'https://x/a.ogg');
+    expect(c.current!.state, ChatAudioState.failed);
+  });
+
+  test('toggle nach failed versucht es erneut', () async {
+    final c = _FakeController()..failLoad = true;
+    await c.toggle('m1', 'https://x/a.ogg');
+    c.failLoad = false;
+    c.calls.clear();
+    await c.toggle('m1', 'https://x/a.ogg');
+    expect(c.calls, ['load:https://x/a.ogg', 'resume']);
+    expect(c.current!.state, ChatAudioState.playing);
+  });
+
+  test('toggle nach reportEnded spult auf 0 zurueck', () async {
+    final c = _FakeController();
+    await c.toggle('m1', 'https://x/a.ogg');
+    c.reportEnded();
+    c.calls.clear();
+    await c.toggle('m1', 'https://x/a.ogg');
+    expect(c.calls, ['seek:0', 'resume']);
+    expect(c.current!.state, ChatAudioState.playing);
+  });
+
+  test('neue Nachricht uebernimmt das Tempo', () async {
+    final c = _FakeController();
+    await c.toggle('m1', 'https://x/a.ogg');
+    await c.setSpeed(1.5);
+    c.calls.clear();
+    await c.toggle('m2', 'https://x/b.ogg');
+    expect(c.current!.speed, 1.5);
+    expect(
+      c.calls.indexOf('speed:1.5'),
+      greaterThan(c.calls.indexOf('load:https://x/b.ogg')),
+    );
+  });
+
   test('ChatAudioPlayback: copyWith ersetzt nur das Angegebene', () {
     const a = ChatAudioPlayback(messageId: 'm1');
     final b = a.copyWith(state: ChatAudioState.playing, position: const Duration(seconds: 3));

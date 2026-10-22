@@ -147,8 +147,11 @@ void main() {
     for (final s in presets) {
       expect(s.voiceMessage.trim(), isNotEmpty);
       expect(s.playbackSpeed.trim(), isNotEmpty);
+      expect(s.voicePlaybackFailed.trim(), isNotEmpty);
     }
     expect(const ChatStrings.de().voiceMessage, 'Sprachnachricht');
     expect(const ChatStrings.en().voiceMessage, 'Voice message');
+    expect(const ChatStrings.en().voicePlaybackFailed, "Can't play");
+    expect(const ChatStrings.de().voicePlaybackFailed, 'Kann nicht abgespielt werden');
   });
 }

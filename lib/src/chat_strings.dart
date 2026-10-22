@@ -23,6 +23,7 @@ class ChatStrings {
     required this.file,
     required this.voiceMessage,
     required this.playbackSpeed,
+    required this.voicePlaybackFailed,
     required this.typing,
     required this.spam,
     required this.subject,
@@ -95,6 +96,9 @@ class ChatStrings {
 
   /// Label for the voice bubble's playback-rate control.
   final String playbackSpeed;
+
+  /// Label shown when a voice message could not be played.
+  final String voicePlaybackFailed;
 
   /// Presence line while someone is typing.
   final String typing;
@@ -210,6 +214,7 @@ class ChatStrings {
       file = 'File',
       voiceMessage = 'Voice message',
       playbackSpeed = 'Playback speed',
+      voicePlaybackFailed = "Can't play",
       typing = 'typing…',
       spam = 'Spam',
       subject = 'Subject',
@@ -259,6 +264,7 @@ class ChatStrings {
       file = 'Datei',
       voiceMessage = 'Sprachnachricht',
       playbackSpeed = 'Wiedergabetempo',
+      voicePlaybackFailed = 'Kann nicht abgespielt werden',
       typing = 'tippt…',
       spam = 'Spam',
       subject = 'Betreff',
@@ -308,6 +314,7 @@ class ChatStrings {
       file = 'Datoteka',
       voiceMessage = 'Glasovna poruka',
       playbackSpeed = 'Brzina reprodukcije',
+      voicePlaybackFailed = 'Nije moguće reproducirati',
       typing = 'piše…',
       spam = 'Neželjeno',
       subject = 'Predmet',
@@ -356,6 +363,7 @@ class ChatStrings {
       file = 'Dosya',
       voiceMessage = 'Sesli mesaj',
       playbackSpeed = 'Oynatma hızı',
+      voicePlaybackFailed = 'Oynatılamıyor',
       typing = 'yazıyor…',
       spam = 'Spam',
       subject = 'Konu',
@@ -409,6 +417,7 @@ class ChatStrings {
       file = 'Файл',
       voiceMessage = 'Голосове повідомлення',
       playbackSpeed = 'Швидкість відтворення',
+      voicePlaybackFailed = 'Не вдається відтворити',
       typing = 'пише…',
       spam = 'Спам',
       subject = 'Тема',
@@ -482,6 +491,7 @@ class ChatStrings {
     String? file,
     String? voiceMessage,
     String? playbackSpeed,
+    String? voicePlaybackFailed,
     String? typing,
     String? spam,
     String? subject,
@@ -529,6 +539,7 @@ class ChatStrings {
       file: file ?? this.file,
       voiceMessage: voiceMessage ?? this.voiceMessage,
       playbackSpeed: playbackSpeed ?? this.playbackSpeed,
+      voicePlaybackFailed: voicePlaybackFailed ?? this.voicePlaybackFailed,
       typing: typing ?? this.typing,
       spam: spam ?? this.spam,
       subject: subject ?? this.subject,
@@ -582,6 +593,7 @@ class ChatStrings {
         other.file == file &&
         other.voiceMessage == voiceMessage &&
         other.playbackSpeed == playbackSpeed &&
+        other.voicePlaybackFailed == voicePlaybackFailed &&
         other.typing == typing &&
         other.spam == spam &&
         other.subject == subject &&
@@ -613,6 +625,7 @@ class ChatStrings {
     file,
     voiceMessage,
     playbackSpeed,
+    voicePlaybackFailed,
     typing,
     spam,
     subject,

@@ -13,6 +13,9 @@ enum ChatAudioState {
 
   /// Loaded and stopped, position kept.
   paused,
+
+  /// Loading or starting playback threw. Tapping again retries.
+  failed,
 }
 
 /// The playback state of exactly one voice attachment.
@@ -131,28 +134,57 @@ abstract class ChatAudioPlaybackController extends ChangeNotifier {
     int attachmentIndex = 0,
   }) async {
     if (isActive(messageId, attachmentIndex)) {
-      if (_current!.state == ChatAudioState.playing) {
+      final c = _current!;
+      if (c.state == ChatAudioState.playing) {
         await pause();
         _set(_current!.copyWith(state: ChatAudioState.paused));
-      } else {
+        return;
+      }
+      if (c.state == ChatAudioState.failed) {
+        // Neu laden: die Quelle ist womoeglich gar nicht erst angekommen.
+        await _load(messageId, url, attachmentIndex, c.speed);
+        return;
+      }
+      try {
+        // Nach dem Ende steht der Player hinten; ohne Zurueckspulen spielt er
+        // nichts. (Position 0 + idle ist der Zustand nach reportEnded.)
+        if (c.state == ChatAudioState.idle) await seekSource(Duration.zero);
         await resume();
         _set(_current!.copyWith(state: ChatAudioState.playing));
+      } catch (_) {
+        _set(_current!.copyWith(state: ChatAudioState.failed));
       }
       return;
     }
     if (_current != null && _current!.state == ChatAudioState.playing) {
       await pause();
     }
+    await _load(messageId, url, attachmentIndex, _current?.speed ?? 1.0);
+  }
+
+  Future<void> _load(
+    String messageId,
+    String url,
+    int attachmentIndex,
+    double speed,
+  ) async {
     _set(
       ChatAudioPlayback(
         messageId: messageId,
         attachmentIndex: attachmentIndex,
         state: ChatAudioState.loading,
+        speed: speed,
       ),
     );
-    await loadSource(url);
-    await resume();
-    _set(_current!.copyWith(state: ChatAudioState.playing));
+    try {
+      await loadSource(url);
+      // Das Tempo wandert mit: der Player behaelt es sonst vom Vorgaenger.
+      if (speed != 1.0) await applySpeed(speed);
+      await resume();
+      _set(_current!.copyWith(state: ChatAudioState.playing));
+    } catch (_) {
+      _set(_current!.copyWith(state: ChatAudioState.failed));
+    }
   }
 
   /// Jumps to [position] within the loaded attachment. No-op when nothing is

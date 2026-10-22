@@ -78,7 +78,7 @@ class VoiceBubble extends StatelessWidget {
 
   static String _clock(Duration? d) {
     if (d == null) return '--:--';
-    final minutes = d.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final minutes = d.inMinutes.toString().padLeft(2, '0');
     final seconds = d.inSeconds.remainder(60).toString().padLeft(2, '0');
     return '$minutes:$seconds';
   }
@@ -149,7 +149,7 @@ class VoiceBubble extends StatelessWidget {
                           style: theme.typography.timestamp.copyWith(color: ink),
                         ),
                         const Spacer(),
-                        if (_isMine && onSpeed != null) _speedChip(s),
+                        if (_isMine && onSpeed != null) _speedChip(context, s),
                       ],
                     ),
                   ),
@@ -173,6 +173,17 @@ class VoiceBubble extends StatelessWidget {
         ),
       );
     }
+    if (_state == ChatAudioState.failed) {
+      return IconButton(
+        iconSize: 28,
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints.tightFor(width: 36, height: 36),
+        color: ink,
+        tooltip: s.voicePlaybackFailed,
+        icon: const Icon(Icons.error_outline_rounded),
+        onPressed: onToggle,
+      );
+    }
     final playing = _state == ChatAudioState.playing;
     return IconButton(
       iconSize: 28,
@@ -185,13 +196,16 @@ class VoiceBubble extends StatelessWidget {
     );
   }
 
-  Widget _speedChip(ChatStrings s) {
+  Widget _speedChip(BuildContext context, ChatStrings s) {
     final current = playback!.speed;
     final index = speeds.indexWhere((v) => (v - current).abs() < 0.01);
     final next = speeds[(index < 0 ? 0 : index + 1) % speeds.length];
+    // Dezimaltrenner nach Sprache: Komma in de/hr/tr/uk, sonst Punkt.
+    final comma = const {'de', 'hr', 'tr', 'uk'}
+        .contains(Localizations.localeOf(context).languageCode);
     final text = current == current.roundToDouble()
         ? '${current.toStringAsFixed(0)}×'
-        : '${current.toStringAsFixed(1).replaceAll('.', ',')}×';
+        : '${current.toStringAsFixed(1).replaceAll('.', comma ? ',' : '.')}×';
     return InkWell(
       onTap: () => onSpeed!(next),
       borderRadius: BorderRadius.circular(10),
