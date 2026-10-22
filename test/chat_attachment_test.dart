@@ -130,4 +130,15 @@ void main() {
     );
     expect(ChatAttachment.fromJson(a.toJson()), equals(a));
   });
+
+  test('fromJson reads durationMs as int or double', () {
+    for (final ms in <num>[1500, 1500.0]) {
+      final a = ChatAttachment.fromJson({
+        'kind': 'audio',
+        'url': 'https://x/a.m4a',
+        'durationMs': ms,
+      });
+      expect(a.duration, const Duration(milliseconds: 1500));
+    }
+  });
 }

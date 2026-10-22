@@ -16,6 +16,10 @@
   instead of spinning forever.
 * `ChatStrings` gained `transcriptLabel`, `transcribing` and
   `transcriptUnavailable` in all five languages.
+* **Breaking (source):** `ChatStrings` gained the required constructor
+  parameters `voicePlaybackFailed`, `transcriptLabel`, `transcribing` and
+  `transcriptUnavailable`. Hosts that construct `ChatStrings(...)` directly
+  must pass them; the built-in presets are unaffected.
 * **Fixed:** the loading spinner never stopped when loading failed.
 * **Fixed:** tapping play after the recording had ended did nothing; it now
   restarts from the beginning.

@@ -207,8 +207,10 @@ class VoiceBubble extends StatelessWidget {
     final index = speeds.indexWhere((v) => (v - current).abs() < 0.01);
     final next = speeds[(index < 0 ? 0 : index + 1) % speeds.length];
     // Dezimaltrenner nach Sprache: Komma in de/hr/tr/uk, sonst Punkt.
+    // ChatStrings carries no locale, so a `strings` override does not change
+    // the separator; it follows the ambient locale (point without one).
     final comma = const {'de', 'hr', 'tr', 'uk'}
-        .contains(Localizations.localeOf(context).languageCode);
+        .contains(Localizations.maybeLocaleOf(context)?.languageCode);
     final text = current == current.roundToDouble()
         ? '${current.toStringAsFixed(0)}×'
         : '${current.toStringAsFixed(1).replaceAll('.', comma ? ',' : '.')}×';

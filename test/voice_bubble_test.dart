@@ -274,6 +274,36 @@ void main() {
     });
   }
 
+  testWidgets('Tempo-Chip wirft ohne Localizations nicht und nimmt den Punkt', (tester) async {
+    await tester.pumpWidget(Directionality(
+      textDirection: TextDirection.ltr,
+      child: MediaQuery(
+        data: const MediaQueryData(),
+        child: Overlay(initialEntries: [
+          OverlayEntry(
+            builder: (_) => Material(
+              child: VoiceBubble(
+                attachment: _voice(),
+                messageId: 'm1',
+                attachmentIndex: 0,
+                theme: const ChatTheme.light(),
+                ink: const ChatTheme.light().colors.incomingText,
+                onSpeed: (_) {},
+                playback: const ChatAudioPlayback(
+                  messageId: 'm1',
+                  state: ChatAudioState.paused,
+                  speed: 1.5,
+                ),
+              ),
+            ),
+          ),
+        ]),
+      ),
+    ));
+    expect(tester.takeException(), isNull);
+    expect(find.text('1.5×'), findsOneWidget);
+  });
+
   testWidgets('failed zeigt Fehlersymbol und Text', (tester) async {
     var taps = 0;
     await tester.pumpWidget(_host(VoiceBubble(

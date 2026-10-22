@@ -69,7 +69,7 @@ class ChatAttachment {
       height: json['height'] as int?,
       duration: json['durationMs'] == null
           ? null
-          : Duration(milliseconds: json['durationMs'] as int),
+          : Duration(milliseconds: (json['durationMs'] as num).toInt()),
     );
   }
 
