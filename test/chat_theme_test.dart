@@ -31,6 +31,14 @@ void main() {
     expect(quiet.colors, base.colors);
   });
 
+  test('copyWith behält den imageProvider und kann ihn ersetzen', () {
+    ImageProvider eigen(String url) => const AssetImage('x.png');
+    final base = ChatTheme(imageProvider: eigen);
+    expect(base.copyWith(bubbleRadius: 4).imageProvider, same(eigen));
+    final anders = base.copyWith(imageProvider: cachedChatImage);
+    expect(anders.imageProvider, same(cachedChatImage));
+  });
+
   test('back-compat getters still resolve', () {
     const t = ChatTheme.light();
     expect(t.accentColor, isA<Color>());

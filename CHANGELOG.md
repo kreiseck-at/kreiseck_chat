@@ -1,3 +1,14 @@
+## 0.23.1
+
+* New `MessageBubble.showMeta` (default `true`, so nothing changes for
+  existing hosts). `false` leaves out the meta row in the bubble's corner —
+  channel badge, time and delivery status — entirely: no empty line, nothing
+  for screen readers. For hosts that show channel and time in a line of their
+  own, e.g. below the bubble. Text under a photo keeps a little bottom space.
+* **Fixed:** `ChatTheme.copyWith` dropped a custom `imageProvider` and fell
+  back to `cachedChatImage`; it now keeps it and can replace it
+  (`copyWith(imageProvider: ...)`).
+
 ## 0.23.0
 
 * Voice messages carry a known duration and a transcript state.

@@ -80,7 +80,9 @@ and `ChatConversation` and handling the `onSend`/`onOpen` callbacks.
   on follows `ChatTranslation.showFirst`). Pass `textBuilder` to draw the
   body yourself — e.g. linkified text — instead of a plain `Text`, and
   `ChatColors.incomingBubbleBorder` / `outgoingBubbleBorder` for a hairline
-  around bubbles whose fill is close to the background.
+  around bubbles whose fill is close to the background. `showMeta: false`
+  leaves out the meta row (channel badge, time, delivery status) entirely,
+  for hosts that show it elsewhere.
 * **`showChatImageViewer`** — opens images full screen: pinch to zoom, swipe
   between them, tap to close, counter when there is more than one. Wire it to
   `ChatThreadView.onOpenImages`; `ChatAvatar` calls it by itself when it

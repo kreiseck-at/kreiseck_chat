@@ -54,6 +54,84 @@ Widget _withLocale(Locale locale, Widget child) =>
     localeHost(child, locale: locale);
 
 void main() {
+  group('showMeta', () {
+    Future<Size> blase(WidgetTester tester, ChatMessage m,
+        {required bool meta}) async {
+      // In einer Spalte: die Höhe der Blase folgt ihrem Inhalt.
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: Column(
+            children: [
+              MessageBubble(
+                key: const ValueKey('b'),
+                message: m,
+                showMeta: meta,
+              ),
+            ],
+          ),
+        ),
+      ));
+      return tester.getSize(find.byKey(const ValueKey('b')));
+    }
+
+    testWidgets('false: keine Zeit, kein Haken, kein Kanal, nichts für Vorleser',
+        (tester) async {
+      final semantik = tester.ensureSemantics();
+      final m = _out('hallo', status: MessageStatus.read)
+          .copyWith(channel: const ChatChannel.whatsApp());
+      final mit = await blase(tester, m, meta: true);
+      expect(find.text('14:32'), findsOneWidget);
+      expect(find.byType(ChatChannelBadge), findsOneWidget);
+
+      final ohne = await blase(tester, m, meta: false);
+      expect(find.text('14:32'), findsNothing);
+      expect(find.byIcon(Icons.done_all), findsNothing);
+      expect(find.byType(ChatChannelBadge), findsNothing);
+      expect(find.bySemanticsLabel(RegExp('14:32')), findsNothing);
+      // Keine leere Zeile: die Blase wird um die Zeitzeile niedriger.
+      expect(ohne.height, lessThan(mit.height));
+      expect(find.text('hallo'), findsOneWidget);
+      semantik.dispose();
+    });
+
+    testWidgets('false mit Sprachnachricht: Ton bleibt, Zeitzeile fehlt',
+        (tester) async {
+      final m = ChatMessage(
+        id: 'v',
+        direction: MessageDirection.incoming,
+        text: '',
+        at: DateTime(2026, 7, 21, 14, 32),
+        attachments: const [
+          ChatAttachment(
+            kind: AttachmentKind.audio,
+            duration: Duration(seconds: 7),
+          ),
+        ],
+      );
+      final mit = await blase(tester, m, meta: true);
+      final ohne = await blase(tester, m, meta: false);
+      expect(find.byType(VoiceBubble), findsOneWidget);
+      expect(find.text('00:07'), findsOneWidget);
+      expect(find.text('14:32'), findsNothing);
+      expect(ohne.height, lessThan(mit.height));
+    });
+
+    testWidgets('false mit Foto und Text: Text bleibt, keine Zeit',
+        (tester) async {
+      await blase(tester, _withImages(1, text: 'Bon'), meta: false);
+      expect(find.text('Bon'), findsOneWidget);
+      expect(find.text('14:32'), findsNothing);
+    });
+
+    testWidgets('Standard bleibt: Zeitzeile wird gezeichnet', (tester) async {
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(body: MessageBubble(message: _out('hallo'))),
+      ));
+      expect(find.text('14:32'), findsOneWidget);
+      expect(find.byIcon(Icons.done_all), findsOneWidget);
+    });
+  });
+
   testWidgets('renders text and time', (tester) async {
     await tester.pumpWidget(MaterialApp(
       home: Scaffold(body: MessageBubble(message: _out('hallo'))),

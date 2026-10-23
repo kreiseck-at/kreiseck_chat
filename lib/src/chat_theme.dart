@@ -125,6 +125,7 @@ class ChatTheme {
     BubbleStyle? bubbleStyle,
     double? bubbleRadius,
     bool? showBubbleTail,
+    ChatImageProvider? imageProvider,
   }) {
     return ChatTheme(
       colors: colors ?? this.colors,
@@ -134,6 +135,7 @@ class ChatTheme {
       bubbleStyle: bubbleStyle ?? this.bubbleStyle,
       bubbleRadius: bubbleRadius ?? this.bubbleRadius,
       showBubbleTail: showBubbleTail ?? this.showBubbleTail,
+      imageProvider: imageProvider ?? this.imageProvider,
     );
   }
 

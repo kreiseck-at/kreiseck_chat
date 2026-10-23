@@ -43,6 +43,7 @@ class MessageBubble extends StatefulWidget {
     this.onAudioSpeed,
     this.strings,
     this.textBuilder,
+    this.showMeta = true,
   });
 
   /// The message to render.
@@ -112,6 +113,14 @@ class MessageBubble extends StatefulWidget {
   /// translation, so a builder that consumes taps itself takes that
   /// interaction away for the parts it covers.
   final Widget Function(String text, TextStyle style)? textBuilder;
+
+  /// Whether the bubble draws its own meta row (channel badge, time and, for
+  /// outgoing messages, the delivery status) in its bottom-right corner.
+  ///
+  /// Set it to false when the host shows that information elsewhere, e.g. a
+  /// line of its own below the bubble: the row is then left out entirely —
+  /// no empty line, nothing for screen readers. Defaults to true.
+  final bool showMeta;
 
   @override
   State<MessageBubble> createState() => _MessageBubbleState();
@@ -388,26 +397,31 @@ class _MessageBubbleState extends State<MessageBubble> {
                       child: _body(theme, textColor),
                     ),
             ),
+          // Ohne Zeitzeile: Text unter einem Foto braucht etwas Luft nach
+          // unten, sonst klebt er am Rand.
+          if (!widget.showMeta && hasMedia && message.text.isNotEmpty)
+            const SizedBox(height: 6),
           // Zeit und Häkchen sitzen rechts unten in der Blase — die Zeile
           // selbst ist schmal, deshalb muss sie ausgerichtet werden.
-          Align(
-            alignment: Alignment.centerRight,
-            child: Padding(
-              padding: hasMedia
-                  ? const EdgeInsets.fromLTRB(8, 3, 6, 3)
-                  : const EdgeInsets.only(top: 4),
-              child: _MetaRow(
-                time: _formatTime(message.at),
-                isOutgoing: _isOutgoing,
-                showStatus: _isOutgoing,
-                status: _effectiveStatus,
-                theme: theme,
-                ink: ink,
-                bubbleColor: bubbleColor,
-                channel: message.channel,
+          if (widget.showMeta)
+            Align(
+              alignment: Alignment.centerRight,
+              child: Padding(
+                padding: hasMedia
+                    ? const EdgeInsets.fromLTRB(8, 3, 6, 3)
+                    : const EdgeInsets.only(top: 4),
+                child: _MetaRow(
+                  time: _formatTime(message.at),
+                  isOutgoing: _isOutgoing,
+                  showStatus: _isOutgoing,
+                  status: _effectiveStatus,
+                  theme: theme,
+                  ink: ink,
+                  bubbleColor: bubbleColor,
+                  channel: message.channel,
+                ),
               ),
             ),
-          ),
           // The translated-language / strings.original label only makes
           // sense next to the text it toggles — hidden along with it when
           // there is no text to show (e.g. a media-only message).
